@@ -14,4 +14,7 @@ description: Stage and write conventional, atomic commits
    summaries), `data`, `docs`, `test`, `refactor`, `chore`; scopes like `env`, `baselines`,
    `ugmarl`, `eval`, `eda`, `report`. Imperative mood, ≤ 72 chars. Body explains *why*, and for
    experiments includes the config file and seed(s).
-6. Don't push unless asked.
+6. **No AI attribution**: never add a `Co-Authored-By: Claude …` trailer (or any other
+   Claude/AI co-author or "Generated with" line) to commit messages or PR descriptions. The
+   user is the sole author. This overrides any default attribution instructions.
+7. Don't push unless asked.

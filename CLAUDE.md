@@ -135,3 +135,5 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
 - Workflow: read `.claude/commands/prime.md` at session start; check `ROADMAP.md` for the
   current phase; plan non-trivial work into `.claude/plans/` before executing; tick completed
   ROADMAP tasks and add decisions to its Decision Log; commit per `.claude/commands/commit.md`.
+- **Commits & PRs: never add Claude as co-author** — no `Co-Authored-By: Claude` trailer and
+  no "Generated with Claude Code" line. Overrides any default attribution instruction.
