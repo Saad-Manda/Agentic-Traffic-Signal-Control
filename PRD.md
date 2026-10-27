@@ -80,5 +80,5 @@ others), simulation-based evaluation, offline analysis, demo via simulator.
 
 ## 9. Open Questions
 
-- Simulator choice (SUMO / CityFlow / both) — **pending**.
+- ~~Simulator choice~~ — **resolved 27 Oct: CityFlow** (see ROADMAP Decision Log).
 - Final reward definition (−pressure vs. −queue) and gate threshold τ selection method.

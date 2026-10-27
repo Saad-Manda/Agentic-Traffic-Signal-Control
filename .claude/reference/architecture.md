@@ -1,10 +1,21 @@
 # Architecture
 
-## Simulator layer — TODO (decision pending)
+## Simulator layer — CityFlow
 
-Options: SUMO + `sumo-rl` (native Windows, GUI) · CityFlow via WSL/Docker (fast, native
-Jinan/Hangzhou) · both via LibSignal. Whichever is chosen is wrapped by
-`src/trafficrl/envs/` so agents never call the simulator directly.
+CityFlow (C++ engine, Python bindings via `cityflow.Engine(config.json)`), built from source
+on Linux (native Ubuntu 24.04 + WSL2), commit pinned. Chosen over SUMO for speed, native
+Jinan/Hangzhou roadnet/flow files, and comparability with published CityFlow results.
+
+- Wrapped by `src/trafficrl/envs/` so agents never call the engine directly; the wrapper
+  builds the per-intersection obs, neighbor map, and enforces yellow / min-green.
+- Engine calls used: `get_lane_waiting_vehicle_count()` (queues), `get_lane_vehicle_count()`
+  (pressure = incoming − outgoing), `set_tl_phase(intersection_id, phase)`, `next_step()`,
+  `get_average_travel_time()`, `reset()` / `set_random_seed(seed)` for seeding.
+- No built-in multi-agent RL env — the wrapper is written in-repo (no `sumo-rl` equivalent).
+- Demo/visualization: CityFlow replay (`saveReplay` → `frontend/index.html`, opened in a
+  Windows browser via `\\wsl$`) plus an in-repo matplotlib animation colouring each
+  intersection by gate decision (RL vs. Max-Pressure) and σ(s). Replay output only for demo
+  runs — it slows training.
 
 ## MDP formulation (per intersection i)
 

@@ -9,7 +9,9 @@ Rubric rows referenced as **R1–R8** (see `PRD.md` §7).
 
 ## Phase 0 — Setup & decisions (27–29 Oct)
 
-- [ ] 0.1 Trial-install SUMO (+ `sumo-rl`) and CityFlow (WSL/Docker); **choose simulator** → update `CLAUDE.md`
+- [x] 0.1 **Choose simulator** → CityFlow (see Decision Log); docs updated
+- [ ] 0.1b Build CityFlow (pybind11 bump for Py 3.12) on WSL + native Ubuntu; time one Jinan
+      episode with Fixed-Time & Max-Pressure; write install steps to README
 - [ ] 0.2 Create `.venv`, `requirements.txt`, repo skeleton (`src/trafficrl`, `configs`, `scripts`, `tests`, `notebooks`)
 - [ ] 0.3 Seeding utility + YAML config loader (`utils/seed.py`, `utils/config.py`)
 
@@ -36,6 +38,9 @@ Look beyond Jinan/Hangzhou before committing.
 | RESCO grid4x4 / arterial4x4 | synthetic | grid / arterial | SUMO | sanity checks only |
 | LuST (Luxembourg) / MoST (Monaco) | real-world calibrated | city-scale | SUMO | probably too large; sub-area only |
 | PeMS / UTD19 | real loop-detector counts | — | not directly simulatable | optional: realistic demand profiles / EDA |
+
+Simulator is CityFlow (27 Oct): SUMO-only candidates (RESCO, LuST/MoST) would need
+conversion — prefer CityFlow-native sets (Jinan, Hangzhou, New York, synthetic grids).
 
 Default proposal (pending survey): **Jinan** = primary (`real` → train, `real_2000` → val,
 `real_2500` → test); **Hangzhou** = held-out generalization city.
@@ -154,7 +159,8 @@ Main risk is training time/stability, not implementation difficulty.
 
 | Risk | Mitigation |
 |---|---|
-| Simulator slow on laptop | shorter episodes, libsumo, overnight runs |
+| Simulator slow on laptop | CityFlow (fast); shorter episodes, overnight runs on native Ubuntu |
+| CityFlow build fails (old pybind11, unmaintained) | bump pybind11 submodule; fall back to a Python 3.10 venv |
 | UG-MARL doesn't beat strong baselines | frame contribution as reliability/robustness/safety; honest ablations still score |
 | RL instability | Max-Pressure as sanity floor, reward normalization, grad clipping |
 | Time overrun (solo) | follow scope controls above |
@@ -165,5 +171,6 @@ Main risk is training time/stability, not implementation difficulty.
 |---|---|
 | 27 Oct | Approach: UG-MARL. Env: venv + requirements.txt. Git, notebooks for EDA, seeded runs, no data leakage. |
 | 27 Oct | Single-agent baseline = shared-parameter DQN, no coordination. |
-| — | Simulator: **pending** (Phase 0.1) |
+| 27 Oct | Simulator: **CityFlow** over SUMO — faster (needed for ensemble + ablations × seeds), native Jinan/Hangzhou data, results comparable with CoLight/PressLight/MPLight. Trade-offs accepted: simpler vehicle dynamics, basic replay viewer (mitigated by a gate-decision animation). |
+| 27 Oct | Platforms: native Ubuntu 24.04 for training & final numbers; WSL2 Ubuntu 24.04 for dev/plots/demo on Windows. Repo cloned into each Linux filesystem, synced via git; separate `.venv` per environment. |
 | — | Primary / held-out datasets & split: **pending, due 31 Oct** (Phase 1) |

@@ -24,8 +24,11 @@ Solo project.
 
 - Python 3.12, PyTorch (CUDA — dev machine has an RTX 4050 Laptop GPU), NumPy, pandas,
   matplotlib/seaborn, Jupyter.
-- **Traffic simulator: TBD** (open task — see Notes). Candidates: SUMO + `sumo-rl`,
-  CityFlow (WSL/Docker), or both via LibSignal.
+- **Traffic simulator: CityFlow** (decided 27 Oct — see ROADMAP Decision Log). Linux-only:
+  built from source with its pybind11 submodule bumped for Python 3.12; pin the commit.
+- **Platforms**: native Ubuntu 24.04 (dual-boot) for long training / final numbers; WSL2
+  Ubuntu 24.04 on Windows for day-to-day dev, short runs, plots and demo. Both use the
+  RTX 4050 (WSL via the Windows driver — never install an NVIDIA driver inside WSL).
 - Datasets: **selection pending — due 31 Oct** (ROADMAP Phase 1). Default proposal: Jinan
   (3×4) primary, Hangzhou (4×4) held-out; also surveying New York, RESCO Cologne/Ingolstadt,
   LuST/MoST, PeMS/UTD19.
@@ -33,12 +36,17 @@ Solo project.
 
 ## Commands
 
-Windows (PowerShell); use `.venv/Scripts/python` from Git Bash.
+Linux shell (native Ubuntu or WSL). Clone the repo into the Linux filesystem (`~/pbl`), not
+`/mnt/d/...` or an NTFS mount — slow I/O and permission/line-ending issues. Sync the
+environments through git; each has its own `.venv` (never share a venv across OSes).
+From a Windows Claude Code session, run commands in WSL with `wsl -e bash -lc "..."`.
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
+```bash
+sudo apt install -y build-essential cmake python3-venv
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+# CityFlow: git clone https://github.com/cityflow-project/CityFlow, bump extern/pybind11
+# for Python 3.12, then `pip install .` (exact steps go in README once validated)
 
 pytest                                   # run tests
 ruff check src tests                     # lint
@@ -46,7 +54,7 @@ jupyter lab                              # EDA / plots in notebooks/
 ```
 
 Planned (not implemented yet — update once scripts exist):
-```powershell
+```bash
 python scripts/train.py    --config configs/<experiment>.yaml
 python scripts/evaluate.py --config configs/<experiment>.yaml --checkpoint <path>
 ```
@@ -75,7 +83,7 @@ report/             # report + slides sources
 Decentralized multi-agent RL loop over a traffic simulator:
 
 ```
-Simulator (SUMO/CityFlow) ──obs──► per-intersection agent
+Simulator (CityFlow) ──obs──►       per-intersection agent
    ▲                                  │ local obs + neighbor obs ─► attention encoder
    │                                  │ Q-ensemble (K heads) ─► mean Q, σ(s)
    └────────── phase action ◄─────────┤ gate: σ(s) > τ ? Max-Pressure : argmax mean Q
@@ -112,9 +120,12 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
 
 ## Notes
 
-- **Open task — choose simulator.** Decide between SUMO + `sumo-rl` (native Windows, GUI for
-  demo), CityFlow via WSL/Docker (faster, native Jinan/Hangzhou data), or both via LibSignal.
-  Update Tech Stack, Commands and `reference/architecture.md` once decided.
+- **Simulator = CityFlow** — chosen for speed (ensemble + ablations × seeds need thousands of
+  episodes), native Jinan/Hangzhou data, and comparability with CoLight/PressLight/MPLight
+  results. SUMO was rejected (slower; Jinan/Hangzhou only as conversions); revisit only for
+  a stretch demo. Report final numbers from native Ubuntu runs only.
+- **Open task — validate CityFlow install** on WSL + native Ubuntu and time one Jinan episode
+  (Fixed-Time, Max-Pressure) — ROADMAP 0.1b.
 - **Open task — select datasets & split plan by 31 Oct** (ROADMAP Phase 1).
 - Baselines required by PS16: conventional (Fixed-Time, Max-Pressure), single-agent RL
   (shared-parameter DQN, no coordination), multi-agent RL (IDQN; IPPO optional).
