@@ -17,6 +17,10 @@ Execute the plan `.claude/plans/$ARGUMENTS` (if no name given, list `.claude/pla
    report honestly if something cannot be made to pass.
 4. Tick off completed steps in the plan file and note deviations.
 5. Afterwards update `CLAUDE.md` (Commands / Structure / Notes), the relevant
-   `.claude/reference/*.md`, and `PRD.md` if requirements status changed.
-6. Summarize what changed and what was verified. Do not commit unless asked — then follow
+   `.claude/reference/*.md`, and `PRD.md` if requirements status changed. Tick the ROADMAP
+   task(s).
+6. Write the worklog entry: create `worklog/NNN-YYYY-MM-DD-slug.md` (next number) or update
+   the existing entry for this work, using the template in `worklog/README.md` — what, why
+   (link the plan), how, result (incl. failures), files/commits, next — and update the index.
+7. Summarize what changed and what was verified. Do not commit unless asked — then follow
    `commit.md`.

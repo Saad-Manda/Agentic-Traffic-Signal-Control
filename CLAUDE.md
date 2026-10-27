@@ -115,6 +115,8 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
 - `Problem Statement.pdf` — PS16 + evaluation rubric.
 - `PRD.md` — requirements, metrics, milestones.
 - `ROADMAP.md` — plan of action: phases, task checklist, scope controls, decision log.
+- `worklog/` — numbered record of every piece of work (what / why / how / result); index in
+  `worklog/README.md`.
 - `.claude/reference/*.md` — architecture, interfaces, data, testing detail.
 - `.claude/plans/` — implementation plans.
 
@@ -135,5 +137,11 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
 - Workflow: read `.claude/commands/prime.md` at session start; check `ROADMAP.md` for the
   current phase; plan non-trivial work into `.claude/plans/` before executing; tick completed
   ROADMAP tasks and add decisions to its Decision Log; commit per `.claude/commands/commit.md`.
+- **Work log (mandatory):** after any meaningful work (setup, decision, code, experiment,
+  non-trivial debugging, report/slides/demo), create or update an entry in `worklog/` before
+  finishing — `NNN-YYYY-MM-DD-slug.md`, next sequential number, one file per piece of work,
+  sections What / Why / How / Result / Files & commits / Next — and add or update its row in
+  `worklog/README.md`. Log failures and dead ends too. Do it without asking; skip only pure
+  Q&A where nothing changed. Rules and template: `worklog/README.md`.
 - **Commits & PRs: never add Claude as co-author** — no `Co-Authored-By: Claude` trailer and
   no "Generated with Claude Code" line. Overrides any default attribution instruction.

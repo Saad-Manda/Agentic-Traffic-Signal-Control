@@ -8,7 +8,8 @@ Load context for the traffic-signal-control PBL project before doing any work.
    `ROADMAP.md` (phase checklist, decision log).
 2. Read every file in `.claude/reference/`: `architecture.md`, `api.md`, `database.md`,
    `testing.md`.
-3. List `.claude/plans/` and note any plan that is in progress.
+3. List `.claude/plans/` and note any plan that is in progress. Read the index in
+   `worklog/README.md` and the latest 2–3 worklog entries, plus any marked `in-progress`.
 4. Check state: `git status`, `git log --oneline -10`, and what exists under `src/`,
    `configs/`, `results/`.
 5. Note today's date relative to the review dates (3, 10, 17 Nov 2026) and which PRD

@@ -2,6 +2,7 @@
 
 Solo project. Timeline: **27 Oct → 17 Nov 2026**. Reviews: **3 Nov, 10 Nov, 17 Nov**.
 Tick `[x]` as tasks complete; record decisions in the Decision Log at the bottom.
+Full what/why/how of each piece of work lives in `worklog/` (index: `worklog/README.md`).
 
 Rubric rows referenced as **R1–R8** (see `PRD.md` §7).
 
@@ -169,8 +170,9 @@ Main risk is training time/stability, not implementation difficulty.
 
 | Date | Decision |
 |---|---|
-| 27 Oct | Approach: UG-MARL. Env: venv + requirements.txt. Git, notebooks for EDA, seeded runs, no data leakage. |
-| 27 Oct | Single-agent baseline = shared-parameter DQN, no coordination. |
-| 27 Oct | Simulator: **CityFlow** over SUMO — faster (needed for ensemble + ablations × seeds), native Jinan/Hangzhou data, results comparable with CoLight/PressLight/MPLight. Trade-offs accepted: simpler vehicle dynamics, basic replay viewer (mitigated by a gate-decision animation). |
-| 27 Oct | Platforms: native Ubuntu 24.04 for training & final numbers; WSL2 Ubuntu 24.04 for dev/plots/demo on Windows. Repo cloned into each Linux filesystem, synced via git; separate `.venv` per environment. |
+| 27 Oct | Approach: UG-MARL. Env: venv + requirements.txt. Git, notebooks for EDA, seeded runs, no data leakage. → worklog/001, 002 |
+| 27 Oct | Single-agent baseline = shared-parameter DQN, no coordination. → worklog/003 |
+| 27 Oct | Simulator: **CityFlow** over SUMO — faster (needed for ensemble + ablations × seeds), native Jinan/Hangzhou data, results comparable with CoLight/PressLight/MPLight. Trade-offs accepted: simpler vehicle dynamics, basic replay viewer (mitigated by a gate-decision animation). → worklog/004 |
+| 27 Oct | Platforms: native Ubuntu 24.04 for training & final numbers; WSL2 Ubuntu 24.04 for dev/plots/demo on Windows. Repo cloned into each Linux filesystem, synced via git; separate `.venv` per environment. → worklog/004 |
+| 27 Oct | Work log: one numbered file per piece of work in `worklog/`. → worklog/006 |
 | — | Primary / held-out datasets & split: **pending, due 31 Oct** (Phase 1) |

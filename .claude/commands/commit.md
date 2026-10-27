@@ -8,7 +8,9 @@ description: Stage and write conventional, atomic commits
    Strip noisy notebook outputs when they only add diff noise.
 3. Group changes into atomic commits (one logical change each, e.g. env wrapper vs. new agent vs.
    EDA notebook). Stage files explicitly by path — no `git add -A`.
-4. Run `pytest` and `ruff check src tests` before committing code changes.
+4. Run `pytest` and `ruff check src tests` before committing code changes. Make sure the
+   work being committed has its `worklog/` entry (and index row); include it in the same
+   commit, and after committing fill in the commit hash in the entry's "Files / commits".
 5. Message format — Conventional Commits:
    `<type>(<scope>): <summary>` with types `feat`, `fix`, `exp` (experiment configs/results
    summaries), `data`, `docs`, `test`, `refactor`, `chore`; scopes like `env`, `baselines`,

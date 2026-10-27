@@ -20,5 +20,7 @@ Plan the feature: $ARGUMENTS
    - **Verification** — exact commands to run and expected outputs (e.g. a short training run
      whose reward improves, a metrics CSV produced).
    - **Risks / open questions.**
+   - **Worklog** — note that executing this plan ends with a `worklog/` entry (see
+     `worklog/README.md`).
 3. Keep steps small and ordered so each can be run and checked on its own.
 4. Show the plan summary and ask for confirmation before executing (unless pre-approved).
