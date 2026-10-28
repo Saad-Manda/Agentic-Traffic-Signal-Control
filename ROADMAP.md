@@ -13,6 +13,8 @@ Rubric rows referenced as **R1–R8** (see `PRD.md` §7).
 - [x] 0.1 **Choose simulator** → CityFlow (see Decision Log); docs updated
 - [ ] 0.1b Build CityFlow (pybind11 bump for Py 3.12) on WSL + native Ubuntu; time one Jinan
       episode with Fixed-Time & Max-Pressure; write install steps to README
+      - [x] WSL: built (pybind11 v2.13.6), Jinan episode FT 2.7 s / MP 1.8 s, README written → worklog/007
+      - [ ] native Ubuntu: follow README, run `scripts/bench_cityflow.py`, record numbers
 - [ ] 0.2 Create `.venv`, `requirements.txt`, repo skeleton (`src/trafficrl`, `configs`, `scripts`, `tests`, `notebooks`)
 - [ ] 0.3 Seeding utility + YAML config loader (`utils/seed.py`, `utils/config.py`)
 
@@ -175,4 +177,5 @@ Main risk is training time/stability, not implementation difficulty.
 | 27 Oct | Simulator: **CityFlow** over SUMO — faster (needed for ensemble + ablations × seeds), native Jinan/Hangzhou data, results comparable with CoLight/PressLight/MPLight. Trade-offs accepted: simpler vehicle dynamics, basic replay viewer (mitigated by a gate-decision animation). → worklog/004 |
 | 27 Oct | Platforms: native Ubuntu 24.04 for training & final numbers; WSL2 Ubuntu 24.04 for dev/plots/demo on Windows. Repo cloned into each Linux filesystem, synced via git; separate `.venv` per environment. → worklog/004 |
 | 27 Oct | Work log: one numbered file per piece of work in `worklog/`. → worklog/006 |
+| 28 Oct | Python **3.12** (Ubuntu 24.04 system Python) over 3.11/3.10; CityFlow pinned at `81ee0f4` with pybind11 submodule replaced by upstream **v2.13.6**. One simulator thread per run (faster than 4 on Jinan); parallelise across runs. → worklog/007 |
 | — | Primary / held-out datasets & split: **pending, due 31 Oct** (Phase 1) |

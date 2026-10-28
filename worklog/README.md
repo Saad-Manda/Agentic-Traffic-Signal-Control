@@ -55,3 +55,4 @@ Follow-up tasks.
 | [004](004-2026-10-27-simulator-platform-decision.md) | 2026-10-27 | Simulator (CityFlow) and platform decision | decision | 0.1 | done |
 | [005](005-2026-10-27-repo-conventions.md) | 2026-10-27 | Repo name, line endings, commit attribution | setup | — | done |
 | [006](006-2026-10-27-worklog-rule.md) | 2026-10-27 | Work log rule | setup | — | done |
+| [007](007-2026-10-28-cityflow-build-wsl.md) | 2026-10-28 | Build CityFlow on WSL, time Jinan episode | setup | 0.1b | in-progress |
