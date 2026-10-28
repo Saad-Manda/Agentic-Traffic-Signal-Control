@@ -45,7 +45,7 @@ Jinan 3×4: 12 intersections, 6295 vehicles, 3600 steps, WSL2, 1 thread:
 
 ## Files / commits
 `scripts/bench_cityflow.py`, `README.md` (rewritten: it was UTF-16/CRLF, now UTF-8/LF),
-`ROADMAP.md` · commit: see git log
+`ROADMAP.md` · commit a6e114d
 
 ## Next
 - Repeat on native Ubuntu following the README and add the numbers here; then close 0.1b.
