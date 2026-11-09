@@ -58,3 +58,4 @@ Follow-up tasks.
 | [007](007-2026-10-28-cityflow-build-wsl.md) | 2026-10-28 | Build CityFlow on WSL, time Jinan episode | setup | 0.1b | in-progress |
 | [008](008-2026-11-09-adopt-project-guidelines.md) | 2026-11-09 | Adopt project guidelines; re-baseline schedule | decision | all | done |
 | [009](009-2026-11-09-phase0-skeleton-seed-config.md) | 2026-11-09 | Repo skeleton, pinned env, seed + config utils | setup | 0.2, 0.3 | done |
+| [010](010-2026-11-09-literature-review.md) | 2026-11-09 | Literature review (Phase 2) and draft gap table | report, decision | 2.1–2.6 | in-progress |

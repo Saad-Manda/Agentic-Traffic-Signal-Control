@@ -84,12 +84,14 @@ Default proposal (pending survey): **Jinan** = primary (`real` → train, `real_
 
 ## Phase 2 — Literature review (27 Oct – 16 Nov; gap table draft by 10 Nov) → R2, G2
 
-- [ ] 2.1 Conventional: Fixed-Time (Webster), SOTL, Max-Pressure (Varaiya 2013)
-- [ ] 2.2 Single-agent RL: IntelliLight, DQN-TSC
-- [ ] 2.3 Multi-agent RL: IDQN, PressLight, CoLight, MPLight
-- [ ] 2.4 Uncertainty & safety in RL: Bootstrapped DQN, Q-ensembles, shielded RL
-- [ ] 2.5 Agentic / LLM traffic agents (LLMLight) — related work only
+- [x] 2.1 Conventional: Fixed-Time (Webster), SOTL, Max-Pressure (Varaiya 2013) → `docs/literature/01`
+- [x] 2.2 Single-agent RL: IntelliLight, DQN-TSC → `docs/literature/02`, `03`
+- [x] 2.3 Multi-agent RL: IDQN, PressLight, CoLight, MPLight → `docs/literature/02`, `03`
+- [x] 2.4 Uncertainty & safety in RL: Bootstrapped DQN, Q-ensembles, shielded RL → `docs/literature/04`
+- [x] 2.5 Agentic / LLM traffic agents (LLMLight) — related work only → `docs/literature/05`
 - [ ] 2.6 **Gap table**: method × uncertainty × coordination × safety × explainability → motivates UG-MARL
+      - [x] draft for Review 2 → `docs/literature/06` (worklog/010)
+      - [ ] final: check ✔/◐ entries and *(unverified)* numbers against PDFs; re-run novelty search before 16 Nov
 
 ### ✅ Review 2 — 10 Nov (revised 9 Nov)
 Problem definition + H1–H3 + success criteria · dataset choice + audit + split plan ·
@@ -321,4 +323,5 @@ Tick all before submission on 17 Nov.
 | 9 Nov | Packaging: `pyproject.toml` + `pip install -e .`; `requirements.txt` = exact `pip freeze` pins (torch 2.15.0+cu132). Seeding is **strictly deterministic** (torch deterministic algorithms, cuDNN deterministic, `CUBLAS_WORKSPACE_CONFIG`). Configs: YAML with `base:` inheritance and a required `seed`. → worklog/009 |
 | 9 Nov | Adopted `ProjectGuidelines.pdf` (IIT Patna IMPACT Lab, 5 Nov) as second governing document; PS16 rubric wins on conflict → **10 slides, ≤ 8 pages**. Title: *Uncertainty-Gated Multi-Agent Reinforcement Learning for Adaptive Traffic Signal Control* (short: **UG-MARL**). Added problem definition, hypotheses H1–H3 and success criteria (`PRD.md` §1a–1c); dataset and metric set **not frozen yet** — frozen in 3.5 before training. → worklog/008 |
 | 9 Nov | **Schedule re-baselined** from today: only 0.1 and 0.1b (WSL) were done; all phase dates moved, Review 2 content revised to problem definition / dataset / audit / split / gap table / design diagram / protocol draft. → worklog/008 |
+| 9 Nov | Literature review scope: depth over paper count; conventional TSC, RL foundations, RL-TSC, uncertainty & safe RL in full; LLM agents + explainability as short notes. Metadata verified online, summaries from abstracts/knowledge; unverified numbers flagged. **Only 2016+ papers reviewed**; pre-2016 originals of implemented methods (Webster, Varaiya, Watkins, Mnih, Sha) cited as background only. Output: `docs/literature/` (one file per topic) + `report/references.bib`. → worklog/010 |
 | — | Primary / held-out datasets & split: **pending, due 10 Nov** (Phase 1) |
