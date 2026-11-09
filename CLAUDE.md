@@ -39,8 +39,8 @@ progress checklist**. Solo project.
 
 ## Commands
 
-Linux shell (native Ubuntu or WSL). Clone the repo into the Linux filesystem (`~/pbl`), not
-`/mnt/d/...` or an NTFS mount — slow I/O and permission/line-ending issues. Sync the
+Linux shell (native Ubuntu or WSL). Clone the repo into the Linux filesystem
+(`~/Agentic-Traffic-Signal-Control`), not `/mnt/d/...` or an NTFS mount — slow I/O and permission/line-ending issues. Sync the
 environments through git; each has its own `.venv` (never share a venv across OSes).
 From a Windows Claude Code session, run commands in WSL with `wsl -e bash -lc "..."`.
 

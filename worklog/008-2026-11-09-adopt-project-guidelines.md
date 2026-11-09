@@ -46,6 +46,9 @@ the remaining CLAUDE.md / reference / command changes approved in bulk). Decisio
   check, bash fence fix); `architecture.md` (diagram requirements, draft Algorithm 1).
 - `.claude/commands/`: `plan-feature.md` (Justification, Experiment log, G-steps), `execute.md`
   (log runs, plot rule, freeze/test-once), `prime.md` (read guidelines.md, report Final gate).
+- New title propagated to the `README.md` and `ROADMAP.md` headings; the repo name stays
+  `Agentic-Traffic-Signal-Control` (user: keep the URL stable); CLAUDE.md clone path fixed from
+  `~/pbl` to `~/Agentic-Traffic-Signal-Control`. Worklog 001/005 keep the old names (historical record).
 - Renamed `ProjectGuidlines.pdf` → `ProjectGuidelines.pdf` (typo; was untracked).
 - PDF text extracted with `pypdf` installed to a temporary directory (no poppler on WSL).
 

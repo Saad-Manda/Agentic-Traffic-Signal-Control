@@ -1,4 +1,4 @@
-# ROADMAP — UG-MARL Traffic Signal Control (PS16)
+# ROADMAP — Uncertainty-Gated Multi-Agent Reinforcement Learning for Adaptive Traffic Signal Control (UG-MARL, PS16)
 
 Solo project. Timeline: **27 Oct → 17 Nov 2026**. Reviews: **3 Nov, 10 Nov, 17 Nov**.
 **Re-baselined 9 Nov** (see Decision Log) — phase dates below are the new plan:

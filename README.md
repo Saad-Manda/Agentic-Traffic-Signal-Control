@@ -1,7 +1,6 @@
-# Agentic Traffic Signal Control
+# Uncertainty-Gated Multi-Agent Reinforcement Learning for Adaptive Traffic Signal Control (UG-MARL)
 
-Uncertainty-Gated Multi-Agent RL (UG-MARL) for adaptive traffic signal control, built on the
-CityFlow simulator.
+Built on the CityFlow simulator. Repository name: `Agentic-Traffic-Signal-Control`.
 
 ## Install (Ubuntu 24.04: native or WSL2)
 
