@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-**Uncertainty-Aware Coordinated Multi-Agent AI for Adaptive Traffic Signal Control** — an ML
-course PBL project answering *Problem Statement 16* (`Problem Statement.pdf`): study conventional
-Agentic AI frameworks (single-agent, multi-agent), expose their limitations, and propose an
+**Uncertainty-Gated Multi-Agent Reinforcement Learning for Adaptive Traffic Signal Control
+(UG-MARL)** — an ML course PBL project answering *Problem Statement 16* (`Problem Statement.pdf`):
+study conventional Agentic AI frameworks (single-agent, multi-agent), expose their limitations, and propose an
 enhanced, mathematically justified agentic system for a real-world application — here,
 **intelligent transportation (traffic signal control)**.
 
@@ -16,9 +16,12 @@ Proposed contribution — **Uncertainty-Gated MARL (UG-MARL)**:
 - **Explainability**: attention weights / SHAP + gate-firing statistics.
 
 Deliverables & deadlines: progress reviews **3, 10, 17 Nov 2026**; 10-slide presentation,
-≤ 8-page report, code demo, technical viva. See `PRD.md` for requirements and rubric mapping,
-and **`ROADMAP.md` for the phase-by-phase plan of action and progress checklist**.
-Solo project.
+≤ 8-page report, code demo, technical viva. **Governing documents:** `Problem Statement.pdf`
+(PS16 + graded rubric) and `ProjectGuidelines.pdf` (IIT Patna IMPACT Lab end-to-end ML
+guidelines); **the PS16 rubric wins on conflict** (e.g. 10 slides, not 10–15). Problem
+definition, hypotheses and success criteria: `PRD.md` §1a–1c. See `PRD.md` for requirements
+and rubric mapping, and **`ROADMAP.md` for the phase-by-phase plan (re-baselined 9 Nov) and
+progress checklist**. Solo project.
 
 ## Tech Stack
 
@@ -29,7 +32,7 @@ Solo project.
 - **Platforms**: native Ubuntu 24.04 (dual-boot) for long training / final numbers; WSL2
   Ubuntu 24.04 on Windows for day-to-day dev, short runs, plots and demo. Both use the
   RTX 4050 (WSL via the Windows driver — never install an NVIDIA driver inside WSL).
-- Datasets: **selection pending — due 31 Oct** (ROADMAP Phase 1). Default proposal: Jinan
+- Datasets: **selection pending — due 10 Nov** (ROADMAP Phase 1). Default proposal: Jinan
   (3×4) primary, Hangzhou (4×4) held-out; also surveying New York, RESCO Cologne/Ingolstadt,
   LuST/MoST, PeMS/UTD19.
 - Env management: `venv` + `requirements.txt`. Version control: git.
@@ -65,7 +68,7 @@ python scripts/evaluate.py --config configs/<experiment>.yaml --checkpoint <path
 configs/            # YAML experiment configs (one per run; include seed)
 data/raw/           # original public datasets (untouched, gitignored if large)
 data/processed/     # preprocessed flows / splits
-notebooks/          # EDA, plotting, results figures
+notebooks/          # EDA only (train split); results figures come from scripts/
 src/trafficrl/
   envs/             # simulator wrapper(s), state/reward definitions
   agents/
@@ -75,7 +78,11 @@ src/trafficrl/
 scripts/            # train.py, evaluate.py, run_ablation.py
 tests/
 results/            # metrics CSVs, plots, checkpoints (gitignored)
-report/             # report + slides sources
+models/             # final selected checkpoints only (large files gitignored)
+docs/               # dataset_card.md, data_audit.md, evaluation_protocol.md,
+                    #   experiment_log.csv (tracked; mentor-facing)
+report/             # report sources (≤ 8 pages)
+slides/             # presentation sources (10 slides)
 ```
 
 ## Architecture
@@ -93,8 +100,9 @@ reward = −pressure (or −queue length). Details in `.claude/reference/archite
 
 ## Code Patterns / Conventions
 
-- Core logic in `src/trafficrl/` as importable modules; notebooks only for EDA and plots —
-  notebooks import from `src/`, never the reverse.
+- Core logic in `src/trafficrl/` as importable modules; notebooks only for EDA — notebooks
+  import from `src/`, never the reverse. Every results table and figure is produced by a
+  command in `scripts/` (listed in the README) — no hidden manual steps.
 - Every agent (baseline or proposed) implements the same interface (see
   `.claude/reference/api.md`) so evaluation code is shared.
 - **Reproducibility**: every run is driven by a config file and a fixed seed; seed Python,
@@ -104,6 +112,16 @@ reward = −pressure (or −queue length). Details in `.claude/reference/archite
   only; the test flows and the held-out generalization city are touched only for final
   evaluation. See `.claude/reference/database.md`.
 - Report every baseline and the proposed model on identical flows, seeds, and episode lengths.
+- **Guidelines rules** (`ProjectGuidelines.pdf`, condensed in `.claude/reference/guidelines.md`):
+  - Every methodological decision is justified, recorded (Decision Log / worklog) and verified.
+  - Evaluation protocol is frozen before RL training (ROADMAP 3.5); later changes need a dated
+    Decision Log entry with the reason. Test flows are run once, after selection on validation.
+  - Never report a single run: mean ± std and 95% CI over ≥ 3 seeds.
+  - Every run appends a row to `docs/experiment_log.csv` and saves software versions + hardware.
+  - Tuning uses search spaces written in `configs/` before the first tuning run.
+  - Every plot has axis labels, units, a caption and a short interpretation.
+  - No novelty or improvement claims without baselines and evidence; attention / SHAP / gate
+    statistics are associations, not causes.
 
 ## Testing
 
@@ -112,9 +130,14 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
 
 ## Key Files
 
-- `Problem Statement.pdf` — PS16 + evaluation rubric.
-- `PRD.md` — requirements, metrics, milestones.
-- `ROADMAP.md` — plan of action: phases, task checklist, scope controls, decision log.
+- `Problem Statement.pdf` — PS16 + evaluation rubric (**wins on conflict**).
+- `ProjectGuidelines.pdf` — IIT Patna IMPACT Lab end-to-end ML project guidelines: 12 steps,
+  report/slide structure, completion checklist (mapped as G1–G12 in `ROADMAP.md`; condensed in
+  `.claude/reference/guidelines.md`).
+- `PRD.md` — **problem definition, hypotheses, success criteria**, requirements, metrics,
+  milestones.
+- `ROADMAP.md` — plan of action: phases, task checklist, **guidelines mapping, final-gate
+  checklist**, scope controls, decision log.
 - `worklog/` — numbered record of every piece of work (what / why / how / result); index in
   `worklog/README.md`.
 - `.claude/reference/*.md` — architecture, interfaces, data, testing detail.
@@ -128,7 +151,7 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
   a stretch demo. Report final numbers from native Ubuntu runs only.
 - **Open task — validate CityFlow install** on WSL + native Ubuntu and time one Jinan episode
   (Fixed-Time, Max-Pressure) — ROADMAP 0.1b.
-- **Open task — select datasets & split plan by 31 Oct** (ROADMAP Phase 1).
+- **Open task — select datasets & split plan by 10 Nov** (Review 2; ROADMAP Phase 1).
 - Baselines required by PS16: conventional (Fixed-Time, Max-Pressure), single-agent RL
   (shared-parameter DQN, no coordination), multi-agent RL (IDQN; IPPO optional).
 - Solo project: when time is short, follow ROADMAP "scope controls" — never cut the main

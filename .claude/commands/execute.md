@@ -12,6 +12,12 @@ Execute the plan `.claude/plans/$ARGUMENTS` (if no name given, list `.claude/pla
    - Put experiment parameters in `configs/*.yaml`, not hard-coded; keep seeding intact.
    - Never let training, normalization statistics, or tuning read test flows or the held-out
      generalization city.
+   - Every training / tuning / evaluation run appends a row to `docs/experiment_log.csv`
+     and saves software versions + hardware next to its results.
+   - Every plot has axis labels, units, a caption and a short interpretation; report mean ± std
+     and 95% CI over seeds, never a single run.
+   - No RL training before the evaluation protocol is frozen (ROADMAP 3.5); test flows are run
+     once, after selection on validation.
 3. After each step run its verification: `pytest` (or the relevant subset), `ruff check
    src tests`, and any short smoke run the plan specifies. Fix failures before moving on;
    report honestly if something cannot be made to pass.

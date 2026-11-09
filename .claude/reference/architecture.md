@@ -56,3 +56,31 @@ aᵢ = argmax_a μ(a)        if σ(sᵢ) ≤ τ
 raw flows → split (train/val/test, held-out city) → preprocessing → env configs →
 training (train flows) → tuning (val flows) → final eval (test flows, held-out city) →
 `results/<experiment>/metrics.csv` + plots.
+
+## Diagram requirements (guidelines, ROADMAP 9.5)
+
+Report/slide diagram: labelled blocks in data-flow order — raw flows → split → normalisation
+(**fit on train only**) → CityFlow env → attention encoder → Q-ensemble → gate → phase action
+→ metrics. Show the **training path** (replay, ensemble updates, τ chosen on validation)
+separately from the **inference path**, and add a caption.
+
+## Algorithm 1 — draft (guidelines format, ROADMAP 9.6)
+
+Must be re-checked line by line against the final code before submission.
+
+**Algorithm 1: UG-MARL training, tuning and evaluation**
+**Input:** roadnet G; flows F_train, F_val, F_test (primary city), F_heldout; search space H;
+seeds S. **Output:** trained ensemble Q* per agent, threshold τ*, test metrics.
+
+1. Split the primary city's flows into F_train, F_val, F_test; keep F_heldout untouched.
+2. On F_train, compute observation normalisation statistics.
+3. For each h ∈ H (and seed s ∈ S): train UG-MARL on F_train — for each step, every
+   intersection i encodes (sᵢ, s_N(i)) with attention, the K Q-heads give μ and σ, the agent
+   acts ε-greedily on μ, transitions go to replay, and each head is updated on its bootstrap
+   mask with a target network.
+4. Evaluate each trained model on F_val; record σ distribution; set τ(h) = chosen percentile
+   of σ on F_val.
+5. Select h*, τ* = argmax over validation score.
+6. Run the gated policy (σ > τ* ? Max-Pressure : argmax μ) **once** on F_test and F_heldout
+   for every seed; report mean ± std and 95% CI.
+

@@ -4,7 +4,7 @@ Runner: `pytest` (tests in `tests/`, mirroring `src/trafficrl/`). Lint: `ruff ch
 
 ## Run subsets
 
-```powershell
+```bash
 pytest                              # all
 pytest tests/agents                 # agent tests only
 pytest -k gate                      # by keyword
@@ -24,5 +24,12 @@ pytest -m "not slow"                # skip simulator-heavy tests (mark them @pyt
   stats computed only from train; evaluation code refuses to load test data in tuning mode.
 - **Smoke (slow)**: a few training steps on a tiny network run end-to-end without error.
 
-Experiment evaluation (not unit tests): results across ≥ 3 seeds, mean ± std, saved to
-`results/<experiment>/metrics.csv`.
+Experiment evaluation (not unit tests): results across ≥ 3 seeds, reported as mean ± std **and
+95% CI**, saved to `results/<experiment>/metrics.csv`; every run also appends a row to
+`docs/experiment_log.csv` and saves software versions + hardware.
+
+## Reproducibility check (guidelines G12, ROADMAP 9.7)
+
+Before submission: clone into a fresh directory, follow only the README, regenerate the main
+comparison table (7.1) and one figure. Pass = results within seed variance of the reported
+numbers, with no hidden manual steps. Log the outcome in `worklog/`.
