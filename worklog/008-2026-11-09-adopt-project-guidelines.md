@@ -57,7 +57,7 @@ experiments changed. `README.md` intentionally untouched (reproduction section c
 `PRD.md`, `ROADMAP.md`, `CLAUDE.md`, `ProjectGuidelines.pdf`, `.claude/reference/guidelines.md`,
 `.claude/reference/database.md`, `.claude/reference/testing.md`,
 `.claude/reference/architecture.md`, `.claude/commands/plan-feature.md`,
-`.claude/commands/execute.md`, `.claude/commands/prime.md`, `worklog/README.md` · not committed yet
+`.claude/commands/execute.md`, `.claude/commands/prime.md`, `worklog/README.md` · `5269765`, `5383020`, `8fcc57b`
 
 ## Next
 - Phase 1 dataset selection + split plan, 0.2–0.3 skeleton, 3.0 audit — by 10 Nov (Review 2).
