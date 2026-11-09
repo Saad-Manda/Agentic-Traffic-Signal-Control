@@ -56,3 +56,4 @@ Follow-up tasks.
 | [005](005-2026-10-27-repo-conventions.md) | 2026-10-27 | Repo name, line endings, commit attribution | setup | — | done |
 | [006](006-2026-10-27-worklog-rule.md) | 2026-10-27 | Work log rule | setup | — | done |
 | [007](007-2026-10-28-cityflow-build-wsl.md) | 2026-10-28 | Build CityFlow on WSL, time Jinan episode | setup | 0.1b | in-progress |
+| [008](008-2026-11-09-adopt-project-guidelines.md) | 2026-11-09 | Adopt project guidelines; re-baseline schedule | decision | all | done |
