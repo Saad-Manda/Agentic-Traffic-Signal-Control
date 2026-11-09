@@ -1,4 +1,4 @@
-# PRD — Uncertainty-Aware Coordinated Multi-Agent AI for Adaptive Traffic Signal Control
+# PRD — Uncertainty-Gated Multi-Agent Reinforcement Learning for Adaptive Traffic Signal Control (UG-MARL)
 
 ## 1. Problem
 
@@ -6,6 +6,44 @@ Conventional signal control (fixed-time, actuated) cannot adapt to dynamic traff
 RL / Agentic AI controllers suffer from (PS16): unreliable decisions under uncertainty and noisy
 sensors, weak multi-agent coordination, error propagation, no safety guarantees, poor
 explainability, and high computational cost.
+
+### 1a. Problem definition
+
+*Given* per-lane queue lengths, vehicle counts and the current signal phase at every
+intersection of a real-world road network (primary dataset — selection pending, see ROADMAP
+Phase 1), *choose* the next signal phase for each intersection every Δt seconds over a 3600 s
+episode, *under* min-green and yellow-transition constraints and possibly noisy or missing
+detector readings, *achieving* lower average vehicle travel time than the baselines while
+keeping the worst-case per-vehicle wait bounded.
+
+**Task type:** sequential decision-making / control (multi-agent reinforcement learning). It
+is not one of the guidelines' four task types (regression, classification, clustering,
+forecasting), because the model chooses actions that change its future inputs rather than
+predicting a fixed label.
+
+### 1b. Hypotheses
+
+- **H1 (performance):** UG-MARL gives lower average travel time than the multi-agent RL
+  baseline (IDQN) and the conventional baseline (Max-Pressure) on the test flows.
+- **H2 (safety / self-correction):** the uncertainty gate lowers worst-case behaviour — the
+  maximum per-vehicle wait and the drop in performance under sensor noise — compared with the
+  same model without the gate (−gate ablation).
+- **H3 (coordination):** neighbour attention lowers average travel time compared with the same
+  model without attention (−attention ablation).
+
+### 1c. Success criteria
+
+Fixed before experiments; evaluated on test flows, ≥ 3 seeds, mean ± 95% CI.
+
+- **H1 supported** if UG-MARL's average travel time is lower than both IDQN's and
+  Max-Pressure's, with non-overlapping 95% confidence intervals.
+- **H2 supported** if, versus −gate, the full model has a lower maximum per-vehicle wait **and**
+  a smaller travel-time degradation as sensor noise goes from 0 to 0.2.
+- **H3 supported** if the full model's average travel time is lower than −attention's, with
+  non-overlapping 95% CIs.
+- **Minimum acceptable outcome:** UG-MARL is no worse than Max-Pressure on maximum wait (the
+  gate should guarantee this).
+- A hypothesis that is not supported is reported as a negative result, not dropped.
 
 ## 2. Goal
 
@@ -50,6 +88,15 @@ others), simulation-based evaluation, offline analysis, demo via simulator.
 | Safety | Max per-vehicle wait (starvation), % fallback actions |
 | Explainability | Attention/SHAP attributions, gate statistics |
 
+The metric set above is **provisional** — not frozen yet; it may change until the evaluation
+protocol is frozen (before training).
+
+**Reporting rules**
+- Every metric is reported as mean ± std **and** 95% CI over ≥ 3 seeds — never a single best run.
+- Results table format: **Model | Validation score | Test score | Training time | Model size
+  (params)**, with all agents run on identical flows, seeds and episode lengths.
+- Fixed-Time and Max-Pressure have no training, so their training time is "—".
+
 ## 6. Non-Functional Requirements
 
 - Reproducible: config-driven, seeded runs; results saved with resolved config.
@@ -58,25 +105,34 @@ others), simulation-based evaluation, offline analysis, demo via simulator.
 
 ## 7. Rubric Mapping
 
+**Governing documents:** `Problem Statement.pdf` (PS16 + graded rubric) and
+`ProjectGuidelines.pdf` (IIT Patna IMPACT Lab end-to-end ML guidelines, 5 Nov 2026). Where they
+conflict, **the PS16 rubric wins** (it is what is graded):
+- Presentation: **10 slides**, following the guidelines' slide order (p.19) compressed into 10.
+- Report: **≤ 8 pages**, using the guidelines' 10-section structure (p.18).
+
 | Rubric row (marks) | Covered by |
 |---|---|
 | Title, intro, contribution (5) | §1–2, UG-MARL contribution |
 | Literature review (5) | Fixed-time, SOTL, Max-Pressure, IntelliLight, PressLight, CoLight, MPLight |
-| Dataset & preprocessing (5) | F2 |
+| Dataset & preprocessing (5) | F2 + dataset card, data audit, frozen split protocol (guidelines Steps 3–4) |
 | Implementation (15) | F3, F4, F5 |
 | Methodology, baseline, ablation (10) | F4, F7, math (MDP, uncertainty, stability argument) |
 | Results & comparison (10) | F6, F8, F9 |
 | Viva + demo (30) | F11, team understanding |
-| Presentation & report (20) | 10 slides, ≤ 8 pages |
+| Presentation & report (20) | 10 slides (guidelines order), ≤ 8 pages (guidelines' 10 sections) |
 
 ## 8. Milestones
 
+Re-baselined 9 Nov (see ROADMAP Decision Log).
+
 | Date | Deliverable |
 |---|---|
-| 31 Oct 2026 | Dataset survey done; primary + held-out datasets and split plan selected |
-| 3 Nov 2026 | Lit review + gaps, simulator chosen & set up, EDA, Fixed-Time & Max-Pressure results |
-| 10 Nov 2026 | DQN, IDQN, UG-MARL implemented and tuned; math write-up |
-| 17 Nov 2026 | Ablations, robustness, generalization, report, slides, demo |
+| 10 Nov 2026 (Review 2) | Problem definition + H1–H3 + success criteria; dataset choice, audit and split plan; literature gap table (draft); UG-MARL design diagram; evaluation protocol draft |
+| 11 Nov 2026 | EDA, **evaluation protocol frozen**, env + Fixed-Time & Max-Pressure results |
+| 13 Nov 2026 | DQN, IDQN, UG-MARL implemented and tuned on validation |
+| 15 Nov 2026 | Test runs, ablations, robustness, generalization, error analysis |
+| 17 Nov 2026 (Review 3) | Report, slides, demo, reproduction test passed |
 
 ## 9. Open Questions
 
