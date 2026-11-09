@@ -47,7 +47,7 @@ From a Windows Claude Code session, run commands in WSL with `wsl -e bash -lc ".
 ```bash
 sudo apt install -y build-essential cmake python3-venv
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt && pip install -e .   # exact pins + editable package
 # CityFlow: git clone https://github.com/cityflow-project/CityFlow, bump extern/pybind11
 # for Python 3.12, then `pip install .` (exact steps go in README once validated)
 

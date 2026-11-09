@@ -29,6 +29,23 @@ class Agent(Protocol):
 ```
 UG-MARL additionally exposes `last_explanations() -> dict` (attention weights, σ, gate flag).
 
+## Utilities (`src/trafficrl/utils/`) — implemented (ROADMAP 0.3)
+
+```python
+# seed.py — sets CUBLAS_WORKSPACE_CONFIG at import
+seed_everything(seed: int, deterministic: bool = True) -> None  # random, NumPy, torch(+CUDA)
+seed_cityflow(engine, seed: int) -> None                        # engine.set_random_seed
+make_rng(seed: int) -> np.random.Generator                      # local RNG, no global state
+
+# config.py
+load_config(path, overrides: Iterable[str] = ()) -> dict  # resolves `base:`, applies
+                                                           # "a.b=val" overrides, requires `seed`
+save_config(cfg, path) -> Path                              # resolved YAML next to results
+apply_overrides(cfg, overrides) -> dict ; deep_merge(a, b) -> dict ; ConfigError
+```
+YAML is parsed with a SafeLoader that reads `1e-3` as a float (plain PyYAML gives a string).
+Every experiment config starts with `base: base.yaml` (`configs/base.yaml`).
+
 ## Scripts
 
 - `scripts/train.py --config <yaml>` — TODO

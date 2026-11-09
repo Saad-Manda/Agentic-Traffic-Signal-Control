@@ -45,7 +45,7 @@ see `PRD.md` §7).
       - [x] WSL: built (pybind11 v2.13.6), Jinan episode FT 2.7 s / MP 1.8 s, README written → worklog/007
       - [ ] native Ubuntu: follow README, run `scripts/bench_cityflow.py`, record numbers
 - [x] 0.2 Create `.venv`, `requirements.txt`, repo skeleton (`src/trafficrl`, `configs`, `scripts`, `tests`, `notebooks`)
-- [ ] 0.3 Seeding utility + YAML config loader (`utils/seed.py`, `utils/config.py`)
+- [x] 0.3 Seeding utility + YAML config loader (`utils/seed.py`, `utils/config.py`)
 
 ## Phase 1 — Dataset survey & selection (27 Oct – 10 Nov) — **deadline 10 Nov** (was 31 Oct) → G3, G4
 
@@ -318,6 +318,7 @@ Tick all before submission on 17 Nov.
 | 27 Oct | Platforms: native Ubuntu 24.04 for training & final numbers; WSL2 Ubuntu 24.04 for dev/plots/demo on Windows. Repo cloned into each Linux filesystem, synced via git; separate `.venv` per environment. → worklog/004 |
 | 27 Oct | Work log: one numbered file per piece of work in `worklog/`. → worklog/006 |
 | 28 Oct | Python **3.12** (Ubuntu 24.04 system Python) over 3.11/3.10; CityFlow pinned at `81ee0f4` with pybind11 submodule replaced by upstream **v2.13.6**. One simulator thread per run (faster than 4 on Jinan); parallelise across runs. → worklog/007 |
+| 9 Nov | Packaging: `pyproject.toml` + `pip install -e .`; `requirements.txt` = exact `pip freeze` pins (torch 2.15.0+cu132). Seeding is **strictly deterministic** (torch deterministic algorithms, cuDNN deterministic, `CUBLAS_WORKSPACE_CONFIG`). Configs: YAML with `base:` inheritance and a required `seed`. → worklog/009 |
 | 9 Nov | Adopted `ProjectGuidelines.pdf` (IIT Patna IMPACT Lab, 5 Nov) as second governing document; PS16 rubric wins on conflict → **10 slides, ≤ 8 pages**. Title: *Uncertainty-Gated Multi-Agent Reinforcement Learning for Adaptive Traffic Signal Control* (short: **UG-MARL**). Added problem definition, hypotheses H1–H3 and success criteria (`PRD.md` §1a–1c); dataset and metric set **not frozen yet** — frozen in 3.5 before training. → worklog/008 |
 | 9 Nov | **Schedule re-baselined** from today: only 0.1 and 0.1b (WSL) were done; all phase dates moved, Review 2 content revised to problem definition / dataset / audit / split / gap table / design diagram / protocol draft. → worklog/008 |
 | — | Primary / held-out datasets & split: **pending, due 10 Nov** (Phase 1) |

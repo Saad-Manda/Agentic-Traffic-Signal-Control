@@ -1,0 +1,20 @@
+# Shared defaults inherited by every experiment config via `base: base.yaml`.
+# Values marked PROVISIONAL are frozen in ROADMAP 3.5 (docs/evaluation_protocol.md);
+# change them only with a dated Decision Log entry after the freeze.
+
+seed: 0                  # override per run; final results use >= 3 seeds
+deterministic: true      # torch deterministic kernels (utils/seed.py)
+
+sim:
+  engine: cityflow
+  threads: 1             # 1 thread per simulator, parallelise across runs (worklog/007)
+  episode_seconds: 3600  # PROVISIONAL
+  decision_interval: 10  # Δt in seconds — PROVISIONAL
+  yellow_seconds: 5      # CityFlow phase 0 = transition (worklog/007)
+
+data:
+  dataset: null          # set in Phase 1 (pending, due 10 Nov)
+  split: train           # train | val | test — test only in final evaluation (Phase 7)
+
+output:
+  results_dir: results
