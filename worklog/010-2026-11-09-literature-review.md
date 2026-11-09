@@ -46,7 +46,7 @@ post-2015 MP work (§1: Advanced-MP, Lyapunov BP-RL, Com-MP), our MP-guarantee a
 ## Files / commits
 `docs/literature/README.md`, `01`–`06`; `report/references.bib`;
 `.claude/plans/literature-review.md`; `ROADMAP.md` (2.1–2.5 ticked, 2.6 draft ticked, Decision Log
-row) · commits: not yet committed.
+row) · commits: `9fe1551` (references.bib), `f1412c1` (literature review, plan, ROADMAP, worklog).
 
 ## Next
 - Decide action items A1–A5 (Decision Log) before freezing the protocol (ROADMAP 3.5).
