@@ -52,7 +52,7 @@ notation; regression test `test_scientific_notation_is_float`.
 `pyproject.toml`, `requirements.txt`, `src/trafficrl/**/__init__.py`, `notebooks/.gitkeep`,
 `README.md`, `.gitignore`, `ROADMAP.md` · commit 028f932 (0.2)
 `src/trafficrl/utils/{seed,config}.py`, `configs/base.yaml`, `tests/utils/`,
-`.claude/reference/api.md`, `CLAUDE.md`
+`.claude/reference/api.md`, `CLAUDE.md` · commit 31a9384 (0.3)
 
 ## Next
 - User: run 0.1b on native Ubuntu (README steps 1–6 + `scripts/bench_cityflow.py`), record
