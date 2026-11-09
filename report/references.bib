@@ -1,0 +1,360 @@
+% UG-MARL references — generated with the literature review (docs/literature/, 9 Nov 2026).
+% note = {verified}  : metadata checked online on 9 Nov 2026.
+% note = {check}     : from memory; verify against DOI/publisher before the final report.
+% Scope: reviewed papers are 2016+. Pre-2016 entries kept ONLY as background citations of methods we
+% implement: webster1958traffic, varaiya2013max, watkins1992qlearning, mnih2015human, sha2001using.
+
+% ---------------------------------------------------------------- 01 conventional
+@techreport{webster1958traffic,
+  author = {Webster, F. V.}, title = {Traffic Signal Settings},
+  institution = {Road Research Laboratory, HMSO}, type = {Road Research Technical Paper},
+  number = {39}, address = {London}, year = {1958}, note = {check}}
+
+@article{varaiya2013max,
+  author = {Varaiya, Pravin},
+  title = {Max Pressure Control of a Network of Signalized Intersections},
+  journal = {Transportation Research Part C: Emerging Technologies}, volume = {36},
+  pages = {177--195}, year = {2013}, doi = {10.1016/j.trc.2013.08.014},
+  note = {venue verified; volume/pages/DOI: check}}
+
+@inproceedings{zhang2022expression,
+  author = {Zhang, Liang and Wu, Qiang and Shen, Jun and L{\"u}, Linyuan and Du, Bo and Wu, Jianqing},
+  title = {Expression Might Be Enough: Representing Pressure and Demand for Reinforcement Learning Based Traffic Signal Control},
+  booktitle = {Proceedings of the 39th International Conference on Machine Learning (ICML)},
+  series = {PMLR}, volume = {162}, pages = {26645--26654}, year = {2022},
+  eprint = {2112.10107}, archivePrefix = {arXiv}, note = {verified}}
+
+@misc{ma2022lyapunov,
+  author = {Ma, Chaolun and Wang, Bruce and Li, Zihao and Mahmoudzadeh, Ahmadreza and Zhang, Yunlong},
+  title = {Lyapunov Function Consistent Adaptive Network Signal Control with Back Pressure and Reinforcement Learning},
+  year = {2022}, eprint = {2210.02612}, archivePrefix = {arXiv}, note = {verified (v2 2024)}}
+
+@misc{zhu2026commp,
+  author = {Zhu, Jichen and Tan, Chaopeng},
+  title = {Stability-Preserving Reinforcement Learning for Heterogeneity-Aware Composite Max-Pressure Traffic Signal Control},
+  year = {2026}, eprint = {2610.31037}, archivePrefix = {arXiv}, note = {verified}}
+
+% ---------------------------------------------------------------- 02 RL foundations
+@article{watkins1992qlearning,
+  author = {Watkins, Christopher J. C. H. and Dayan, Peter}, title = {Q-Learning},
+  journal = {Machine Learning}, volume = {8}, number = {3--4}, pages = {279--292}, year = {1992}, note = {check}}
+
+@article{mnih2015human,
+  author = {Mnih, Volodymyr and Kavukcuoglu, Koray and Silver, David and others},
+  title = {Human-Level Control through Deep Reinforcement Learning},
+  journal = {Nature}, volume = {518}, number = {7540}, pages = {529--533}, year = {2015}, note = {check}}
+
+@inproceedings{vanhasselt2016double,
+  author = {van Hasselt, Hado and Guez, Arthur and Silver, David},
+  title = {Deep Reinforcement Learning with Double {Q}-Learning},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence}, volume = {30}, year = {2016}, note = {check}}
+
+@inproceedings{wang2016dueling,
+  author = {Wang, Ziyu and Schaul, Tom and Hessel, Matteo and van Hasselt, Hado and Lanctot, Marc and de Freitas, Nando},
+  title = {Dueling Network Architectures for Deep Reinforcement Learning},
+  booktitle = {Proceedings of the 33rd International Conference on Machine Learning (ICML)}, year = {2016}, note = {check}}
+
+@inproceedings{schaul2016prioritized,
+  author = {Schaul, Tom and Quan, John and Antonoglou, Ioannis and Silver, David},
+  title = {Prioritized Experience Replay},
+  booktitle = {International Conference on Learning Representations (ICLR)}, year = {2016}, note = {check}}
+
+@inproceedings{hessel2018rainbow,
+  author = {Hessel, Matteo and Modayil, Joseph and van Hasselt, Hado and others},
+  title = {Rainbow: Combining Improvements in Deep Reinforcement Learning},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence}, volume = {32}, year = {2018}, note = {check}}
+
+@article{tampuu2017multiagent,
+  author = {Tampuu, Ardi and Matiisen, Tambet and Kodelja, Dorian and others},
+  title = {Multiagent Cooperation and Competition with Deep Reinforcement Learning},
+  journal = {PLOS ONE}, volume = {12}, number = {4}, pages = {e0172395}, year = {2017}, note = {check}}
+
+@inproceedings{foerster2017stabilising,
+  author = {Foerster, Jakob and Nardelli, Nantas and Farquhar, Gregory and others},
+  title = {Stabilising Experience Replay for Deep Multi-Agent Reinforcement Learning},
+  booktitle = {Proceedings of the 34th International Conference on Machine Learning (ICML)}, year = {2017}, note = {check}}
+
+@inproceedings{sunehag2018value,
+  author = {Sunehag, Peter and Lever, Guy and Gruslys, Audrunas and others},
+  title = {Value-Decomposition Networks for Cooperative Multi-Agent Learning Based on Team Reward},
+  booktitle = {Proceedings of the 17th International Conference on Autonomous Agents and MultiAgent Systems (AAMAS)}, year = {2018}, note = {check}}
+
+@inproceedings{rashid2018qmix,
+  author = {Rashid, Tabish and Samvelyan, Mikayel and Schroeder de Witt, Christian and Farquhar, Gregory and Foerster, Jakob and Whiteson, Shimon},
+  title = {{QMIX}: Monotonic Value Function Factorisation for Deep Multi-Agent Reinforcement Learning},
+  booktitle = {Proceedings of the 35th International Conference on Machine Learning (ICML)}, year = {2018}, note = {check}}
+
+@inproceedings{lowe2017multi,
+  author = {Lowe, Ryan and Wu, Yi and Tamar, Aviv and Harb, Jean and Abbeel, Pieter and Mordatch, Igor},
+  title = {Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {30}, year = {2017}, note = {check}}
+
+@inproceedings{yu2022surprising,
+  author = {Yu, Chao and Velu, Akash and Vinitsky, Eugene and Gao, Jiaxuan and Wang, Yu and Bayen, Alexandre and Wu, Yi},
+  title = {The Surprising Effectiveness of {PPO} in Cooperative Multi-Agent Games},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track},
+  year = {2022}, eprint = {2103.01955}, archivePrefix = {arXiv},
+  note = {arXiv and authors verified; venue: check}}
+
+@inproceedings{sukhbaatar2016learning,
+  author = {Sukhbaatar, Sainbayar and Szlam, Arthur and Fergus, Rob},
+  title = {Learning Multiagent Communication with Backpropagation},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {29}, year = {2016}, note = {check}}
+
+@inproceedings{velickovic2018graph,
+  author = {Veli{\v{c}}kovi{\'c}, Petar and Cucurull, Guillem and Casanova, Arantxa and Romero, Adriana and Li{\`o}, Pietro and Bengio, Yoshua},
+  title = {Graph Attention Networks},
+  booktitle = {International Conference on Learning Representations (ICLR)}, year = {2018}, note = {check}}
+
+@inproceedings{vaswani2017attention,
+  author = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and others},
+  title = {Attention Is All You Need},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {30}, year = {2017}, note = {check}}
+
+@inproceedings{jiang2020graph,
+  author = {Jiang, Jiechuan and Dun, Chen and Huang, Tiejun and Lu, Zongqing},
+  title = {Graph Convolutional Reinforcement Learning},
+  booktitle = {International Conference on Learning Representations (ICLR)}, year = {2020},
+  eprint = {1810.09202}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{das2019tarmac,
+  author = {Das, Abhishek and Gervet, Th{\'e}ophile and Romoff, Joshua and Batra, Dhruv and Parikh, Devi and Rabbat, Mike and Pineau, Joelle},
+  title = {{TarMAC}: Targeted Multi-Agent Communication},
+  booktitle = {Proceedings of the 36th International Conference on Machine Learning (ICML)}, year = {2019}, note = {check}}
+
+% ---------------------------------------------------------------- 03 RL for TSC
+@misc{wei2019survey,
+  author = {Wei, Hua and Zheng, Guanjie and Gayah, Vikash and Li, Zhenhui},
+  title = {A Survey on Traffic Signal Control Methods}, year = {2019},
+  eprint = {1904.08117}, archivePrefix = {arXiv}, note = {verified}}
+
+@article{wei2021recent,
+  author = {Wei, Hua and Zheng, Guanjie and Gayah, Vikash and Li, Zhenhui},
+  title = {Recent Advances in Reinforcement Learning for Traffic Signal Control: A Survey of Models and Evaluation},
+  journal = {ACM SIGKDD Explorations Newsletter}, volume = {22}, number = {2}, pages = {12--18},
+  year = {2021}, note = {verified (some catalogues list 2020)}}
+
+@inproceedings{zhang2019cityflow,
+  author = {Zhang, Huichu and Feng, Siyuan and Liu, Chang and others},
+  title = {{CityFlow}: A Multi-Agent Reinforcement Learning Environment for Large Scale City Traffic Scenario},
+  booktitle = {The World Wide Web Conference (WWW)}, pages = {3620--3624}, year = {2019}, note = {check}}
+
+@misc{genders2016using,
+  author = {Genders, Wade and Razavi, Saiedeh},
+  title = {Using a Deep Reinforcement Learning Agent for Traffic Signal Control},
+  year = {2016}, eprint = {1611.01142}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{wei2018intellilight,
+  author = {Wei, Hua and Zheng, Guanjie and Yao, Huaxiu and Li, Zhenhui},
+  title = {{IntelliLight}: A Reinforcement Learning Approach for Intelligent Traffic Light Control},
+  booktitle = {Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining (KDD)},
+  pages = {2496--2505}, year = {2018}, doi = {10.1145/3219819.3220096},
+  note = {authors/venue verified; pages/DOI: check}}
+
+@inproceedings{zheng2019learning,
+  author = {Zheng, Guanjie and Xiong, Yuanhao and Zang, Xinshi and Feng, Jie and Wei, Hua and Zhang, Huichu and Li, Yong and Xu, Kai and Li, Zhenhui},
+  title = {Learning Phase Competition for Traffic Signal Control},
+  booktitle = {Proceedings of the 28th ACM International Conference on Information and Knowledge Management (CIKM)},
+  pages = {1963--1972}, year = {2019}, doi = {10.1145/3357384.3357900},
+  eprint = {1905.04722}, archivePrefix = {arXiv}, note = {verified (co-author list: check)}}
+
+@article{chu2020multi,
+  author = {Chu, Tianshu and Wang, Jie and Codec{\`a}, Lara and Li, Zhaojian},
+  title = {Multi-Agent Deep Reinforcement Learning for Large-Scale Traffic Signal Control},
+  journal = {IEEE Transactions on Intelligent Transportation Systems}, volume = {21}, number = {3},
+  pages = {1086--1095}, year = {2020}, eprint = {1903.04527}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{wei2019presslight,
+  author = {Wei, Hua and Chen, Chacha and Zheng, Guanjie and Wu, Kan and Gayah, Vikash and Xu, Kai and Li, Zhenhui},
+  title = {{PressLight}: Learning Max Pressure Control to Coordinate Traffic Signals in Arterial Network},
+  booktitle = {Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining (KDD)},
+  pages = {1290--1298}, year = {2019}, doi = {10.1145/3292500.3330949}, note = {verified}}
+
+@inproceedings{wei2019colight,
+  author = {Wei, Hua and Xu, Nan and Zhang, Huichu and Zheng, Guanjie and Zang, Xinshi and Chen, Chacha and Zhang, Weinan and Zhu, Yanmin and Xu, Kai and Li, Zhenhui},
+  title = {{CoLight}: Learning Network-Level Cooperation for Traffic Signal Control},
+  booktitle = {Proceedings of the 28th ACM International Conference on Information and Knowledge Management (CIKM)},
+  pages = {1913--1922}, year = {2019}, eprint = {1905.05717}, archivePrefix = {arXiv},
+  note = {arXiv/venue verified; full author list and pages: check}}
+
+@inproceedings{chen2020toward,
+  author = {Chen, Chacha and Wei, Hua and Xu, Nan and Zheng, Guanjie and Yang, Ming and Xiong, Yuanhao and Xu, Kai and Li, Zhenhui},
+  title = {Toward A Thousand Lights: Decentralized Deep Reinforcement Learning for Large-Scale Traffic Signal Control},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence}, volume = {34}, number = {04},
+  pages = {3414--3421}, year = {2020}, doi = {10.1609/aaai.v34i04.5744},
+  note = {verified (middle authors: check)}}
+
+@inproceedings{oroojlooy2020attendlight,
+  author = {Oroojlooy, Afshin and Nazari, Mohammadreza and Hajinezhad, Davood and Silva, Jorge},
+  title = {{AttendLight}: Universal Attention-Based Reinforcement Learning Model for Traffic Signal Control},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {33}, year = {2020},
+  eprint = {2010.05772}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{zang2020metalight,
+  author = {Zang, Xinshi and Yao, Huaxiu and Zheng, Guanjie and Xu, Nan and Xu, Kai and Li, Zhenhui},
+  title = {{MetaLight}: Value-Based Meta-Reinforcement Learning for Traffic Signal Control},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence}, volume = {34}, year = {2020}, note = {check}}
+
+@inproceedings{tan2020multiagent,
+  author = {Tan, Tian and Chu, Tianshu and others},
+  title = {Multi-Agent Bootstrapped Deep {Q}-Network for Large-Scale Traffic Signal Control},
+  booktitle = {2020 IEEE Conference on Control Technology and Applications (CCTA)}, year = {2020},
+  doi = {10.1109/CCTA41146.2020.9206275}, note = {venue/DOI verified; full author list: check}}
+
+@misc{qi2022random,
+  author = {Qi, Ruijie and Huang, Jianbin and Li, He and Tan, Qinglin and Huang, Longji and Cui, Jiangtao},
+  title = {Random Ensemble Reinforcement Learning for Traffic Signal Control},
+  year = {2022}, eprint = {2203.05961}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{du2023safelight,
+  author = {Du, Wenlu and Ye, Junyi and Gu, Jingyi and Li, Jing and Wei, Hua and Wang, Guiling},
+  title = {{SafeLight}: A Reinforcement Learning Method toward Collision-Free Traffic Signal Control},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence}, volume = {37}, number = {12},
+  pages = {14801--14810}, year = {2023}, doi = {10.1609/aaai.v37i12.26729},
+  eprint = {2211.10871}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{ault2021reinforcement,
+  author = {Ault, James and Sharon, Guni},
+  title = {Reinforcement Learning Benchmarks for Traffic Signal Control},
+  booktitle = {Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks},
+  year = {2021}, note = {verified}}
+
+@article{mei2024libsignal,
+  author = {Mei, Hao and Lei, Xiaoliang and Da, Longchao and Shi, Bin and Wei, Hua},
+  title = {{LibSignal}: An Open Library for Traffic Signal Control},
+  journal = {Machine Learning}, volume = {113}, number = {8}, year = {2024},
+  doi = {10.1007/s10994-023-06412-y}, eprint = {2211.10649}, archivePrefix = {arXiv}, note = {verified}}
+
+@misc{nguyen2025robustness,
+  author = {Nguyen, Dang Viet Anh and Azevedo, Carlos Lima and Toledo, Tomer and Rodrigues, Filipe},
+  title = {Robustness of Reinforcement Learning-Based Traffic Signal Control under Incidents: A Comparative Study},
+  year = {2025}, eprint = {2506.13836}, archivePrefix = {arXiv}, note = {verified}}
+
+% ---------------------------------------------------------------- 04 uncertainty & safe RL
+@inproceedings{kendall2017uncertainties,
+  author = {Kendall, Alex and Gal, Yarin},
+  title = {What Uncertainties Do We Need in {Bayesian} Deep Learning for Computer Vision?},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {30}, year = {2017}, note = {check}}
+
+@inproceedings{lakshminarayanan2017simple,
+  author = {Lakshminarayanan, Balaji and Pritzel, Alexander and Blundell, Charles},
+  title = {Simple and Scalable Predictive Uncertainty Estimation using Deep Ensembles},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {30}, year = {2017}, note = {check}}
+
+@inproceedings{osband2016deep,
+  author = {Osband, Ian and Blundell, Charles and Pritzel, Alexander and Van Roy, Benjamin},
+  title = {Deep Exploration via Bootstrapped {DQN}},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {29}, year = {2016},
+  eprint = {1602.04621}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{osband2018randomized,
+  author = {Osband, Ian and Aslanides, John and Cassirer, Albin},
+  title = {Randomized Prior Functions for Deep Reinforcement Learning},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {31}, year = {2018}, note = {check}}
+
+@inproceedings{anschel2017averaged,
+  author = {Anschel, Oron and Baram, Nir and Shimkin, Nahum},
+  title = {Averaged-{DQN}: Variance Reduction and Stabilization for Deep Reinforcement Learning},
+  booktitle = {Proceedings of the 34th International Conference on Machine Learning (ICML)}, year = {2017}, note = {check}}
+
+@inproceedings{chen2021randomized,
+  author = {Chen, Xinyue and Wang, Che and Zhou, Zijian and Ross, Keith},
+  title = {Randomized Ensembled Double {Q}-Learning: Learning Fast Without a Model},
+  booktitle = {International Conference on Learning Representations (ICLR)}, year = {2021}, note = {check}}
+
+@inproceedings{lee2021sunrise,
+  author = {Lee, Kimin and Laskin, Michael and Srinivas, Aravind and Abbeel, Pieter},
+  title = {{SUNRISE}: A Simple Unified Framework for Ensemble Learning in Deep Reinforcement Learning},
+  booktitle = {Proceedings of the 38th International Conference on Machine Learning (ICML)},
+  series = {PMLR}, volume = {139}, pages = {6131--6141}, year = {2021},
+  eprint = {2007.04938}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{gal2016dropout,
+  author = {Gal, Yarin and Ghahramani, Zoubin},
+  title = {Dropout as a {Bayesian} Approximation: Representing Model Uncertainty in Deep Learning},
+  booktitle = {Proceedings of the 33rd International Conference on Machine Learning (ICML)}, year = {2016}, note = {check}}
+
+@inproceedings{ovadia2019can,
+  author = {Ovadia, Yaniv and Fertig, Emily and Ren, Jie and Nado, Zachary and Sculley, D. and Nowozin, Sebastian and Dillon, Joshua and Lakshminarayanan, Balaji and Snoek, Jasper},
+  title = {Can You Trust Your Model's Uncertainty? Evaluating Predictive Uncertainty Under Dataset Shift},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {32},
+  pages = {13991--14002}, year = {2019}, eprint = {1906.02530}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{geifman2017selective,
+  author = {Geifman, Yonatan and El-Yaniv, Ran},
+  title = {Selective Classification for Deep Neural Networks},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {30}, year = {2017}, note = {check}}
+
+@article{gu2024review,
+  author = {Gu, Shangding and Yang, Long and Du, Yali and Chen, Guang and Walter, Florian and Wang, Jun and Knoll, Alois},
+  title = {A Review of Safe Reinforcement Learning: Methods, Theories, and Applications},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence}, volume = {46}, number = {12},
+  pages = {11216--11235}, year = {2024}, doi = {10.1109/TPAMI.2024.3457538},
+  eprint = {2205.10330}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{alshiekh2018safe,
+  author = {Alshiekh, Mohammed and Bloem, Roderick and Ehlers, R{\"u}diger and K{\"o}nighofer, Bettina and Niekum, Scott and Topcu, Ufuk},
+  title = {Safe Reinforcement Learning via Shielding},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence}, volume = {32}, year = {2018},
+  eprint = {1708.08611}, archivePrefix = {arXiv}, note = {verified (author list: check)}}
+
+@article{sha2001using,
+  author = {Sha, Lui}, title = {Using Simplicity to Control Complexity},
+  journal = {IEEE Software}, volume = {18}, number = {4}, pages = {20--28}, year = {2001},
+  doi = {10.1109/MS.2001.936213}, note = {verified}}
+
+@misc{kahn2017uncertainty,
+  author = {Kahn, Gregory and Villaflor, Adam and Pong, Vitchyr and Abbeel, Pieter and Levine, Sergey},
+  title = {Uncertainty-Aware Reinforcement Learning for Collision Avoidance},
+  year = {2017}, eprint = {1702.01182}, archivePrefix = {arXiv}, note = {check}}
+
+@inproceedings{lutjens2019safe,
+  author = {L{\"u}tjens, Bj{\"o}rn and Everett, Michael and How, Jonathan P.},
+  title = {Safe Reinforcement Learning with Model Uncertainty Estimates},
+  booktitle = {2019 International Conference on Robotics and Automation (ICRA)},
+  pages = {8662--8668}, year = {2019}, doi = {10.1109/ICRA.2019.8793611},
+  eprint = {1810.08700}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{hoel2020tactical,
+  author = {Hoel, Carl-Johan and Wolff, Krister and Laine, Leo},
+  title = {Tactical Decision-Making in Autonomous Driving by Reinforcement Learning with Uncertainty Estimation},
+  booktitle = {2020 IEEE Intelligent Vehicles Symposium (IV)}, year = {2020},
+  eprint = {2004.10439}, archivePrefix = {arXiv}, note = {check}}
+
+@misc{hoel2023ensemble,
+  author = {Hoel, Carl-Johan and Wolff, Krister and Laine, Leo},
+  title = {Ensemble Quantile Networks: Uncertainty-Aware Reinforcement Learning with Applications in Autonomous Driving},
+  year = {2021}, eprint = {2105.10266}, archivePrefix = {arXiv},
+  note = {title/arXiv verified; authors and journal version (IEEE T-ITS 2023?): check}}
+
+% ---------------------------------------------------------------- 05 LLM agents & explainability
+@inproceedings{lai2025llmlight,
+  author = {Lai, Siqi and Xu, Zhao and Zhang, Weijia and Liu, Hao and Xiong, Hui},
+  title = {{LLMLight}: Large Language Models as Traffic Signal Control Agents},
+  booktitle = {Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD)},
+  year = {2025}, eprint = {2312.16044}, archivePrefix = {arXiv}, note = {verified}}
+
+@inproceedings{jain2019attention,
+  author = {Jain, Sarthak and Wallace, Byron C.}, title = {Attention is not Explanation},
+  booktitle = {Proceedings of NAACL-HLT}, year = {2019}, note = {check}}
+
+@inproceedings{wiegreffe2019attention,
+  author = {Wiegreffe, Sarah and Pinter, Yuval}, title = {Attention is not not Explanation},
+  booktitle = {Proceedings of EMNLP-IJCNLP}, year = {2019}, note = {check}}
+
+@inproceedings{lundberg2017unified,
+  author = {Lundberg, Scott M. and Lee, Su-In},
+  title = {A Unified Approach to Interpreting Model Predictions},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, volume = {30}, year = {2017}, note = {check}}
+
+@inproceedings{rizzo2019reinforcement,
+  author = {Rizzo, Stefano Giovanni and Vantini, Giovanna and Chawla, Sanjay},
+  title = {Reinforcement Learning with Explainability for Traffic Signal Control},
+  booktitle = {2019 IEEE Intelligent Transportation Systems Conference (ITSC)},
+  pages = {3567--3572}, year = {2019}, doi = {10.1109/ITSC.2019.8917519}, note = {verified}}
+
+@inproceedings{puiutta2020explainable,
+  author = {Puiutta, Erika and Veith, Eric M. S. P.},
+  title = {Explainable Reinforcement Learning: A Survey},
+  booktitle = {Machine Learning and Knowledge Extraction (CD-MAKE)}, series = {LNCS},
+  volume = {12279}, publisher = {Springer}, year = {2020}, note = {check}}
