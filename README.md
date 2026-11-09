@@ -20,6 +20,9 @@ cd ~/Agentic-Traffic-Signal-Control
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt   # exact pins (torch with bundled CUDA, ~3 GB download)
+pip install -e .                  # makes `src/trafficrl` importable (`import trafficrl`)
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 ```
 
 ### 3. CityFlow (built from source, pybind11 bumped for Python 3.12)
@@ -69,3 +72,20 @@ Reference (WSL2, 1 thread, one 3600 s episode, 12 intersections, 6295 vehicles, 
 
 `--threads 4` gives identical metrics but is slower (~4.5 s) on this small network, so use 1
 thread per simulator and parallelise across seeds/runs instead.
+
+### 6. Tests and lint
+
+```bash
+pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones
+ruff check src tests
+```
+
+## Repository layout
+
+```
+configs/          YAML experiment configs; every config inherits `base.yaml` and sets `seed`
+src/trafficrl/    envs/, agents/{baselines,ugmarl}/, utils/ (seed.py, config.py)
+scripts/          entry points (bench_cityflow.py; train/evaluate to come)
+tests/            pytest suite mirroring src/
+notebooks/        EDA only (train split)
+```

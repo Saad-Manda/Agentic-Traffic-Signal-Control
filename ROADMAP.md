@@ -44,7 +44,7 @@ see `PRD.md` §7).
       episode with Fixed-Time & Max-Pressure; write install steps to README
       - [x] WSL: built (pybind11 v2.13.6), Jinan episode FT 2.7 s / MP 1.8 s, README written → worklog/007
       - [ ] native Ubuntu: follow README, run `scripts/bench_cityflow.py`, record numbers
-- [ ] 0.2 Create `.venv`, `requirements.txt`, repo skeleton (`src/trafficrl`, `configs`, `scripts`, `tests`, `notebooks`)
+- [x] 0.2 Create `.venv`, `requirements.txt`, repo skeleton (`src/trafficrl`, `configs`, `scripts`, `tests`, `notebooks`)
 - [ ] 0.3 Seeding utility + YAML config loader (`utils/seed.py`, `utils/config.py`)
 
 ## Phase 1 — Dataset survey & selection (27 Oct – 10 Nov) — **deadline 10 Nov** (was 31 Oct) → G3, G4

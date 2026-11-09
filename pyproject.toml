@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trafficrl"
+version = "0.1.0"
+description = "Uncertainty-Gated Multi-Agent RL (UG-MARL) for adaptive traffic signal control"
+requires-python = ">=3.12"
+# Pinned runtime dependencies live in requirements.txt. CityFlow is built from source
+# (see README) and is deliberately not listed here.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: simulator-heavy tests (deselect with -m 'not slow')"]

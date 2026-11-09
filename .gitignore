@@ -9,3 +9,4 @@ results/
 *.pth
 data/raw/
 *.log
+*.egg-info/
