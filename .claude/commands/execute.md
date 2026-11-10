@@ -27,6 +27,8 @@ Execute the plan `.claude/plans/$ARGUMENTS` (if no name given, list `.claude/pla
    task(s).
 6. Write the worklog entry: create `worklog/NNN-YYYY-MM-DD-slug.md` (next number) or update
    the existing entry for this work, using the template in `worklog/README.md` — what, why
-   (link the plan), how, result (incl. failures), files/commits, next — and update the index.
+   (link the plan), how, result (incl. failures), files changed (per-file table: action, what
+   changed inside the file, why — cross-check with `git status`), commits, next — and update
+   the index.
 7. Summarize what changed and what was verified. Do not commit unless asked — then follow
    `commit.md`.
