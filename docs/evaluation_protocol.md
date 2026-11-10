@@ -132,4 +132,4 @@ supported is reported as a negative result.
 
 | Date | Change | Reason | Decision Log |
 |---|---|---|---|
-| — | none | — | — |
+| 10 Nov 2026 | Clarification (no value changed): "average queue — mean over decision steps" is computed at every env step, i.e. every time at least one intersection decides (≈ every 5 s), because decisions are asynchronous across intersections (per-intersection clocks, §2). | §2 timing makes "decision step" per intersection; one network-wide sampling rule is needed | ROADMAP Decision Log 10 Nov (Phase 4) |

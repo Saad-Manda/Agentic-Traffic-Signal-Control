@@ -6,11 +6,21 @@ CityFlow (C++ engine, Python bindings via `cityflow.Engine(config.json)`), built
 on Linux (native Ubuntu 24.04 + WSL2), commit pinned. Chosen over SUMO for speed, native
 Jinan/Hangzhou roadnet/flow files, and comparability with published CityFlow results.
 
-- Wrapped by `src/trafficrl/envs/` so agents never call the engine directly; the wrapper
-  builds the per-intersection obs, neighbor map, and enforces yellow / min-green.
+- Wrapped by `src/trafficrl/envs/traffic_env.py` (`TrafficEnv`, `make_env`) so agents never
+  call the engine directly; the wrapper builds the per-intersection obs, neighbor map, and
+  enforces yellow / min-green.
+- **Timing — per-intersection clocks** (Phase 4, Decision Log 10 Nov): each intersection holds
+  a green for Δt = 15 s, then decides; a change inserts 5 s of phase 0 before the new green.
+  Intersections drift out of sync after their first switch; `step()` returns whenever ≥ 1 is
+  ready (5 s grid). RL experience is therefore per intersection: one `Transition` per finished
+  interval (15 s, or 20 s after a change), holding all intersections' obs at both ends.
+- Perturbations (noise / dropout) change the *observed* lane readings that every controller
+  sees (Max-Pressure included); rewards and metrics use the true state. Surge = a derived flow
+  file in the run's workdir. Test / held-out flows need `allow_final=True`.
 - Engine calls used: `get_lane_waiting_vehicle_count()` (queues), `get_lane_vehicle_count()`
   (pressure = incoming − outgoing), `set_tl_phase(intersection_id, phase)`, `next_step()`,
-  `get_average_travel_time()`, `reset()` / `set_random_seed(seed)` for seeding.
+  `get_average_travel_time()`, `get_vehicle_speed()` (per-vehicle waiting, throughput),
+  `get_vehicle_count()`, `reset()` / `set_random_seed(seed)` for seeding.
 - No built-in multi-agent RL env — the wrapper is written in-repo (no `sumo-rl` equivalent).
 - Demo/visualization: CityFlow replay (`saveReplay` → `frontend/index.html`, opened in a
   Windows browser via `\\wsl$`) plus an in-repo matplotlib animation colouring each

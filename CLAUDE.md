@@ -60,12 +60,17 @@ jupyter lab                              # EDA / plots in notebooks/
 python scripts/audit_data.py                                 # docs/data_audit.{md,json}
 python scripts/collect_traces.py --config configs/eda.yaml   # results/eda/ + experiment log
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda_train.ipynb
+
+# Phase 4 (env + rule baselines): any agent × seeds × split -> results/eval/<run>/ + log rows
+python scripts/evaluate.py --config configs/eval_baselines.yaml --agent max_pressure --split val
+#   test / heldout are refused unless --final (Phase 7 only); robustness via overrides,
+#   e.g. robustness.noise_std=0.1 robustness.dropout_p=0.1 robustness.surge=1.5
 ```
 
 Planned (not implemented yet — update once scripts exist):
 ```bash
 python scripts/train.py    --config configs/<experiment>.yaml
-python scripts/evaluate.py --config configs/<experiment>.yaml --checkpoint <path>
+python scripts/evaluate.py --config configs/<experiment>.yaml --agent <rl agent> --checkpoint <path>
 ```
 
 ## Project Structure (planned)
@@ -77,7 +82,9 @@ data/processed/     # preprocessed flows / splits
 notebooks/          # EDA only (train split); results figures come from scripts/
 src/trafficrl/
   data/             # splits, roadnet model, audit checks, EDA traces + aggregations (train only)
-  envs/             # features.py (observation, pressure); simulator wrapper(s) in Phase 4
+  envs/             # traffic_env.py (TrafficEnv, make_env), features.py, metrics.py,
+                    #   perturb.py (noise / dropout / surge), engine.py
+  eval/             # runner.py: run_episode, evaluate (shared by every agent)
   agents/
     baselines/      # fixed_time, max_pressure, dqn (single), idqn (multi)
     ugmarl/         # proposed: ensemble Q, neighbor attention, uncertainty gate
@@ -102,6 +109,9 @@ Simulator (CityFlow) ──obs──►       per-intersection agent
    │                                  │ Q-ensemble (K heads) ─► mean Q, σ(s)
    └────────── phase action ◄─────────┤ gate: σ(s) > τ ? Max-Pressure : argmax mean Q
 ```
+Env timing: **per-intersection clocks** — each intersection decides every Δt of green, a phase
+change adds 5 s yellow first; `step()` returns when ≥ 1 intersection is ready (`info["ready"]`),
+agents return a phase for every intersection.
 MDP: state = 44 values per intersection (queue, vehicle count and movement pressure on the 12
 incoming lanes / movements, scaled by **lane capacity — nothing fitted**, + one-hot phase;
 `trafficrl.envs.features`); action = next green phase (1–8); reward = −|pressure|; Δt = 15 s.

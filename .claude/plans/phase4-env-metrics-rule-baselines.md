@@ -1,6 +1,6 @@
 # Plan — Phase 4: environment, metrics, robustness hooks, rule baselines, evaluation harness (ROADMAP 4.1–4.6)
 
-Status: **draft, awaiting sign-off (10 Nov 2026)**. Tick steps `[x]` during execution and note
+Status: **executed 10 Nov 2026** (worklog/015). Tick steps `[x]` during execution and note
 deviations under each step.
 
 ## Goal
@@ -313,23 +313,41 @@ Seeds: one run per seed, `seed_everything(seed)` + CityFlow seed + perturbation 
 
 ## Steps (each can be run and checked on its own)
 
-1. [ ] **Engine move + agent base.** Create `envs/engine.py`, re-import in `trace.py`,
+1. [x] **Engine move + agent base.** Create `envs/engine.py`, re-import in `trace.py`,
    `agents/base.py`. Check: `pytest tests/data` still green.
-2. [ ] **Env wrapper (4.1)** with the timing model, split guard, transitions; toy-network tests.
+2. [x] **Env wrapper (4.1)** with the timing model, split guard, transitions; toy-network tests.
    Check: `pytest tests/envs/test_traffic_env.py`.
-3. [ ] **Metrics (4.2)** — `EpisodeTracker`, `utils/stats.py`; tests. Measure the wall-time cost
+3. [x] **Metrics (4.2)** — `EpisodeTracker`, `utils/stats.py`; tests. Measure the wall-time cost
    of `track=full` vs `light` on one Jinan train episode (record in worklog).
-4. [ ] **Robustness hooks (4.3)** — `SensorModel`, `surge_flow`; tests.
-5. [ ] **Rule agents (4.4, 4.5)** + registry; tests.
-6. [ ] **Evaluation harness (4.6)** — `eval/runner.py`, `scripts/evaluate.py`,
+4. [x] **Robustness hooks (4.3)** — `SensorModel`, `surge_flow`; tests.
+5. [x] **Rule agents (4.4, 4.5)** + registry; tests.
+6. [x] **Evaluation harness (4.6)** — `eval/runner.py`, `scripts/evaluate.py`,
    `configs/eval_baselines.yaml`, `base.yaml` new keys; tests.
-7. [ ] **Train sanity run**: Fixed-Time and Max-Pressure, seed 0, on the train flow; compare with
+7. [x] **Train sanity run**: Fixed-Time and Max-Pressure, seed 0, on the train flow; compare with
    the EDA traces (V3). Also one smoke run each with `robustness.noise_std=0.1`,
    `dropout_p=0.1`, `surge=1.5` on train (checks the hooks end to end; not reported).
-8. [ ] **Validation baseline numbers**: Fixed-Time and Max-Pressure × seeds 0–4 on val.
-9. [ ] **Docs**: api.md, architecture.md, testing.md, how_it_works.md, CLAUDE.md, README
+8. [x] **Validation baseline numbers**: Fixed-Time and Max-Pressure × seeds 0–4 on val.
+9. [x] **Docs**: api.md, architecture.md, testing.md, how_it_works.md, CLAUDE.md, README
    (exact commands + expected val numbers), ROADMAP ticks + Decision Log rows; worklog 015.
    Commit per `.claude/commands/commit.md` (no Claude co-author).
+
+### Deviations during execution (10 Nov)
+
+- Step 1: the worklog index row was missing from the first commit (shell without the venv);
+  added in the next commit.
+- D2: `TrafficEnv` takes a roadnet + engine factory; `make_env(cfg, seed, allow_final, track)`
+  applies the split guard (instead of `TrafficEnv(cfg, seed, allow_final=…)`), so fast tests
+  can inject `tests/envs/fake_engine.FakeEngine`. `info` also carries `in_yellow`.
+- D3: the optional per-step trace (`--trace`, `steps.csv.gz`) was **not** implemented — it is
+  only needed for Phase 8 error analysis and will be added then. `eval.trace` key not added.
+- D3 cost (Step 3): one Jinan train episode takes 1.9 s at `track=light` and 4.2 s at `full`.
+- D6: `--track`, `--dataset`, `--note` CLI options added; `data.json` (flow file, surge hash)
+  written per run.
+- Robustness smoke test (train, seed 0, MP): noise 0.1 → 395.6 s, dropout 0.1 → **339.9 s
+  (better than clean 349.7 s)**, surge 1.5 → 512.5 s (+3182 vehicles). Single seed on train,
+  not a result; noted for 7.3 (MP degradation need not be monotonic).
+- Queue clarification (open question at sign-off) adopted as proposed: sampled at every env
+  step; row added to protocol §9 and the Decision Log.
 
 ## Verification
 

@@ -162,6 +162,13 @@ the loop below:
 
 This is a **Markov decision process (MDP)**: state, action, reward, next state.
 
+**Each intersection keeps its own clock.** An intersection that keeps its phase decides again
+15 s later; one that changes phase first shows 5 s of yellow, so its next decision comes 20 s
+later. After the first change the 12 intersections are no longer in step, so the simulator
+stops whenever *any* of them is due (always on a 5-second grid) and only those intersections
+act. One experience (s, a, r, s′) is recorded per intersection per finished interval
+(`trafficrl.envs.traffic_env`, ROADMAP 4.1).
+
 **How the state is scaled.** A lane 400 m long holds at most 53 vehicles (400 m / 7.5 m per
 vehicle including the gap); an 800 m lane holds 106. Every lane reading is divided by that
 capacity, so each input is between 0 (empty) and 1 (full). Nothing is learned from data for

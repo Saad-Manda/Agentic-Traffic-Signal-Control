@@ -31,6 +31,18 @@ pytest -m "not slow"                # skip simulator-heavy tests (mark them @pyt
 - **EDA leakage guards** (`tests/data/test_trace.py`): traces refuse every dataset / split but
   Jinan train; the audit plots train only; the EDA notebook names no other split or file.
 - **Run log** (`tests/utils/test_runlog.py`): header once, rows appended, `env_info` keys.
+- **Env** (`tests/envs/test_traffic_env.py`, fake engine in `tests/envs/fake_engine.py`):
+  keep → next decision after 15 s, change → yellow 5 s + green, 5 s grid, episode end closes
+  transitions, pending-green one-hot, reward from true counts under noise, split guard; slow
+  Jinan tests: `neighbor_index` vs `neighbors`, determinism, reset = fresh engine, surge on val.
+- **Metrics / perturb / stats** (`tests/envs/test_metrics.py`, `test_perturb.py`,
+  `tests/utils/test_stats.py`): hand-fed tracker values; noise bounds, σ, seeding; dropout
+  rate; surge duplicates; t-values, known CI, deterministic flag.
+- **Rule agents** (`tests/agents/test_rule_agents.py`, `test_interface.py`): Max-Pressure
+  choice + ties; Fixed-Time decision times (0, 15, 30, 50, 65 s) and order; every registered
+  agent conforms to the interface.
+- **Evaluation** (`tests/eval/test_evaluate.py`): CLI and API refuse test / heldout without
+  `--final`; slow end-to-end run writes metrics / summary / log rows (temp log).
 - **Smoke (slow)**: 300-step CityFlow trace is identical for the same seed; plus a few training steps on a tiny network run end-to-end without error.
 
 Experiment evaluation (not unit tests): results across ≥ 3 seeds, reported as mean ± std **and

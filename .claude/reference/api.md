@@ -1,33 +1,80 @@
 # Interfaces
 
 No HTTP API — this is a research codebase. "API" = the internal Python interfaces.
-All signatures below are **planned**; update when implemented.
+Sections marked *implemented* match the code; the rest are planned.
 
-## Environment (`src/trafficrl/envs/`)
+## Environment (`src/trafficrl/envs/traffic_env.py`) — implemented (ROADMAP 4.1)
 
 ```python
+make_env(cfg, seed, *, allow_final=False, track="full") -> TrafficEnv
+    # resolves cfg["data"] via flow_files (hash check); test / heldout raise SplitError
+    # unless allow_final=True (only scripts/evaluate.py --final); robustness.surge != 1 writes a
+    # surged flow copy into a temp workdir (hash in env.data_info)
 class TrafficEnv:
-    def __init__(self, config: dict, seed: int): ...
-    def reset(self) -> dict[str, np.ndarray]: ...          # obs per intersection id
-    def step(self, actions: dict[str, int]) -> tuple[obs, rewards, done, info]: ...
-    @property
-    def intersection_ids(self) -> list[str]: ...
-    def neighbors(self, iid: str) -> list[str]: ...
-    def metrics(self) -> dict[str, float]: ...             # travel time, wait, throughput, queue
+    intersection_ids: list[str]; phase_ids: tuple[int, ...]; obs_dim: int   # 44
+    delta_t, yellow_s, episode_s: int; features: FeatureBuilder; data_info: dict
+    def neighbors(self, iid) -> list[str]                   # signalised, order E, N, W, S
+    def neighbor_index(self) -> (index (n, 4) int64, mask (n, 4) bool)   # batched attention
+    def reset(self) -> (obs, info)                          # t = 0, every intersection ready
+    def step(self, actions: dict[str, int]) -> (obs, rewards, done, info)
+    def metrics(self) -> dict[str, float | None]            # after done; see metrics.py
+@dataclass(frozen=True)
+class Transition: iid, obs (ALL intersections), action, reward, next_obs (ALL), done, duration_s
 ```
-Observation noise / detector dropout for robustness tests applied via config in the wrapper.
-
-## Agent (`src/trafficrl/agents/`)
+- **Timing — per-intersection clocks.** Each intersection holds its green Δt (15 s), then is
+  *ready*; same phase → another Δt, new phase → 5 s yellow (phase 0) + Δt. `step` applies the
+  actions of `info["ready"]` only (others ignored; a missing ready action raises `KeyError`)
+  and returns as soon as ≥ 1 intersection is ready again or t = episode end. Decisions fall
+  on a 5 s grid. At t = 0 the first green starts without a yellow.
+- `obs`: all intersections, from the *observed* readings (after `SensorModel`); during yellow
+  the one-hot shows the pending green. `rewards`: `{iid: −|P_i|}` for intersections whose
+  interval just ended, from *true* counts. `info`: `t`, `ready`, `phase`, `in_yellow`,
+  `green_elapsed`, `lane_count` (observed, vehicles), `transitions` (list of `Transition`).
+- `track="light"` skips per-vehicle reads (training); `"full"` for evaluation.
 
 ```python
-class Agent(Protocol):
-    def act(self, obs: dict[str, np.ndarray], explore: bool = False) -> dict[str, int]: ...
-    def observe(self, transition) -> None: ...             # no-op for non-learning baselines
-    def update(self) -> dict[str, float]: ...              # training losses; {} for baselines
-    def save(self, path: str) -> None: ...
-    def load(self, path: str) -> None: ...
+# metrics.py
+EpisodeTracker(in_lanes, track).on_second(speeds) / on_step(lane_waiting) / on_switch() /
+    result(avg_travel_time_s, in_network) -> {avg_travel_time_s, avg_queue_veh, phase_switches,
+    in_network_at_end, avg_waiting_time_s, max_waiting_time_s, throughput_veh, vehicles_entered}
+# perturb.py (protocol §6)
+SensorModel(capacity, noise_std, dropout_p, rng).observe(lane_count, lane_waiting) -> (count, wait)
+surge_flow(roadnet_path, flow_path, out_dir, surge, rng) -> (roadnet copy, flow, n added)
+# engine.py
+make_engine(roadnet_path, flow_path, seed, threads, workdir) -> cityflow.Engine
 ```
-UG-MARL additionally exposes `last_explanations() -> dict` (attention weights, σ, gate flag).
+
+## Agent (`src/trafficrl/agents/`) — implemented for rule agents (ROADMAP 4.4–4.5)
+
+```python
+class Agent(Protocol):                                     # agents/base.py
+    name: str
+    def act(self, obs: dict[str, np.ndarray], info: dict, explore: bool = False) -> dict[str, int]
+        # returns a phase for EVERY intersection (latency = batch of all); env uses info["ready"]
+    def observe(self, transitions: list[Transition]) -> None   # no-op for rule agents
+    def update(self) -> dict[str, float]                   # training losses; {} for rule agents
+    def save(self, path) -> None ; def load(self, path) -> None
+    def last_explanations(self) -> dict                    # {} by default; UG-MARL: σ, attention,
+                                                           #   {"fallback": {iid: bool}} (-> fallback rate)
+class RuleAgent  # no-op base
+FixedTimeAgent(phase_ids, delta_t, green_seconds=30)       # keep while green_elapsed < 30 s
+MaxPressureAgent(features).choose(iid, lane_count) -> int  # observed counts; ties -> lowest id
+make_agent(name, env, cfg) -> Agent                        # registry AGENTS; params cfg["agents"][name]
+```
+`info` was added to `act` (10 Nov, plan D5): Max-Pressure (and the UG-MARL gate) need raw
+observed lane counts and Fixed-Time needs the green elapsed time; neither is in the 44-vector.
+
+## Evaluation (`src/trafficrl/eval/runner.py`) — implemented (ROADMAP 4.6)
+
+```python
+run_episode(env, agent, *, explore=False) -> metrics + decisions, fallback_rate,
+                                             decision_latency_ms (mean), decision_latency_ms_p95
+evaluate(cfg, agent_name, seeds, *, final=False, checkpoint=None, track="full", note="",
+         log_path=EXPERIMENT_LOG) -> (out_dir, metrics DataFrame)
+condition_label(cfg) -> "clean" | "noise0.1-drop0.1-surge1.5" ; summary_table(metrics) -> DataFrame
+# utils/stats.py
+summarise(values) -> {mean, std, ci95_low, ci95_high, n, deterministic} ; t975(df)
+```
 
 ## Data layer (`src/trafficrl/data/`) — implemented (ROADMAP 3.0–3.4)
 
@@ -73,7 +120,7 @@ class FeatureBuilder:
     def phase_pressure(self, iid, lane_count) -> dict[int, float]    # Max-Pressure rule
     def intersection_pressure(self, iid, lane_count) -> float        # reward = −|P_i|
 ```
-`TrafficEnv.reset()/step()` (Phase 4) must return `FeatureBuilder.observations(...)`.
+`TrafficEnv.reset()/step()` return `FeatureBuilder.observations(...)`.
 `green_phase` is a green phase id (1..8); during a transition the env passes the phase being
 switched to, never 0. `lane_count` / `lane_waiting` are the engine's
 `get_lane_vehicle_count()` / `get_lane_waiting_vehicle_count()` dictionaries.
@@ -113,5 +160,8 @@ Every experiment config starts with `base: base.yaml` (`configs/base.yaml`).
   rollouts → `results/eda/<run>/`, rows in `docs/experiment_log.csv`
 - `scripts/dataset_stats.py`, `scripts/bench_cityflow.py` — dataset sizes; install benchmark
 - `scripts/train.py --config <yaml>` — TODO
-- `scripts/evaluate.py --config <yaml> --checkpoint <path>` — TODO
+- `scripts/evaluate.py --config configs/eval_baselines.yaml --agent <name> --split val [--seeds …]
+  [--checkpoint PATH] [--final] [overrides]` — any agent × seeds → `results/eval/<run>/`
+  (`metrics.csv`, `summary.csv`, config, env.json, data.json) + one log row per seed; exit 2 on
+  test / heldout without `--final`
 - `scripts/run_ablation.py --config <yaml>` — TODO
