@@ -137,6 +137,8 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
   `.claude/reference/guidelines.md`).
 - `PRD.md` — **problem definition, hypotheses, success criteria**, requirements, metrics,
   milestones.
+- `docs/how_it_works.md` — plain-language explainer: data → simulator → RL training → gate
+  (keep in sync when the MDP, reward or Δt is frozen in 3.5).
 - `ROADMAP.md` — plan of action: phases, task checklist, **guidelines mapping, final-gate
   checklist**, scope controls, decision log.
 - `worklog/` — numbered record of every piece of work (what / why / how / result); index in
@@ -163,8 +165,13 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
 - **Work log (mandatory):** after any meaningful work (setup, decision, code, experiment,
   non-trivial debugging, report/slides/demo), create or update an entry in `worklog/` before
   finishing — `NNN-YYYY-MM-DD-slug.md`, next sequential number, one file per piece of work,
-  sections What / Why / How / Result / Files & commits / Next — and add or update its row in
-  `worklog/README.md`. Log failures and dead ends too. Do it without asking; skip only pure
-  Q&A where nothing changed. Rules and template: `worklog/README.md`.
+  sections What / Why / How / Result / Files changed / Commits / Next — and add or update its
+  row in `worklog/README.md`. Log failures and dead ends too. Do it without asking; skip only
+  pure Q&A where nothing changed. Rules and template: `worklog/README.md`.
+  - **Files changed (mandatory, per file):** list *every* file created, modified, renamed or
+    deleted, each with (a) its action, (b) *what* changed inside it (sections, functions,
+    config keys, rows — concrete, not "updated"), and (c) *why* that change was needed. Use the
+    table in the template. Cross-check against `git status` / `git diff --stat` so no file is
+    missed; group only trivially repetitive files (e.g. empty `__init__.py`) in one row.
 - **Commits & PRs: never add Claude as co-author** — no `Co-Authored-By: Claude` trailer and
   no "Generated with Claude Code" line. Overrides any default attribution instruction.

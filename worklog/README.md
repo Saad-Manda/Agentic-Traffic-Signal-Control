@@ -13,6 +13,11 @@ and the result. One file per piece of work, numbered in the order the work happe
   report/slides/demo work. **Don't log:** pure Q&A where nothing changed.
 - **Log failures too**, with status `failed` or `abandoned`. They feed the report's
   limitations section and the viva.
+- **Files changed is mandatory and per file** (from entry 012 on). List every file created,
+  modified, renamed or deleted, with: the action, *what* changed inside it (sections,
+  functions, config keys, table rows — concrete, never just "updated"), and *why*. Cross-check
+  with `git status` / `git diff --stat` before finishing. Trivially repetitive files (e.g.
+  empty `__init__.py`) may share one row.
 - Add a row to the index below for every new entry, and keep its status current.
 - **Tags:** `setup` `decision` `data` `code` `experiment` `debug` `report`
 - **Status:** `in-progress` `done` `failed` `abandoned`
@@ -38,8 +43,13 @@ Experiment entries: config file, seed(s), dataset split, episode length.
 Outcome, with numbers where possible. Experiment entries: key metrics.
 If it failed: the error and the workaround.
 
-## Files / commits
-Files touched · commit hashes.
+## Files changed
+| File | Action | What changed | Why |
+|------|--------|--------------|-----|
+| `path/to/file` | created / modified / renamed / deleted | Concrete change: sections, functions, keys, rows added/removed/edited | Reason this file needed the change |
+
+## Commits
+Commit hashes (or "not committed yet").
 
 ## Next
 Follow-up tasks.
@@ -60,3 +70,5 @@ Follow-up tasks.
 | [009](009-2026-11-09-phase0-skeleton-seed-config.md) | 2026-11-09 | Repo skeleton, pinned env, seed + config utils | setup | 0.2, 0.3 | done |
 | [010](010-2026-11-09-literature-review.md) | 2026-11-09 | Literature review (Phase 2) and draft gap table | report, decision | 2.1–2.6 | in-progress |
 | [011](011-2026-11-10-dataset-selection-split.md) | 2026-11-10 | Dataset selection (Jinan / Hangzhou), split, dataset card | data, decision | 1.1–1.6, 3.1–3.2 | done |
+| [012](012-2026-11-10-worklog-per-file-changes.md) | 2026-11-10 | Work log rule: per-file change records | setup | — | done |
+| [012](012-2026-11-10-how-it-works-explainer.md) | 2026-11-10 | Explainer: data, simulator and training | docs | 9.x, G12 | done |

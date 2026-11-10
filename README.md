@@ -62,6 +62,8 @@ python scripts/dataset_stats.py --json docs/dataset_stats.json
 
 The data has no license file. Use it for academic purposes only and cite CoLight (Wei et al.,
 CIKM 2019). Split and data dictionary: `docs/dataset_card.md`.
+New to the project? `docs/how_it_works.md` explains in plain language what the data is,
+what the simulator does with it, and how the agents are trained.
 
 ### 5. Smoke test + timing
 
