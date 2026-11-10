@@ -101,7 +101,8 @@ python scripts/evaluate.py --agent max_pressure --split val --note "Phase 4 vali
 - `1147d0d` feat(env): add CityFlow env wrapper, metrics and robustness hooks
 - `6459a2e` feat(baselines): add Fixed-Time and Max-Pressure agents
 - `d7b1459` feat(eval): add evaluation harness and scripts/evaluate.py
-- docs / experiment commit: see below
+- `9650f51` exp(baselines): Fixed-Time and Max-Pressure on Jinan train and val
+- `3e6a50b` docs: record Phase 4 env, interfaces and evaluation
 
 ## Next
 - Phase 5: DQN core, shared-parameter DQN and IDQN on top of `Transition` (train with
