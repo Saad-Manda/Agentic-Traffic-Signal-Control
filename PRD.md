@@ -10,8 +10,7 @@ explainability, and high computational cost.
 ### 1a. Problem definition
 
 *Given* per-lane queue lengths, vehicle counts and the current signal phase at every
-intersection of a real-world road network (primary dataset — selection pending, see ROADMAP
-Phase 1), *choose* the next signal phase for each intersection every Δt seconds over a 3600 s
+intersection of a real-world road network (primary dataset: Jinan 3×4; held-out city: Hangzhou 4×4), *choose* the next signal phase for each intersection every Δt seconds over a 3600 s
 episode, *under* min-green and yellow-transition constraints and possibly noisy or missing
 detector readings, *achieving* lower average vehicle travel time than the baselines while
 keeping the worst-case per-vehicle wait bounded.
@@ -88,8 +87,8 @@ others), simulation-based evaluation, offline analysis, demo via simulator.
 | Safety | Max per-vehicle wait (starvation), % fallback actions |
 | Explainability | Attention/SHAP attributions, gate statistics |
 
-The metric set above is **provisional** — not frozen yet; it may change until the evaluation
-protocol is frozen (before training).
+The metric set above is **frozen** (10 Nov 2026) with definitions in `docs/evaluation_protocol.md`
+§5; changes need a dated Decision Log entry.
 
 **Reporting rules**
 - Every metric is reported as mean ± std **and** 95% CI over ≥ 3 seeds — never a single best run.
@@ -137,7 +136,7 @@ Re-baselined 9 Nov (see ROADMAP Decision Log).
 ## 9. Open Questions
 
 - ~~Simulator choice~~ — **resolved 27 Oct: CityFlow** (see ROADMAP Decision Log).
-- Final reward definition (−pressure vs. −queue) and gate threshold τ selection method.
-- Decision interval Δt: 10 s (literature convention) vs. 15 s — on the train flow Max-Pressure
-  is 8 % better at 15 s (`notebooks/01_eda_train.ipynb` §10). To be settled at the protocol
-  freeze (ROADMAP 3.5).
+- ~~Reward (−pressure vs. −queue)~~ — **resolved 10 Nov: −|pressure|** (`docs/evaluation_protocol.md`).
+- ~~Decision interval Δt~~ — **resolved 10 Nov: 15 s** (Max-Pressure 8 % better than 10 s on the
+  train flow, `notebooks/01_eda_train.ipynb` §10).
+- Gate threshold τ selection method (chosen on validation; method decided in Phase 6).

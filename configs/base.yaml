@@ -1,6 +1,6 @@
 # Shared defaults inherited by every experiment config via `base: base.yaml`.
-# Values marked PROVISIONAL are frozen in ROADMAP 3.5 (docs/evaluation_protocol.md);
-# change them only with a dated Decision Log entry after the freeze.
+# sim/features/data values are FROZEN (ROADMAP 3.5, docs/evaluation_protocol.md, 10 Nov 2026);
+# change them only with a dated Decision Log entry.
 
 seed: 0                  # override per run; final results use >= 3 seeds
 deterministic: true      # torch deterministic kernels (utils/seed.py)
@@ -8,8 +8,9 @@ deterministic: true      # torch deterministic kernels (utils/seed.py)
 sim:
   engine: cityflow
   threads: 1             # 1 thread per simulator, parallelise across runs (worklog/007)
-  episode_seconds: 3600  # PROVISIONAL
-  decision_interval: 10  # Δt in seconds — PROVISIONAL
+  episode_seconds: 3600  # frozen
+  decision_interval: 15  # Δt in seconds — frozen (EDA: Max-Pressure −8 % vs 10 s on train)
+  reward: pressure       # r_i = −|P_i| — frozen
   yellow_seconds: 5      # CityFlow phase 0 = transition (worklog/007)
 
 features:                # observation built by trafficrl.envs.features (ROADMAP 3.4)

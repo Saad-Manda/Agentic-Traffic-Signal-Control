@@ -1,5 +1,5 @@
 # 013 — Phase 3: data audit, train-split EDA, feature engineering
-**Date:** 2026-11-10   **Tag:** data, code, experiment, decision   **ROADMAP:** 3.0, 3.3, 3.4   **Status:** done (3.5 protocol freeze deferred by the user)
+**Date:** 2026-11-10   **Tag:** data, code, experiment, decision   **ROADMAP:** 3.0, 3.3, 3.4   **Status:** done (3.5 protocol freeze done in worklog/014)
 
 ## What
 Executed Steps 1–7 of `.claude/plans/phase3-data-audit-eda-features.md`:

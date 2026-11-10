@@ -19,8 +19,8 @@ Jinan/Hangzhou roadnet/flow files, and comparability with published CityFlow res
 
 ## MDP formulation (per intersection i)
 
-- **State** sᵢ ∈ ℝ⁴⁴ (`trafficrl.envs.features.FeatureBuilder`, ROADMAP 3.4; provisional until
-  the 3.5 freeze): `[ q̃ (12) ‖ x̃ (12) ‖ p (12) ‖ one-hot green phase (8) ]` with
+- **State** sᵢ ∈ ℝ⁴⁴ (`trafficrl.envs.features.FeatureBuilder`, ROADMAP 3.4; frozen 10 Nov,
+  `docs/evaluation_protocol.md`): `[ q̃ (12) ‖ x̃ (12) ‖ p (12) ‖ one-hot green phase (8) ]` with
   x̃_l = min(x_l / C_l, 1) (vehicles on incoming lane l), q̃_l = min(q_l / C_l, 1) (waiting
   vehicles), p_m = mean x̃ on the movement's incoming lanes − mean x̃ on its outgoing lanes,
   and lane capacity C_l = ⌊length_l / 7.5 m⌋ (53 / 80 / 106 vehicles for 400 / 600 / 800 m).
@@ -29,10 +29,11 @@ Jinan/Hangzhou roadnet/flow files, and comparability with published CityFlow res
   intersections. Neighbor states s_j for j ∈ N(i) (`Intersection.neighbors`, per direction).
 - **Action** aᵢ: next signal phase (with fixed min-green and yellow transitions handled by env).
 - **Reward** rᵢ = −|Pᵢ|, Pᵢ = Σ vehicles on incoming lanes − Σ vehicles on outgoing lanes
-  (`FeatureBuilder.intersection_pressure`); alternative −Σ queue. Provisional until 3.5. EDA:
-  queue and |Pᵢ| correlate at 0.65–0.82, but |Pᵢ| ≈ 0 when both sides are full.
-- **Decision interval**: Δt = 10 s, provisional until 3.5. EDA (train flow, Max-Pressure):
-  451 / 375 / 344 / 347 s average travel time at Δt = 5 / 10 / 15 / 20 s — open point.
+  (`FeatureBuilder.intersection_pressure`). **Frozen 10 Nov** (−Σ queue rejected). EDA: queue
+  and |Pᵢ| correlate at 0.65–0.82, but |Pᵢ| ≈ 0 when both sides are full (reported limitation).
+- **Decision interval**: **Δt = 15 s, frozen 10 Nov** (+5 s yellow only on a phase change).
+  EDA (train flow, Max-Pressure): 451 / 375 / 344 / 347 s average travel time at
+  Δt = 5 / 10 / 15 / 20 s.
 - **Max-Pressure phase rule**: argmax over green phases of Σ over the phase's movements of
   (x_in − x_out) (`FeatureBuilder.phase_pressure`), ties → lowest phase id.
 
@@ -71,8 +72,8 @@ training (train flows) → tuning (val flows) → final eval (test flows, held-o
 
 ## Diagram requirements (guidelines, ROADMAP 9.5)
 
-Report/slide diagram: labelled blocks in data-flow order — raw flows → split → normalisation
-(**fit on train only**) → CityFlow env → attention encoder → Q-ensemble → gate → phase action
+Report/slide diagram: labelled blocks in data-flow order — raw flows → split → capacity scaling
+(roadnet only, nothing fitted) → CityFlow env → attention encoder → Q-ensemble → gate → phase action
 → metrics. Show the **training path** (replay, ensemble updates, τ chosen on validation)
 separately from the **inference path**, and add a caption.
 

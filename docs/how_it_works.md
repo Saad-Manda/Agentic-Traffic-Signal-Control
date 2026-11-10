@@ -5,8 +5,9 @@ with it, and how an RL agent is trained from it. Written for the project team, m
 viva preparation. Formal details: `docs/dataset_card.md` (data), `.claude/reference/architecture.md`
 (model), `.claude/reference/database.md` (split and leakage rules).
 
-> Values marked *(provisional)* (decision interval, reward, number of episodes) are fixed
-> when the evaluation protocol is frozen (ROADMAP 3.5) and may change until then.
+> The decision interval (15 s), reward (−pressure), state, metrics and seeds are **frozen**
+> in `docs/evaluation_protocol.md` (10 Nov 2026). Values still marked *(provisional)* (number
+> of training episodes) are hyperparameters chosen on the validation flow.
 
 ---
 
@@ -142,7 +143,7 @@ a learned controller that does better still, and stays safe when it is unsure.
 
 ### 4.1 The decision loop
 
-Every **Δt = 10 simulated seconds** *(provisional)* each of the 12 intersection agents runs
+Every **Δt = 15 simulated seconds** each of the 12 intersection agents runs
 the loop below:
 
 ```
@@ -151,9 +152,9 @@ the loop below:
  │              the 12 incoming lanes / movements, each as a share of the │
  │              lane's capacity, + current phase (+ neighbours' states)   │
  │ 2. ACT       action a : choose one of the 8 green phases               │
- │ 3. SIMULATE  CityFlow runs 10 s (5 s transition first if phase changed)│
+ │ 3. SIMULATE  CityFlow runs 15 s (5 s transition first if phase changed)│
  │ 4. REWARD    r = −pressure  ≈ −(cars waiting to enter − cars waiting   │
- │              downstream)   (provisional) — less congestion = higher r  │
+ │              downstream)   (frozen)      — less congestion = higher r  │
  │ 5. STORE     the experience (s, a, r, s′) in a replay buffer           │
  │ 6. LEARN     sample past experiences, update the neural network        │
  └────────────────────────────────────────────────────────────────────────┘
@@ -172,7 +173,8 @@ lane ever exceeded 96 % of its capacity (`notebooks/01_eda_train.ipynb`).
 
 The neural network learns from the **experience tuples (s, a, r, s′) the agent itself
 generates**, not from the flow file directly. One episode (one simulated hour) gives
-3600 s / 10 s = 360 decisions × 12 intersections ≈ **4,300 experiences**. The flow file only
+3600 s / 15 s = at most 240 decisions × 12 intersections ≈ **2,900 experiences** (fewer
+when 5 s transitions are inserted). The flow file only
 fixes *which traffic the agent faces*. The agent's actions decide what happens.
 
 ### 4.3 What the network learns
@@ -272,7 +274,7 @@ each contributes.
 |---|---|
 | **Episode** | one full simulated hour of one flow file |
 | **Phase** | a set of movements given green together (8 per intersection + transition) |
-| **Δt** | time between agent decisions (10 s, provisional) |
+| **Δt** | green time between agent decisions (15 s, frozen) |
 | **Queue** | vehicles stopped (speed < 0.1 m/s) on a lane |
 | **Pressure** | queue on incoming lanes minus queue on the outgoing lanes they feed; high = this movement needs green |
 | **Q-value** | predicted total future reward of choosing a phase now |

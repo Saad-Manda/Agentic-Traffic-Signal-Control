@@ -73,3 +73,4 @@ Follow-up tasks.
 | [012](012-2026-11-10-worklog-per-file-changes.md) | 2026-11-10 | Work log rule: per-file change records | setup | — | done |
 | [012](012-2026-11-10-how-it-works-explainer.md) | 2026-11-10 | Explainer: data, simulator and training | docs | 9.x, G12 | done |
 | [013](013-2026-11-10-phase3-audit-eda-features.md) | 2026-11-10 | Phase 3: data audit, train-split EDA, feature engineering | data, code, experiment, decision | 3.0, 3.3, 3.4 | done |
+| [014](014-2026-11-10-evaluation-protocol-freeze.md) | 2026-11-10 | Evaluation protocol frozen (Δt 15 s, reward −pressure) | decision, docs | 3.5, 5.0 | done |

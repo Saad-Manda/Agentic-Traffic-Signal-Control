@@ -130,13 +130,14 @@ literature gap table (draft) · UG-MARL design diagram · evaluation protocol dr
       (44 values per intersection, `trafficrl.envs.features`). Normalisation = **lane-capacity
       scaling, nothing fitted** (replaces "normalization stats from train only" — Decision Log
       10 Nov) → worklog/013
-- [ ] 3.5 **Freeze the evaluation protocol** (must be done before Phase 5 training starts):
+- [x] 3.5 **Freeze the evaluation protocol** (must be done before Phase 5 training starts):
       primary + held-out datasets, split definition, final metric set, seeds, episode length,
       decision interval Δt, success criteria (`PRD.md` §1c). Write `docs/evaluation_protocol.md`,
       add a dated Decision Log row, and commit. **After freezing, changes are allowed only with a
       dated Decision Log entry giving the reason.**
       - Note: the held-out city is a **group-wise (location) split**, as the guidelines require
         for repeated locations.
+      — **frozen 10 Nov: Δt = 15 s, reward = −|pressure|** → `docs/evaluation_protocol.md`, worklog/014
 
 ## Phase 4 — Environment & conventional baselines (10–11 Nov) → R4, G7, G9
 
@@ -155,7 +156,7 @@ Fixed-Time & Max-Pressure validation numbers · UG-MARL design diagram.
 
 ## Phase 5 — RL baselines (11–13 Nov) → R4, G7, G8
 
-- [ ] 5.0 **Gate:** evaluation protocol frozen (3.5) — no RL training before this
+- [x] 5.0 **Gate:** evaluation protocol frozen (3.5) — no RL training before this
 - [ ] 5.1 DQN core: replay buffer, target network, ε-greedy
 - [ ] 5.2 **Single-agent baseline**: one DQN, parameters shared across intersections, local obs only
 - [ ] 5.3 **Multi-agent baseline (IDQN)**: independent network + buffer per intersection
@@ -339,3 +340,4 @@ Tick all before submission on 17 Nov.
 | 10 Nov | **Observation = 44 values per intersection:** queue (12) ‖ vehicle count (12) ‖ movement pressure (12) ‖ one-hot green phase (8), lanes in a canonical order (incoming roads E, N, W, S; lane left / through / right). Groups are selectable in `configs/base.yaml` (`features.groups`). Provisional until the 3.5 freeze. → worklog/013 |
 | 10 Nov | **Seeds (for the 3.5 freeze): 5 for the main comparison and ablations (7.1, 7.2), 3 for robustness and generalisation (7.3, 7.4).** Reason: with 3 seeds the 95 % CI uses t = 4.30, with 5 seeds t = 2.78. EDA finding to carry into the protocol: Fixed-Time and Max-Pressure are deterministic across seeds, so only learned agents have seed variance. → worklog/013 |
 | 10 Nov | **Δt and reward stay provisional (Δt = 10 s, reward = −pressure) until 3.5.** EDA on the train flow: Max-Pressure averages 451 / 375 / 344 / 347 s travel time at Δt = 5 / 10 / 15 / 20 s, so 15 s is 8 % better than 10 s for that controller; queue and \|pressure\| correlate at 0.65–0.82 but pressure is near zero when upstream and downstream lanes are both full. **Open for the freeze:** keep Δt = 10 s (literature), use 15 s, or tune Max-Pressure's interval on validation; −queue remains the documented reward alternative. → worklog/013 |
+| 10 Nov | **Evaluation protocol frozen (3.5)** → `docs/evaluation_protocol.md`. **Δt = 15 s** (Max-Pressure 344 s vs 375 s at 10 s on the train flow, −8 %; 20 s no better; chosen on train only, same Δt for all controllers; trade-off: absolute numbers not directly comparable with 10 s papers). **Reward = −\|Pᵢ\|** (same objective as the Max-Pressure fallback; −queue rejected; the "both sides full" blind spot is reported as a limitation). Also frozen: Jinan train/val/test + Hangzhou held-out (hash-pinned), 3600 s episodes, 5 s yellow, 44-value state, metric set and definitions, seeds 0–4 (7.1, 7.2) / 0–2 (7.3, 7.4), robustness perturbation definitions, reporting rules. Rule-based baselines are run on every seed and reported with std = 0 ("deterministic"); H1 then needs the learned agent's whole CI below the baseline value. Supersedes the open point of the row above. → worklog/014 |

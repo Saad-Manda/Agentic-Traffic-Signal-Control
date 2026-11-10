@@ -1,6 +1,6 @@
 # Plan — Phase 3: data audit, EDA and feature engineering (ROADMAP 3.0, 3.3, 3.4; 3.5 gated)
 
-Status: **Steps 1–7 executed 10 Nov 2026** (worklog/013); **Step 8 (ROADMAP 3.5) deferred by the user** — to be run after sign-off.
+Status: **Steps 1–7 executed 10 Nov 2026** (worklog/013); **Step 8 (ROADMAP 3.5) executed 10 Nov 2026 after sign-off** (worklog/014).
 Tick steps `[x]` during execution and note deviations under each step.
 
 ## Goal
@@ -322,7 +322,7 @@ Val, test and held-out flows are not simulated anywhere in this plan.
   −|pressure| misses states where upstream and downstream are both full; rule controllers
   are deterministic across seeds.
 
-### Step 8 — values proposed for the freeze (to be confirmed, not yet decided)
+### Step 8 — values proposed for the freeze (executed 10 Nov; user chose Δt = 15 s, reward −|P|)
 
 | Item | Proposed value | Source |
 |---|---|---|
