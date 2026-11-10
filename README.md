@@ -85,19 +85,41 @@ Reference (WSL2, 1 thread, one 3600 s episode, 12 intersections, 6295 vehicles, 
 `--threads 4` gives identical metrics but is slower (~4.5 s) on this small network, so use 1
 thread per simulator and parallelise across seeds/runs instead.
 
-### 6. Tests and lint
+### 6. Data audit, EDA traces and EDA notebook (ROADMAP Phase 3)
+
+```bash
+cd ~/Agentic-Traffic-Signal-Control
+python scripts/audit_data.py                                 # all splits, counts only; exit 1 on a defect
+python scripts/collect_traces.py --config configs/eda.yaml   # train flow only, ~2.5 min
+jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda_train.ipynb
+```
+
+| Command | Output | Expected |
+|---|---|---|
+| `audit_data.py` | `docs/data_audit.md`, `docs/data_audit.json`, `docs/figures/audit/*.png` (train split only) | every defect count 0 for 6 flow files and 2 road networks |
+| `collect_traces.py` | `results/eda/<run>/{steps.csv.gz, vehicles.csv.gz, summary.json, config.yaml, env.json}`; 12 rows appended to `docs/experiment_log.csv` | average travel time on the train flow: Fixed-Time 515.2 s, Max-Pressure 374.9 s (Δt = 10 s), random 646–657 s; Max-Pressure at Δt = 5 / 15 / 20 s: 451.1 / 344.1 / 347.3 s |
+| notebook | `docs/figures/eda/*.png` (8 figures), tables inside the notebook | runs top to bottom; reads the train split only |
+
+The simulator is deterministic for a fixed flow file and a deterministic controller, so the
+Fixed-Time and Max-Pressure numbers reproduce exactly. These rollouts describe the data; they
+are not the baseline results (Phase 4).
+
+### 7. Tests and lint
 
 ```bash
 pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones
-ruff check src tests
+ruff check src tests scripts
 ```
 
 ## Repository layout
 
 ```
 configs/          YAML experiment configs; every config inherits `base.yaml` and sets `seed`
-src/trafficrl/    envs/, agents/{baselines,ugmarl}/, utils/ (seed.py, config.py)
-scripts/          entry points (bench_cityflow.py; train/evaluate to come)
+src/trafficrl/    data/ (splits, roadnet, audit, trace, eda), envs/ (features),
+                  agents/{baselines,ugmarl}/, utils/ (seed, config, runlog, plotting)
+scripts/          entry points (dataset_stats, bench_cityflow, audit_data, collect_traces;
+                  train/evaluate to come)
 tests/            pytest suite mirroring src/
-notebooks/        EDA only (train split)
+notebooks/        EDA only (train split): 01_eda_train.ipynb
+docs/             dataset_card.md, data_audit.md, experiment_log.csv, figures/, literature/
 ```

@@ -138,3 +138,6 @@ Re-baselined 9 Nov (see ROADMAP Decision Log).
 
 - ~~Simulator choice~~ — **resolved 27 Oct: CityFlow** (see ROADMAP Decision Log).
 - Final reward definition (−pressure vs. −queue) and gate threshold τ selection method.
+- Decision interval Δt: 10 s (literature convention) vs. 15 s — on the train flow Max-Pressure
+  is 8 % better at 15 s (`notebooks/01_eda_train.ipynb` §10). To be settled at the protocol
+  freeze (ROADMAP 3.5).

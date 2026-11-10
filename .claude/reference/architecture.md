@@ -19,11 +19,22 @@ Jinan/Hangzhou roadnet/flow files, and comparability with published CityFlow res
 
 ## MDP formulation (per intersection i)
 
-- **State** sᵢ: per incoming-lane queue length (and/or vehicle count), lane pressure
-  (incoming − outgoing vehicles), one-hot current phase. Neighbor states s_j for j ∈ N(i).
+- **State** sᵢ ∈ ℝ⁴⁴ (`trafficrl.envs.features.FeatureBuilder`, ROADMAP 3.4; provisional until
+  the 3.5 freeze): `[ q̃ (12) ‖ x̃ (12) ‖ p (12) ‖ one-hot green phase (8) ]` with
+  x̃_l = min(x_l / C_l, 1) (vehicles on incoming lane l), q̃_l = min(q_l / C_l, 1) (waiting
+  vehicles), p_m = mean x̃ on the movement's incoming lanes − mean x̃ on its outgoing lanes,
+  and lane capacity C_l = ⌊length_l / 7.5 m⌋ (53 / 80 / 106 vehicles for 400 / 600 / 800 m).
+  **Nothing is fitted.** Lanes are in a canonical order (incoming roads by direction of travel
+  E, N, W, S; lane 0 left, 1 through, 2 right) so parameters can be shared across
+  intersections. Neighbor states s_j for j ∈ N(i) (`Intersection.neighbors`, per direction).
 - **Action** aᵢ: next signal phase (with fixed min-green and yellow transitions handled by env).
-- **Reward** rᵢ: −pressureᵢ (alternative: −Σ queue). TODO: finalize.
-- **Decision interval**: Δt seconds (TODO, typically 5–10 s).
+- **Reward** rᵢ = −|Pᵢ|, Pᵢ = Σ vehicles on incoming lanes − Σ vehicles on outgoing lanes
+  (`FeatureBuilder.intersection_pressure`); alternative −Σ queue. Provisional until 3.5. EDA:
+  queue and |Pᵢ| correlate at 0.65–0.82, but |Pᵢ| ≈ 0 when both sides are full.
+- **Decision interval**: Δt = 10 s, provisional until 3.5. EDA (train flow, Max-Pressure):
+  451 / 375 / 344 / 347 s average travel time at Δt = 5 / 10 / 15 / 20 s — open point.
+- **Max-Pressure phase rule**: argmax over green phases of Σ over the phase's movements of
+  (x_in − x_out) (`FeatureBuilder.phase_pressure`), ties → lowest phase id.
 
 ## Agents
 
@@ -53,7 +64,8 @@ aᵢ = argmax_a μ(a)        if σ(sᵢ) ≤ τ
 
 ## Data flow
 
-raw flows → split (train/val/test, held-out city) → preprocessing → env configs →
+raw flows → split (train/val/test, held-out city) → audit (all splits, counts only) →
+capacity-normalised features (roadnet only, nothing fitted) → env configs →
 training (train flows) → tuning (val flows) → final eval (test flows, held-out city) →
 `results/<experiment>/metrics.csv` + plots.
 

@@ -147,8 +147,9 @@ the loop below:
 
 ```
  ┌────────────────────────────────────────────────────────────────────────┐
- │ 1. OBSERVE   state s : vehicles / queue on each incoming lane,         │
- │              current phase (+ neighbours' states, for coordination)    │
+ │ 1. OBSERVE   state s : 44 numbers — queue, vehicles and pressure on    │
+ │              the 12 incoming lanes / movements, each as a share of the │
+ │              lane's capacity, + current phase (+ neighbours' states)   │
  │ 2. ACT       action a : choose one of the 8 green phases               │
  │ 3. SIMULATE  CityFlow runs 10 s (5 s transition first if phase changed)│
  │ 4. REWARD    r = −pressure  ≈ −(cars waiting to enter − cars waiting   │
@@ -159,6 +160,13 @@ the loop below:
 ```
 
 This is a **Markov decision process (MDP)**: state, action, reward, next state.
+
+**How the state is scaled.** A lane 400 m long holds at most 53 vehicles (400 m / 7.5 m per
+vehicle including the gap); an 800 m lane holds 106. Every lane reading is divided by that
+capacity, so each input is between 0 (empty) and 1 (full). Nothing is learned from data for
+this step: it uses only the road lengths, so no information from validation or test traffic
+can leak into it, and the same rule works for Hangzhou's 600 m roads. In the training hour no
+lane ever exceeded 96 % of its capacity (`notebooks/01_eda_train.ipynb`).
 
 ### 4.2 Where the training examples come from
 

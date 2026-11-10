@@ -74,7 +74,7 @@ tuning, normalisation or EDA plots. Rationale and rules: `.claude/reference/data
 | `startTime` | int | s | time the vehicle is inserted at the first road of its route (0–3599) |
 | `endTime` | int | s | end of the generation window. Here always `= startTime`, so each record is exactly one vehicle |
 | `interval` | float | s | generation interval inside the window. Always 1.0 (irrelevant when start = end) |
-| `route` | list[str] | road IDs | ordered roads travelled. First road starts at a boundary node. Length 2–19 |
+| `route` | list[str] | road IDs | ordered roads travelled. First road starts at a boundary node; the last road ends at a boundary node in 98–99 % of records (the rest end inside the network). Length 2–19 |
 | `vehicle.length` | float | m | 5.0 (all vehicles) |
 | `vehicle.width` | float | m | 2.0 |
 | `vehicle.maxPosAcc` | float | m/s² | 2.0, maximum acceleration |
@@ -106,7 +106,13 @@ or pedestrians. There is no vehicle ID field. CityFlow assigns `flow_<i>_<j>` ID
 Agent action space (to be fixed in Phase 4): choose one of the 8 green phases (1–8). The
 environment inserts phase 0 for the 5 s transition.
 
-## 5. Quality checks done at selection (full audit: ROADMAP 3.0 → `docs/data_audit.md`)
+## 5. Quality checks (full audit: `docs/data_audit.md`, 10 Nov 2026)
+
+The full audit (`python scripts/audit_data.py`) found **0 defects** in all six flow files and
+both road networks. It also documents three properties that are kept as released: 1–2 % of
+trips end inside the network instead of at a boundary node, 3–4 % of routes pass an
+intersection twice, and the Jinan training flow has a five-minute low-demand period. The
+checks below were done at selection and are confirmed by the audit.
 
 - All 6 flow files parse. All routes reference roads that exist in the road network (0 invalid
   references). Every record is a single vehicle. Start times lie inside the 3600 s episode.

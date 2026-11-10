@@ -102,15 +102,18 @@ literature gap table (draft) · UG-MARL design diagram · evaluation protocol dr
 
 ## Phase 3 — Data, EDA & preprocessing (9–11 Nov) → R3, G3–G6
 
-- [ ] 3.0 **Data audit** (structural checks only — nothing is fitted): missing fields,
+- [x] 3.0 **Data audit** (structural checks only — nothing is fitted): missing fields,
       duplicate vehicle IDs, impossible values (invalid / zero-length routes, start times outside
       the episode, bad speed or length values), outliers (arrival bursts), privacy (IDs
       anonymised, no personal data). Audit summary with counts and plots → `docs/data_audit.md`
+      — **done 10 Nov: 0 defects in 6 flow files + 2 roadnets** (`python scripts/audit_data.py`) → worklog/013
 - [x] 3.1 **Split first**, per the Phase 1 plan; saved as one hash-pinned `data/processed/splits.json`
       (whole files, so nothing to materialise) → worklog/011
 - [x] 3.2 Leakage test: no overlap between splits; held-out dataset never loaded in train/tune
       (`tests/data/test_splits.py`; held-out only reachable via `flow_files(..., "heldout")`)
-- [ ] 3.3 **EDA notebook — on the train split only.** Minimum evidence:
+- [x] 3.3 **EDA notebook — on the train split only** → `notebooks/01_eda_train.ipynb`,
+      figures in `docs/figures/eda/`, traces from `scripts/collect_traces.py` (worklog/013).
+      Minimum evidence:
       - sample counts (vehicles, trips per hour, intersections, lanes) and summary statistics
       - "target" distribution: vehicle arrival rate over time and, under Fixed-Time, the
         travel-time distribution (RL has no labels; these stand in for the guidelines' target
@@ -123,7 +126,10 @@ literature gap table (draft) · UG-MARL design diagram · evaluation protocol dr
         choices (e.g. Δt, normalisation, reward)
       - Held-out city: 3.0 audit only (counts and checks), no distribution plots before final
         testing
-- [ ] 3.4 Feature engineering: lane queue, pressure, one-hot phase; normalization stats from **train only**
+- [x] 3.4 Feature engineering: lane queue, vehicle count, movement pressure, one-hot phase
+      (44 values per intersection, `trafficrl.envs.features`). Normalisation = **lane-capacity
+      scaling, nothing fitted** (replaces "normalization stats from train only" — Decision Log
+      10 Nov) → worklog/013
 - [ ] 3.5 **Freeze the evaluation protocol** (must be done before Phase 5 training starts):
       primary + held-out datasets, split definition, final metric set, seeds, episode length,
       decision interval Δt, success criteria (`PRD.md` §1c). Write `docs/evaluation_protocol.md`,
@@ -286,7 +292,7 @@ Tick all before submission on 17 Nov.
 - [ ] Problem and metrics defined → `PRD.md` §1a–1c, §5
 - [ ] Literature and gap documented → Phase 2
 - [x] Dataset source and license recorded → 1.5, 1.6
-- [ ] Data audit and EDA completed → 3.0, 3.3
+- [x] Data audit and EDA completed → 3.0, 3.3
 - [ ] Leak-free split and pipeline verified → 3.1, 3.2, 3.5
 - [ ] Simple baseline established → 4.4, 4.5
 - [ ] Models tuned using validation only → 5.5, 6.7
@@ -328,3 +334,8 @@ Tick all before submission on 17 Nov.
 | 9 Nov | **Schedule re-baselined** from today: only 0.1 and 0.1b (WSL) were done; all phase dates moved, Review 2 content revised to problem definition / dataset / audit / split / gap table / design diagram / protocol draft. → worklog/008 |
 | 9 Nov | Literature review scope: depth over paper count; conventional TSC, RL foundations, RL-TSC, uncertainty & safe RL in full; LLM agents + explainability as short notes. Metadata verified online, summaries from abstracts/knowledge; unverified numbers flagged. **Only 2016+ papers reviewed**; pre-2016 originals of implemented methods (Webster, Varaiya, Watkins, Mnih, Sha) cited as background only. Output: `docs/literature/` (one file per topic) + `report/references.bib`. → worklog/010 |
 | 10 Nov | **Datasets: Jinan (primary) + Hangzhou (held-out)** from CoLight repo `04440b7`. Criteria (1.2): real-world, CityFlow-native, laptop-sized, ≥ 3 flow files, used in CoLight/PressLight/MPLight. Rejected: New York (too large), RESCO / LuST / MoST (SUMO-only), PeMS / UTD19 (no routes). **Split = whole flow files:** Jinan `real` → train, `real_2000` → val, `real_2500` → test; Hangzhou all 3 files (`real`, `real_5734`, `real_5816`; the third was not in the original plan) → held-out, zero-shot, final evaluation only. Files SHA-256-pinned in `data/processed/splits.json` (one file, not one per dataset). Leakage check is per *file* (path + hash) because CityFlow vehicle IDs are generated per file; cross-file content overlap measured at 2–5 % (chance level). No license in source repo → academic use only, not redistributed, cite CoLight. Limitation accepted: grid topologies only. → worklog/011 |
+| 10 Nov | **Data audit (3.0): data used as released.** 0 defects in all 6 flow files and both roadnets (17 flow checks, 12 roadnet checks). Three properties are documented, not repaired: 1–2 % of trips end inside the network (valid in CityFlow), 3–4 % of routes pass an intersection twice, and the Jinan train flow has a five-minute low-demand period. The "route ends at a boundary node" check was reclassified from defect to information after inspection (the plan listed it as a defect). The audit never edits hash-pinned files. → worklog/013 |
+| 10 Nov | **Normalisation = lane-capacity scaling; nothing is fitted.** Lane value / ⌊lane length / 7.5 m⌋ (53, 80, 106 vehicles), clipped to [0, 1]. Chosen over z-scores fitted on train rollouts (policy-dependent, drift during training, may not transfer to Hangzhou) and over no normalisation. Checked on train traces: maximum occupancy 0.96 under Fixed-Time and random control, so clipping never acts. Supersedes the wording "normalization stats from train only" in 3.4. → worklog/013 |
+| 10 Nov | **Observation = 44 values per intersection:** queue (12) ‖ vehicle count (12) ‖ movement pressure (12) ‖ one-hot green phase (8), lanes in a canonical order (incoming roads E, N, W, S; lane left / through / right). Groups are selectable in `configs/base.yaml` (`features.groups`). Provisional until the 3.5 freeze. → worklog/013 |
+| 10 Nov | **Seeds (for the 3.5 freeze): 5 for the main comparison and ablations (7.1, 7.2), 3 for robustness and generalisation (7.3, 7.4).** Reason: with 3 seeds the 95 % CI uses t = 4.30, with 5 seeds t = 2.78. EDA finding to carry into the protocol: Fixed-Time and Max-Pressure are deterministic across seeds, so only learned agents have seed variance. → worklog/013 |
+| 10 Nov | **Δt and reward stay provisional (Δt = 10 s, reward = −pressure) until 3.5.** EDA on the train flow: Max-Pressure averages 451 / 375 / 344 / 347 s travel time at Δt = 5 / 10 / 15 / 20 s, so 15 s is 8 % better than 10 s for that controller; queue and \|pressure\| correlate at 0.65–0.82 but pressure is near zero when upstream and downstream lanes are both full. **Open for the freeze:** keep Δt = 10 s (literature), use 15 s, or tune Max-Pressure's interval on validation; −queue remains the documented reward alternative. → worklog/013 |
