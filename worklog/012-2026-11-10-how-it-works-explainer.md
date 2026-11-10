@@ -26,7 +26,7 @@ the viva.
 `docs/how_it_works.md` (7 sections + glossary). No code changes.
 
 ## Files / commits
-`docs/how_it_works.md`, `README.md`, `CLAUDE.md`, `worklog/README.md` · commit _pending_
+`docs/how_it_works.md`, `README.md`, `CLAUDE.md`, `worklog/README.md` · commit 4004356
 
 ## Next
 Update the doc when the MDP (state, reward, Δt) is frozen in 3.5. Reuse sections 1, 4 and 6
