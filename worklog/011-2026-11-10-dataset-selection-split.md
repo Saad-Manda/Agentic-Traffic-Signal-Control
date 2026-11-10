@@ -61,7 +61,7 @@ Decisions made along the way:
 `data/processed/splits.json`, `src/trafficrl/data/{__init__,splits}.py`,
 `tests/data/{__init__,test_splits}.py`, `scripts/dataset_stats.py`, `docs/dataset_card.md`,
 `docs/dataset_stats.json`, `configs/base.yaml`, `.claude/reference/database.md`,
-`ROADMAP.md`, `CLAUDE.md`, `README.md` · commit _pending_
+`ROADMAP.md`, `CLAUDE.md`, `README.md` · commit f4226fc
 
 ## Next
 - 3.0 data audit (`docs/data_audit.md`): Jinan train split with plots; Hangzhou structural
