@@ -104,7 +104,36 @@ The simulator is deterministic for a fixed flow file and a deterministic control
 Fixed-Time and Max-Pressure numbers reproduce exactly. These rollouts describe the data; they
 are not the baseline results (Phase 4).
 
-### 7. Tests and lint
+### 7. Environment and rule baselines (ROADMAP Phase 4)
+
+```bash
+cd ~/Agentic-Traffic-Signal-Control
+python scripts/evaluate.py --agent fixed_time   --split val   # 5 seeds, ~25 s
+python scripts/evaluate.py --agent max_pressure --split val   # 5 seeds, ~25 s
+python scripts/evaluate.py --agent max_pressure --split train --seeds 0   # sanity check vs EDA
+```
+
+Each run writes `results/eval/<agent>_<dataset>-<split>_<condition>_<time>/` with
+`metrics.csv` (one row per seed), `summary.csv` (mean, std, 95 % CI, deterministic flag),
+`config.yaml`, `env.json`, `data.json`, and appends one row per seed to
+`docs/experiment_log.csv`. `--split test` / `heldout` exits with an error unless `--final`
+is given (Phase 7 only). Robustness conditions are config overrides, e.g.
+`robustness.noise_std=0.1`, `robustness.dropout_p=0.1`, `robustness.surge=1.5`.
+
+Expected (Jinan, 3600 s, Δt = 15 s, 5 s yellow; deterministic, identical for every seed):
+
+| Agent | Split | Avg travel time | Avg waiting time | Throughput | Max per-vehicle wait |
+|---|---|---|---|---|---|
+| Fixed-Time | val | 434.84 s | 187.78 s | 3991 veh | 1124 s |
+| Max-Pressure | val | 326.11 s | 83.42 s | 4106 veh | 1334 s |
+| Fixed-Time | train | 516.79 s | 256.10 s | 4971 veh | 1725 s |
+| Max-Pressure | train | 349.67 s | 114.77 s | 5602 veh | 1897 s |
+
+The train values differ slightly from the EDA traces (515.21 / 344.13 s) because the EDA trace
+gives the first green 14 s instead of 15 s; copying that off-by-one into the env reproduces
+Max-Pressure's 344.13 s exactly (worklog/015).
+
+### 8. Tests and lint
 
 ```bash
 pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones
@@ -115,10 +144,11 @@ ruff check src tests scripts
 
 ```
 configs/          YAML experiment configs; every config inherits `base.yaml` and sets `seed`
-src/trafficrl/    data/ (splits, roadnet, audit, trace, eda), envs/ (features),
-                  agents/{baselines,ugmarl}/, utils/ (seed, config, runlog, plotting)
-scripts/          entry points (dataset_stats, bench_cityflow, audit_data, collect_traces;
-                  train/evaluate to come)
+src/trafficrl/    data/ (splits, roadnet, audit, trace, eda), envs/ (traffic_env, features,
+                  metrics, perturb, engine), agents/ (base, baselines/, ugmarl/), eval/ (runner),
+                  utils/ (seed, config, runlog, plotting, stats)
+scripts/          entry points (dataset_stats, bench_cityflow, audit_data, collect_traces,
+                  evaluate; train to come)
 tests/            pytest suite mirroring src/
 notebooks/        EDA only (train split): 01_eda_train.ipynb
 docs/             dataset_card.md, data_audit.md, experiment_log.csv, figures/, literature/

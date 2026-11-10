@@ -141,12 +141,16 @@ literature gap table (draft) · UG-MARL design diagram · evaluation protocol dr
 
 ## Phase 4 — Environment & conventional baselines (10–11 Nov) → R4, G7, G9
 
-- [ ] 4.1 Env wrapper (shared interface): multi-intersection obs, neighbor map, phase control, yellow/min-green
-- [ ] 4.2 Metrics: travel time, waiting time, queue, throughput, max wait, decision latency
-- [ ] 4.3 Robustness hooks: sensor noise, detector dropout, demand-surge multiplier
-- [ ] 4.4 Fixed-Time agent
-- [ ] 4.5 Max-Pressure agent
-- [ ] 4.6 `scripts/evaluate.py`: any agent × N seeds → metrics CSV
+- [x] 4.1 Env wrapper (shared interface): multi-intersection obs, neighbor map, phase control, yellow/min-green
+- [x] 4.2 Metrics: travel time, waiting time, queue, throughput, max wait, decision latency
+- [x] 4.3 Robustness hooks: sensor noise, detector dropout, demand-surge multiplier
+- [x] 4.4 Fixed-Time agent
+- [x] 4.5 Max-Pressure agent
+- [x] 4.6 `scripts/evaluate.py`: any agent × N seeds → metrics CSV
+      — **done 10 Nov** (worklog/015): validation (Jinan `real_2000`, seeds 0–4, deterministic):
+      **Fixed-Time 434.84 s, Max-Pressure 326.11 s** average travel time; max per-vehicle wait
+      1124 s vs 1334 s. Train sanity check: MP 349.67 s / FT 516.79 s (EDA 344.13 / 515.21;
+      gap = EDA trace's 14 s first green, reproduced exactly).
 
 ### ✅ Review 1 — 3 Nov
 Problem & motivation · lit gaps · dataset survey + selection + split · EDA plots ·
@@ -295,7 +299,7 @@ Tick all before submission on 17 Nov.
 - [x] Dataset source and license recorded → 1.5, 1.6
 - [x] Data audit and EDA completed → 3.0, 3.3
 - [ ] Leak-free split and pipeline verified → 3.1, 3.2, 3.5
-- [ ] Simple baseline established → 4.4, 4.5
+- [x] Simple baseline established → 4.4, 4.5
 - [ ] Models tuned using validation only → 5.5, 6.7
 - [ ] Held-out evaluation completed → 7.1–7.4
 - [ ] Results and failures interpreted → 8.3, 8.4
@@ -341,3 +345,5 @@ Tick all before submission on 17 Nov.
 | 10 Nov | **Seeds (for the 3.5 freeze): 5 for the main comparison and ablations (7.1, 7.2), 3 for robustness and generalisation (7.3, 7.4).** Reason: with 3 seeds the 95 % CI uses t = 4.30, with 5 seeds t = 2.78. EDA finding to carry into the protocol: Fixed-Time and Max-Pressure are deterministic across seeds, so only learned agents have seed variance. → worklog/013 |
 | 10 Nov | **Δt and reward stay provisional (Δt = 10 s, reward = −pressure) until 3.5.** EDA on the train flow: Max-Pressure averages 451 / 375 / 344 / 347 s travel time at Δt = 5 / 10 / 15 / 20 s, so 15 s is 8 % better than 10 s for that controller; queue and \|pressure\| correlate at 0.65–0.82 but pressure is near zero when upstream and downstream lanes are both full. **Open for the freeze:** keep Δt = 10 s (literature), use 15 s, or tune Max-Pressure's interval on validation; −queue remains the documented reward alternative. → worklog/013 |
 | 10 Nov | **Evaluation protocol frozen (3.5)** → `docs/evaluation_protocol.md`. **Δt = 15 s** (Max-Pressure 344 s vs 375 s at 10 s on the train flow, −8 %; 20 s no better; chosen on train only, same Δt for all controllers; trade-off: absolute numbers not directly comparable with 10 s papers). **Reward = −\|Pᵢ\|** (same objective as the Max-Pressure fallback; −queue rejected; the "both sides full" blind spot is reported as a limitation). Also frozen: Jinan train/val/test + Hangzhou held-out (hash-pinned), 3600 s episodes, 5 s yellow, 44-value state, metric set and definitions, seeds 0–4 (7.1, 7.2) / 0–2 (7.3, 7.4), robustness perturbation definitions, reporting rules. Rule-based baselines are run on every seed and reported with std = 0 ("deterministic"); H1 then needs the learned agent's whole CI below the baseline value. Supersedes the open point of the row above. → worklog/014 |
+| 10 Nov | **Env timing = per-intersection clocks** (Phase 4): each intersection decides every Δt = 15 s of green; a change adds 5 s yellow before the new green; intersections drift out of sync; `step()` returns when ≥ 1 is ready. Only option that implements the frozen protocol §2 literally (yellow on top of Δt, min green = Δt), keeps Fixed-Time at exactly 30 s and matches the EDA setting in which Δt was chosen (Max-Pressure reproduces the EDA's 344.13 s exactly once the trace's 14 s first green is copied). Rejected: synchronous steps with yellow outside Δt (non-changers get 20 s green, FT not 30 s), yellow inside Δt (contradicts protocol). Consequence: RL experience is per intersection (`Transition`). Protocol clarification: average queue sampled at every env step (≈ 5 s). → worklog/015 |
+| 10 Nov | **Agent interface: `act(obs, info, explore)`** (was `act(obs, explore)`): Max-Pressure and the UG-MARL gate need observed raw lane counts, Fixed-Time needs green elapsed time — neither is in the 44-vector. Agents return a phase for every intersection (decision latency = batch of all). Robustness noise/dropout perturb the lane readings every controller sees; rewards and metrics use the true state. Test / held-out need `make_env(allow_final=True)` (code argument, never config), set only by `evaluate.py --final`. Phase 4 ran train (sanity) and val only. → worklog/015 |
