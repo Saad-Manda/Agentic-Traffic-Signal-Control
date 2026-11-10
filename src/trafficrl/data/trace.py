@@ -17,7 +17,6 @@ refuses every dataset / split except the primary dataset's ``train`` split.
 
 from __future__ import annotations
 
-import json
 import time
 from collections.abc import Callable, Mapping
 from pathlib import Path
@@ -27,8 +26,9 @@ import pandas as pd
 
 from trafficrl.data.roadnet import YELLOW_PHASE, Roadnet
 from trafficrl.data.splits import SplitError, flow_files, load_splits
+from trafficrl.envs.engine import make_engine  # noqa: F401  (re-exported for the EDA script)
 from trafficrl.envs.features import FeatureBuilder
-from trafficrl.utils.seed import make_rng, seed_cityflow
+from trafficrl.utils.seed import make_rng
 
 CONTROLLERS = ("fixed_time", "max_pressure", "random")
 # chooser(intersection id, current green phase or None, lane vehicle counts) -> green phase
@@ -52,32 +52,6 @@ def train_flow(cfg: Mapping) -> tuple[Path, Path]:
     if len(flows) != 1:
         raise SplitError(f"expected one training flow file, got {len(flows)}")
     return roadnet, flows[0]
-
-
-def make_engine(roadnet_path: Path, flow_path: Path, seed: int, threads: int, workdir: Path):
-    """Create a seeded ``cityflow.Engine`` for one roadnet / flow pair (no replay output)."""
-    import cityflow  # imported here so the rest of the package works without the simulator
-
-    roadnet_path, flow_path = Path(roadnet_path).resolve(), Path(flow_path).resolve()
-    if roadnet_path.parent != flow_path.parent:
-        raise ValueError("roadnet and flow file must be in the same directory")
-    cfg = {
-        "interval": 1.0,
-        "seed": seed,
-        "dir": str(roadnet_path.parent) + "/",
-        "roadnetFile": roadnet_path.name,
-        "flowFile": flow_path.name,
-        "rlTrafficLight": True,
-        "laneChange": False,
-        "saveReplay": False,
-        "roadnetLogFile": "",
-        "replayLogFile": "",
-    }
-    cfg_path = Path(workdir) / "cityflow_config.json"
-    cfg_path.write_text(json.dumps(cfg))
-    engine = cityflow.Engine(str(cfg_path), thread_num=threads)
-    seed_cityflow(engine, seed)
-    return engine
 
 
 def make_chooser(name: str, features: FeatureBuilder, seed: int) -> Chooser:
