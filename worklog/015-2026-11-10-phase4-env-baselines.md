@@ -34,6 +34,11 @@ In progress.
 | `src/trafficrl/agents/baselines/max_pressure.py` | created | `MaxPressureAgent.choose` / `act` from observed `info["lane_count"]`, ties → lowest id | ROADMAP 4.5; reused as the UG-MARL fallback |
 | `src/trafficrl/agents/__init__.py` | modified | `AGENTS`, `make_agent(name, env, cfg)` registry reading `cfg["agents"][name]` | one construction path for `evaluate.py` |
 | `tests/agents/__init__.py`, `tests/agents/test_rule_agents.py`, `tests/agents/test_interface.py` | created | Max-Pressure choice and ties; Fixed-Time timing in the env (decisions at 0, 15, 30, 50, 65 s; order 1 … 8, 1); every registered agent conforms to the interface | testing.md: interface conformance, Max-Pressure |
+| `src/trafficrl/eval/__init__.py`, `src/trafficrl/eval/runner.py` | created | `run_episode` (env metrics + decision latency mean / p95 + fallback rate), `condition_label`, `summary_table`, `evaluate` (per seed: seeded env + agent, outputs, one experiment-log row; refuses test / heldout without `final=True`) | ROADMAP 4.6, plan D6 |
+| `scripts/evaluate.py` | created | CLI: `--agent --split --dataset --seeds --checkpoint --track --final --note` + overrides; exits 2 on test / heldout without `--final`; prints mean ± std / CI | ROADMAP 4.6 |
+| `configs/base.yaml` | modified | new blocks `robustness` (noise_std, dropout_p, surge), `agents` (fixed_time.green_seconds = 30, max_pressure), `eval` (seeds 0–4, track full); frozen keys untouched | parameters in config, not code |
+| `configs/eval_baselines.yaml` | created | Jinan val, seeds 0–4, results to `results/eval` | Phase 4 baseline runs |
+| `tests/eval/__init__.py`, `tests/eval/test_evaluate.py` | created | episode metrics, condition label, deterministic summary, CLI + API refuse test / heldout, slow end-to-end outputs + log rows (temp log) | verifies D6 and the leakage guard |
 | `worklog/015-…`, `worklog/README.md` | created / modified | this entry and its index row | work-log rule |
 
 ## Commits

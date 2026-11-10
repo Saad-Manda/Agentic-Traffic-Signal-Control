@@ -1,0 +1,15 @@
+# Rule-based baselines (Fixed-Time, Max-Pressure) — ROADMAP 4.6. Phase 4 runs them on the
+# train flow (sanity check vs the EDA traces) and the validation flow (5 seeds). Test /
+# held-out flows only in Phase 7 via `scripts/evaluate.py --final`.
+base: base.yaml
+seed: 0
+
+data:
+  dataset: jinan
+  split: val
+
+eval:
+  seeds: [0, 1, 2, 3, 4]
+
+output:
+  results_dir: results/eval

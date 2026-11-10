@@ -25,3 +25,16 @@ data:
 
 output:
   results_dir: results
+
+robustness:              # evaluation conditions (protocol §6; ROADMAP 4.3) — all off = clean
+  noise_std: 0.0         # σ on capacity-scaled lane readings; {0, 0.1, 0.2} in 7.3
+  dropout_p: 0.0         # per-lane, per-reading detector loss; {0, 0.1, 0.2} in 7.3
+  surge: 1.0             # expected demand multiplier (each vehicle duplicated w.p. surge − 1); 1.5 in 7.3
+
+agents:                  # agent parameters, read by trafficrl.agents.make_agent
+  fixed_time: {green_seconds: 30}   # protocol §4: 30 s green per phase, order 1 → 8
+  max_pressure: {}                  # every Δt, ties → lowest phase id
+
+eval:                    # scripts/evaluate.py
+  seeds: [0, 1, 2, 3, 4] # protocol §6 (7.1 / 7.2); 7.3 / 7.4 use [0, 1, 2]
+  track: full            # full | light (light skips per-vehicle wait / throughput)
