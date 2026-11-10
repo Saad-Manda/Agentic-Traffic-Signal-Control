@@ -44,7 +44,7 @@ Protocol frozen 10 Nov 2026. ROADMAP 3.5 and the 5.0 training gate ticked. Phase
 | `worklog/014-2026-11-10-evaluation-protocol-freeze.md`, `worklog/README.md` | created / modified | This entry; index row | Work log rule |
 
 ## Commits
-Not committed yet.
+- `ac449b7` docs(eval): freeze evaluation protocol (Δt 15 s, reward −pressure)
 
 ## Next
 - Phase 4: env wrapper (4.1) at Δt = 15 s, Fixed-Time / Max-Pressure agents, robustness hooks
