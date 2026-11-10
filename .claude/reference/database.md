@@ -2,18 +2,39 @@
 
 No database. Data = public traffic datasets + simulator files + experiment outputs on disk.
 
-## Datasets (TODO: download and record exact sources/versions)
+## Datasets (selected 10 Nov 2026 — ROADMAP Phase 1, worklog/011)
 
 | Name | Network | Source | Use |
 |---|---|---|---|
-| Jinan | 3×4 grid, 12 intersections | CoLight / PressLight releases (CityFlow format; SUMO conversions via LibSignal) | train/val/test |
-| Hangzhou | 4×4 grid, 16 intersections | same | train/val/test and/or held-out generalization city |
-| New York / RESCO Cologne, Ingolstadt | optional | — | optional extra eval |
+| **Jinan** | 3×4 grid, 12 signalised int. | CoLight repo `04440b7`, `data/Jinan/3_4` (CityFlow format) | **primary**: train / val / test |
+| **Hangzhou** | 4×4 grid, 16 signalised int. | CoLight repo `04440b7`, `data/Hangzhou/4_4` | **held-out generalisation city** (final evaluation only) |
 
-Flow files: per-vehicle records (start time, route). Road-net files: intersections, lanes, phases.
+Not selected: New York (48 / 196 int., too large for the laptop budget), RESCO Cologne /
+Ingolstadt and LuST / MoST (SUMO-only, conversion cost), PeMS / UTD19 (detector counts, no
+routes — not simulatable), synthetic grids (unit/sanity tests only, never reported).
 
-Dataset selection is **not frozen yet** (due 10 Nov, ROADMAP Phase 1); it is frozen with the
-evaluation protocol (ROADMAP 3.5).
+Flow files: per-vehicle records (start time, route). Road-net files: intersections, lanes,
+phases. Full description, sizes and data dictionary: `docs/dataset_card.md`.
+
+## Split plan (ROADMAP 1.4) — `data/processed/splits.json`
+
+| Split | Files | Vehicles | Used for |
+|---|---|---|---|
+| train | `Jinan/3_4/anon_3_4_jinan_real.json` | 6295 | RL training, normalisation stats, EDA (3.3) |
+| val | `Jinan/3_4/anon_3_4_jinan_real_2000.json` | 4365 | hyperparameters, gate threshold τ, checkpoint selection |
+| test | `Jinan/3_4/anon_3_4_jinan_real_2500.json` | 5494 | final evaluation, run once |
+| heldout | `Hangzhou/4_4/anon_4_4_hangzhou_{real,real_5734,real_5816}.json` | 2983 / 6538 / 6984 | final generalisation evaluation, run once; zero-shot (no retraining) |
+
+- Whole files per split (no resampling); each file pinned by SHA-256.
+- All code gets flow files through `trafficrl.data.splits.flow_files(dataset, split)`, which
+  checks the hashes; `tests/data/test_splits.py` asserts no file (by path or content hash)
+  is in two splits and that Hangzhou has no train/val/test split.
+- CityFlow generates vehicle IDs per file, so "no overlapping vehicle sets" is enforced as
+  "no overlapping files"; content overlap between files was checked at selection
+  (2–5 % coincidental (startTime, route) matches — independent scenarios; dataset card §5).
+- Train = the largest Jinan file (most training signal); val / test = the other two.
+
+Dataset choice and split are frozen together with the evaluation protocol (ROADMAP 3.5).
 
 ## Dataset card, data dictionary, audit (guidelines G3)
 
@@ -54,8 +75,8 @@ docs/                       # dataset_card.md, data_audit.md, evaluation_protoco
 4. **Test once.** Test flows and the held-out generalization city are used only for final
    evaluation, identically for all agents.
 5. **Same conditions for all agents.** Identical flows, seeds, episode lengths.
-6. Record split definitions in `data/processed/<dataset>/splits.json` and add a test that
-   asserts train/val/test vehicle sets do not overlap.
+6. Split definitions live in `data/processed/splits.json` (hash-pinned);
+   `tests/data/test_splits.py` asserts no file is shared between splits.
 7. **Split type.** Separate flow files (or time windows) per split within the primary city; the
    held-out city is a **group-wise (location) split** — no data from it is used for training,
    tuning, normalisation or EDA plots.

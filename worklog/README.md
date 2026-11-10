@@ -59,3 +59,4 @@ Follow-up tasks.
 | [008](008-2026-11-09-adopt-project-guidelines.md) | 2026-11-09 | Adopt project guidelines; re-baseline schedule | decision | all | done |
 | [009](009-2026-11-09-phase0-skeleton-seed-config.md) | 2026-11-09 | Repo skeleton, pinned env, seed + config utils | setup | 0.2, 0.3 | done |
 | [010](010-2026-11-09-literature-review.md) | 2026-11-09 | Literature review (Phase 2) and draft gap table | report, decision | 2.1–2.6 | in-progress |
+| [011](011-2026-11-10-dataset-selection-split.md) | 2026-11-10 | Dataset selection (Jinan / Hangzhou), split, dataset card | data, decision | 1.1–1.6, 3.1–3.2 | done |

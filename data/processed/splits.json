@@ -1,0 +1,59 @@
+{
+  "_comment": "Split definition (ROADMAP 1.4). Whole flow files are assigned to splits; nothing is resampled. Paths are relative to the repo root. Source: github.com/wingsweihua/colight @ 04440b722e7f36d7043a3f2ad8e40c3df301fad3. Frozen with the evaluation protocol (ROADMAP 3.5); later changes need a dated Decision Log entry.",
+  "source": {
+    "repo": "https://github.com/wingsweihua/colight",
+    "commit": "04440b722e7f36d7043a3f2ad8e40c3df301fad3"
+  },
+  "datasets": {
+    "jinan": {
+      "role": "primary",
+      "roadnet": {
+        "path": "data/raw/colight_src/data/Jinan/3_4/roadnet_3_4.json",
+        "sha256": "55abc036ac4ac48705301f4cf46ea80d8d88a82abb9ed68404bedb96eb3cf81d"
+      },
+      "splits": {
+        "train": [
+          {
+            "path": "data/raw/colight_src/data/Jinan/3_4/anon_3_4_jinan_real.json",
+            "sha256": "233739633ef0b637125cb304dfffff9488503bac6e6861ca39243cc8ffdcebd5"
+          }
+        ],
+        "val": [
+          {
+            "path": "data/raw/colight_src/data/Jinan/3_4/anon_3_4_jinan_real_2000.json",
+            "sha256": "d0931c1b759479f9e748d69c16414020bfba03d555dcc6cdf7223a0c18cb9e69"
+          }
+        ],
+        "test": [
+          {
+            "path": "data/raw/colight_src/data/Jinan/3_4/anon_3_4_jinan_real_2500.json",
+            "sha256": "4245107cc7ce91b9699519f2c1258be4397e83291080a43cb0b93479557739cd"
+          }
+        ]
+      }
+    },
+    "hangzhou": {
+      "role": "heldout",
+      "roadnet": {
+        "path": "data/raw/colight_src/data/Hangzhou/4_4/roadnet_4_4.json",
+        "sha256": "11e2fe89f632e43e81f56ea87a308d544b66f9c5af8a410e16149668d6d376c1"
+      },
+      "splits": {
+        "heldout": [
+          {
+            "path": "data/raw/colight_src/data/Hangzhou/4_4/anon_4_4_hangzhou_real.json",
+            "sha256": "595a6140e6649efe5be1b274eb8b03e8c4029e517c9ac2ad53c9ea556a414213"
+          },
+          {
+            "path": "data/raw/colight_src/data/Hangzhou/4_4/anon_4_4_hangzhou_real_5734.json",
+            "sha256": "db0a055ebcefb4c31daa7ac3b37880690df50551f0d6dd04904b6448ff710995"
+          },
+          {
+            "path": "data/raw/colight_src/data/Hangzhou/4_4/anon_4_4_hangzhou_real_5816.json",
+            "sha256": "e9b9e31e9a9a5f59d1a668b242319c3ef69f1ab724e2f2b618ed4886cc1a7a9c"
+          }
+        ]
+      }
+    }
+  }
+}

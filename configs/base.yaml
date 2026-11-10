@@ -13,8 +13,8 @@ sim:
   yellow_seconds: 5      # CityFlow phase 0 = transition (worklog/007)
 
 data:
-  dataset: null          # set in Phase 1 (pending, due 10 Nov)
-  split: train           # train | val | test — test only in final evaluation (Phase 7)
+  dataset: jinan         # jinan (primary) | hangzhou (held-out) — data/processed/splits.json
+  split: train           # train | val | test | heldout — test/heldout only in final evaluation (Phase 7)
 
 output:
   results_dir: results

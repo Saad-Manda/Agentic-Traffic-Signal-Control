@@ -51,16 +51,16 @@ see `PRD.md` §7).
 
 Look beyond Jinan/Hangzhou before committing.
 
-- [ ] 1.1 Survey candidate datasets and fill the comparison table below
-- [ ] 1.2 Check each candidate against criteria: real-world origin, simulator compatibility, size
+- [x] 1.1 Survey candidate datasets and fill the comparison table below
+- [x] 1.2 Check each candidate against criteria: real-world origin, simulator compatibility, size
       feasible on a laptop, multiple flow files / time ranges (for a clean split), grid vs.
       irregular topology, usage in prior papers (for literature comparison)
-- [ ] 1.3 Select **primary dataset** (train/val/test) and **held-out generalization dataset**
-- [ ] 1.4 Finalize **split plan** (which file / time range → train, val, test) and write it to
+- [x] 1.3 Select **primary dataset** (train/val/test) and **held-out generalization dataset**
+- [x] 1.4 Finalize **split plan** (which file / time range → train, val, test) and write it to
       `.claude/reference/database.md`
-- [ ] 1.5 Download selected datasets to `data/raw/`, record sources/versions **plus license,
+- [x] 1.5 Download selected datasets to `data/raw/`, record sources/versions **plus license,
       citation and collection period**
-- [ ] 1.6 **Dataset card + data dictionary** for each selected dataset: origin, license,
+- [x] 1.6 **Dataset card + data dictionary** for each selected dataset: origin, license,
       citation, collection period, unit of observation (one vehicle trip), every roadnet/flow
       field with type and units, sizes (vehicles, intersections, lanes, duration) →
       `docs/dataset_card.md`
@@ -68,7 +68,7 @@ Look beyond Jinan/Hangzhou before committing.
 | Candidate | Type | Network | Simulator | Notes |
 |---|---|---|---|---|
 | Jinan | real flows | 3×4 grid, 12 int. | CityFlow (SUMO via LibSignal) | 3 flow files → natural train/val/test |
-| Hangzhou | real flows | 4×4 grid, 16 int. | CityFlow (SUMO via LibSignal) | 2 flow files; good held-out city |
+| Hangzhou | real flows | 4×4 grid, 16 int. | CityFlow (SUMO via LibSignal) | 3 flow files (`real`, `real_5734`, `real_5816`); good held-out city |
 | New York | real flows | 16×3 / 28×7 | CityFlow | 48 / 196 int. — likely too large for laptop |
 | RESCO Cologne (1/3/8) | real-world calibrated | irregular | SUMO | standard benchmark; small variants usable |
 | RESCO Ingolstadt (1/7/21) | real-world calibrated | irregular | SUMO | tests non-grid generalization |
@@ -79,8 +79,9 @@ Look beyond Jinan/Hangzhou before committing.
 Simulator is CityFlow (27 Oct): SUMO-only candidates (RESCO, LuST/MoST) would need
 conversion — prefer CityFlow-native sets (Jinan, Hangzhou, New York, synthetic grids).
 
-Default proposal (pending survey): **Jinan** = primary (`real` → train, `real_2000` → val,
-`real_2500` → test); **Hangzhou** = held-out generalization city.
+**Selected (10 Nov):** **Jinan** = primary (`real` 6295 veh → train, `real_2000` 4365 → val,
+`real_2500` 5494 → test); **Hangzhou** = held-out generalization city (all 3 flow files, final
+evaluation only). Split: `data/processed/splits.json`; card: `docs/dataset_card.md`. → worklog/011
 
 ## Phase 2 — Literature review (27 Oct – 16 Nov; gap table draft by 10 Nov) → R2, G2
 
@@ -105,8 +106,10 @@ literature gap table (draft) · UG-MARL design diagram · evaluation protocol dr
       duplicate vehicle IDs, impossible values (invalid / zero-length routes, start times outside
       the episode, bad speed or length values), outliers (arrival bursts), privacy (IDs
       anonymised, no personal data). Audit summary with counts and plots → `docs/data_audit.md`
-- [ ] 3.1 **Split first**, per the Phase 1 plan; save `data/processed/<dataset>/splits.json`
-- [ ] 3.2 Leakage test: no overlap between splits; held-out dataset never loaded in train/tune
+- [x] 3.1 **Split first**, per the Phase 1 plan; saved as one hash-pinned `data/processed/splits.json`
+      (whole files, so nothing to materialise) → worklog/011
+- [x] 3.2 Leakage test: no overlap between splits; held-out dataset never loaded in train/tune
+      (`tests/data/test_splits.py`; held-out only reachable via `flow_files(..., "heldout")`)
 - [ ] 3.3 **EDA notebook — on the train split only.** Minimum evidence:
       - sample counts (vehicles, trips per hour, intersections, lanes) and summary statistics
       - "target" distribution: vehicle arrival rate over time and, under Fixed-Time, the
@@ -282,7 +285,7 @@ Tick all before submission on 17 Nov.
 
 - [ ] Problem and metrics defined → `PRD.md` §1a–1c, §5
 - [ ] Literature and gap documented → Phase 2
-- [ ] Dataset source and license recorded → 1.5, 1.6
+- [x] Dataset source and license recorded → 1.5, 1.6
 - [ ] Data audit and EDA completed → 3.0, 3.3
 - [ ] Leak-free split and pipeline verified → 3.1, 3.2, 3.5
 - [ ] Simple baseline established → 4.4, 4.5
@@ -324,4 +327,4 @@ Tick all before submission on 17 Nov.
 | 9 Nov | Adopted `ProjectGuidelines.pdf` (IIT Patna IMPACT Lab, 5 Nov) as second governing document; PS16 rubric wins on conflict → **10 slides, ≤ 8 pages**. Title: *Uncertainty-Gated Multi-Agent Reinforcement Learning for Adaptive Traffic Signal Control* (short: **UG-MARL**). Added problem definition, hypotheses H1–H3 and success criteria (`PRD.md` §1a–1c); dataset and metric set **not frozen yet** — frozen in 3.5 before training. → worklog/008 |
 | 9 Nov | **Schedule re-baselined** from today: only 0.1 and 0.1b (WSL) were done; all phase dates moved, Review 2 content revised to problem definition / dataset / audit / split / gap table / design diagram / protocol draft. → worklog/008 |
 | 9 Nov | Literature review scope: depth over paper count; conventional TSC, RL foundations, RL-TSC, uncertainty & safe RL in full; LLM agents + explainability as short notes. Metadata verified online, summaries from abstracts/knowledge; unverified numbers flagged. **Only 2016+ papers reviewed**; pre-2016 originals of implemented methods (Webster, Varaiya, Watkins, Mnih, Sha) cited as background only. Output: `docs/literature/` (one file per topic) + `report/references.bib`. → worklog/010 |
-| — | Primary / held-out datasets & split: **pending, due 10 Nov** (Phase 1) |
+| 10 Nov | **Datasets: Jinan (primary) + Hangzhou (held-out)** from CoLight repo `04440b7`. Criteria (1.2): real-world, CityFlow-native, laptop-sized, ≥ 3 flow files, used in CoLight/PressLight/MPLight. Rejected: New York (too large), RESCO / LuST / MoST (SUMO-only), PeMS / UTD19 (no routes). **Split = whole flow files:** Jinan `real` → train, `real_2000` → val, `real_2500` → test; Hangzhou all 3 files (`real`, `real_5734`, `real_5816`; the third was not in the original plan) → held-out, zero-shot, final evaluation only. Files SHA-256-pinned in `data/processed/splits.json` (one file, not one per dataset). Leakage check is per *file* (path + hash) because CityFlow vehicle IDs are generated per file; cross-file content overlap measured at 2–5 % (chance level). No license in source repo → academic use only, not redistributed, cite CoLight. Limitation accepted: grid topologies only. → worklog/011 |

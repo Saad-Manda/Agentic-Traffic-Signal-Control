@@ -32,9 +32,10 @@ progress checklist**. Solo project.
 - **Platforms**: native Ubuntu 24.04 (dual-boot) for long training / final numbers; WSL2
   Ubuntu 24.04 on Windows for day-to-day dev, short runs, plots and demo. Both use the
   RTX 4050 (WSL via the Windows driver — never install an NVIDIA driver inside WSL).
-- Datasets: **selection pending — due 10 Nov** (ROADMAP Phase 1). Default proposal: Jinan
-  (3×4) primary, Hangzhou (4×4) held-out; also surveying New York, RESCO Cologne/Ingolstadt,
-  LuST/MoST, PeMS/UTD19.
+- Datasets (selected 10 Nov): **Jinan** (3×4) primary — `real` train / `real_2000` val /
+  `real_2500` test; **Hangzhou** (4×4) held-out city (3 flow files, final evaluation only).
+  Split: `data/processed/splits.json` (hash-pinned; load via `trafficrl.data.splits.flow_files`).
+  Card: `docs/dataset_card.md`.
 - Env management: `venv` + `requirements.txt`. Version control: git.
 
 ## Commands
@@ -151,7 +152,6 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
   a stretch demo. Report final numbers from native Ubuntu runs only.
 - **Open task — validate CityFlow install** on WSL + native Ubuntu and time one Jinan episode
   (Fixed-Time, Max-Pressure) — ROADMAP 0.1b.
-- **Open task — select datasets & split plan by 10 Nov** (Review 2; ROADMAP Phase 1).
 - Baselines required by PS16: conventional (Fixed-Time, Max-Pressure), single-agent RL
   (shared-parameter DQN, no coordination), multi-agent RL (IDQN; IPPO optional).
 - Solo project: when time is short, follow ROADMAP "scope controls" — never cut the main

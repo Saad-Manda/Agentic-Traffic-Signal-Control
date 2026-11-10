@@ -53,6 +53,16 @@ git clone --depth 1 --filter=blob:none --sparse https://github.com/wingsweihua/c
 cd colight_src && git sparse-checkout set data/Jinan data/Hangzhou
 ```
 
+Then verify the files against the pinned hashes and print their sizes (fails on any mismatch):
+
+```bash
+cd ~/Agentic-Traffic-Signal-Control
+python scripts/dataset_stats.py --json docs/dataset_stats.json
+```
+
+The data has no license file. Use it for academic purposes only and cite CoLight (Wei et al.,
+CIKM 2019). Split and data dictionary: `docs/dataset_card.md`.
+
 ### 5. Smoke test + timing
 
 ```bash

@@ -1,0 +1,268 @@
+{
+  "jinan": {
+    "role": "primary",
+    "roadnet": {
+      "file": "roadnet_3_4.json",
+      "intersections_signalised": 12,
+      "intersections_virtual": 14,
+      "roads": 62,
+      "lanes": 186,
+      "road_length_m": {
+        "400": 30,
+        "800": 32
+      },
+      "lane_max_speed_mps": [
+        11.111
+      ],
+      "lane_width_m": [
+        4
+      ],
+      "phases_per_intersection": [
+        9
+      ],
+      "road_links_per_intersection": [
+        12
+      ]
+    },
+    "flows": {
+      "anon_3_4_jinan_real.json": {
+        "split": "train",
+        "sha256": "233739633ef0b637125cb304dfffff9488503bac6e6861ca39243cc8ffdcebd5",
+        "vehicles": 6295,
+        "start_time_s": [
+          0,
+          3597
+        ],
+        "single_vehicle_records": 6295,
+        "route_roads": [
+          2,
+          17
+        ],
+        "route_roads_mean": 4.37,
+        "invalid_road_refs": 0,
+        "vehicle_profiles": 1,
+        "vehicle_profile": {
+          "length": 5.0,
+          "width": 2.0,
+          "maxPosAcc": 2.0,
+          "maxNegAcc": 4.5,
+          "usualPosAcc": 2.0,
+          "usualNegAcc": 4.5,
+          "minGap": 2.5,
+          "maxSpeed": 11.111,
+          "headwayTime": 2
+        },
+        "fields": [
+          "endTime",
+          "interval",
+          "route",
+          "startTime",
+          "vehicle"
+        ]
+      },
+      "anon_3_4_jinan_real_2000.json": {
+        "split": "val",
+        "sha256": "d0931c1b759479f9e748d69c16414020bfba03d555dcc6cdf7223a0c18cb9e69",
+        "vehicles": 4365,
+        "start_time_s": [
+          0,
+          3597
+        ],
+        "single_vehicle_records": 4365,
+        "route_roads": [
+          2,
+          19
+        ],
+        "route_roads_mean": 4.44,
+        "invalid_road_refs": 0,
+        "vehicle_profiles": 1,
+        "vehicle_profile": {
+          "length": 5.0,
+          "width": 2.0,
+          "maxPosAcc": 2.0,
+          "maxNegAcc": 4.5,
+          "usualPosAcc": 2.0,
+          "usualNegAcc": 4.5,
+          "minGap": 2.5,
+          "maxSpeed": 11.111,
+          "headwayTime": 2
+        },
+        "fields": [
+          "endTime",
+          "interval",
+          "route",
+          "startTime",
+          "vehicle"
+        ]
+      },
+      "anon_3_4_jinan_real_2500.json": {
+        "split": "test",
+        "sha256": "4245107cc7ce91b9699519f2c1258be4397e83291080a43cb0b93479557739cd",
+        "vehicles": 5494,
+        "start_time_s": [
+          0,
+          3599
+        ],
+        "single_vehicle_records": 5494,
+        "route_roads": [
+          2,
+          17
+        ],
+        "route_roads_mean": 4.38,
+        "invalid_road_refs": 0,
+        "vehicle_profiles": 1,
+        "vehicle_profile": {
+          "length": 5.0,
+          "width": 2.0,
+          "maxPosAcc": 2.0,
+          "maxNegAcc": 4.5,
+          "usualPosAcc": 2.0,
+          "usualNegAcc": 4.5,
+          "minGap": 2.5,
+          "maxSpeed": 11.111,
+          "headwayTime": 2
+        },
+        "fields": [
+          "endTime",
+          "interval",
+          "route",
+          "startTime",
+          "vehicle"
+        ]
+      }
+    }
+  },
+  "hangzhou": {
+    "role": "heldout",
+    "roadnet": {
+      "file": "roadnet_4_4.json",
+      "intersections_signalised": 16,
+      "intersections_virtual": 16,
+      "roads": 80,
+      "lanes": 240,
+      "road_length_m": {
+        "600": 40,
+        "800": 40
+      },
+      "lane_max_speed_mps": [
+        11.111
+      ],
+      "lane_width_m": [
+        4
+      ],
+      "phases_per_intersection": [
+        9
+      ],
+      "road_links_per_intersection": [
+        12
+      ]
+    },
+    "flows": {
+      "anon_4_4_hangzhou_real.json": {
+        "split": "heldout",
+        "sha256": "595a6140e6649efe5be1b274eb8b03e8c4029e517c9ac2ad53c9ea556a414213",
+        "vehicles": 2983,
+        "start_time_s": [
+          0,
+          3599
+        ],
+        "single_vehicle_records": 2983,
+        "route_roads": [
+          2,
+          16
+        ],
+        "route_roads_mean": 4.65,
+        "invalid_road_refs": 0,
+        "vehicle_profiles": 1,
+        "vehicle_profile": {
+          "length": 5.0,
+          "width": 2.0,
+          "maxPosAcc": 2.0,
+          "maxNegAcc": 4.5,
+          "usualPosAcc": 2.0,
+          "usualNegAcc": 4.5,
+          "minGap": 2.5,
+          "maxSpeed": 11.111,
+          "headwayTime": 2
+        },
+        "fields": [
+          "endTime",
+          "interval",
+          "route",
+          "startTime",
+          "vehicle"
+        ]
+      },
+      "anon_4_4_hangzhou_real_5734.json": {
+        "split": "heldout",
+        "sha256": "db0a055ebcefb4c31daa7ac3b37880690df50551f0d6dd04904b6448ff710995",
+        "vehicles": 6538,
+        "start_time_s": [
+          0,
+          3597
+        ],
+        "single_vehicle_records": 6538,
+        "route_roads": [
+          2,
+          16
+        ],
+        "route_roads_mean": 4.68,
+        "invalid_road_refs": 0,
+        "vehicle_profiles": 1,
+        "vehicle_profile": {
+          "length": 5.0,
+          "width": 2.0,
+          "maxPosAcc": 2.0,
+          "maxNegAcc": 4.5,
+          "usualPosAcc": 2.0,
+          "usualNegAcc": 4.5,
+          "minGap": 2.5,
+          "maxSpeed": 11.111,
+          "headwayTime": 2
+        },
+        "fields": [
+          "endTime",
+          "interval",
+          "route",
+          "startTime",
+          "vehicle"
+        ]
+      },
+      "anon_4_4_hangzhou_real_5816.json": {
+        "split": "heldout",
+        "sha256": "e9b9e31e9a9a5f59d1a668b242319c3ef69f1ab724e2f2b618ed4886cc1a7a9c",
+        "vehicles": 6984,
+        "start_time_s": [
+          0,
+          3599
+        ],
+        "single_vehicle_records": 6984,
+        "route_roads": [
+          2,
+          17
+        ],
+        "route_roads_mean": 4.59,
+        "invalid_road_refs": 0,
+        "vehicle_profiles": 1,
+        "vehicle_profile": {
+          "length": 5.0,
+          "width": 2.0,
+          "maxPosAcc": 2.0,
+          "maxNegAcc": 4.5,
+          "usualPosAcc": 2.0,
+          "usualNegAcc": 4.5,
+          "minGap": 2.5,
+          "maxSpeed": 11.111,
+          "headwayTime": 2
+        },
+        "fields": [
+          "endTime",
+          "interval",
+          "route",
+          "startTime",
+          "vehicle"
+        ]
+      }
+    }
+  }
+}
