@@ -170,7 +170,9 @@ def main():
     }
     with tempfile.TemporaryDirectory() as tmp:
         for name, ctrl in controllers.items():
-            engine = make_engine(args.data_dir, args.roadnet, args.flow, args.seed, args.threads, tmp)
+            engine = make_engine(
+                args.data_dir, args.roadnet, args.flow, args.seed, args.threads, tmp
+            )
             results["runs"][name] = run_episode(engine, ctrl, args.steps, args.yellow)
             print(name, results["runs"][name], flush=True)
 

@@ -12,6 +12,12 @@ sim:
   decision_interval: 10  # Δt in seconds — PROVISIONAL
   yellow_seconds: 5      # CityFlow phase 0 = transition (worklog/007)
 
+features:                # observation built by trafficrl.envs.features (ROADMAP 3.4)
+  groups: [queue, count, pressure, phase]   # concatenated in this order -> 44 values
+  normalisation: lane_capacity   # lane value / lane capacity; nothing is fitted (no leakage)
+  vehicle_space_m: 7.5           # vehicle.length 5.0 m + minGap 2.5 m (dataset card §4.1)
+  clip: true                     # clip normalised lane values to [0, 1]
+
 data:
   dataset: jinan         # jinan (primary) | hangzhou (held-out) — data/processed/splits.json
   split: train           # train | val | test | heldout — test/heldout only in final evaluation (Phase 7)
