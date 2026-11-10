@@ -161,7 +161,10 @@ Not part of this work (already in the working tree before it started):
 `worklog/012-2026-11-10-worklog-per-file-changes.md` (untracked).
 
 ## Commits
-Not committed yet.
+- `862026f` feat(data): add data audit, EDA traces and 44-value features
+- `8766017` data(eda): add audit report, train-split EDA notebook and figures
+- `29c7b4d` docs: record Phase 3 audit, EDA and feature decisions
+- (`3644509` docs(claude): execute.md per-file table — belongs to entry 012's change)
 
 ## Next
 - **User:** read `docs/data_audit.md` and `notebooks/01_eda_train.ipynb`, then decide the open
