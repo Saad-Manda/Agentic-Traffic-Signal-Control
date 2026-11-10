@@ -30,6 +30,10 @@ In progress.
 | `tests/envs/fake_engine.py` | created | `FakeEngine` stand-in for `cityflow.Engine` (records phase calls with time) | fast timing tests without the simulator |
 | `tests/envs/test_traffic_env.py` | created | timing (keep / change / yellow / episode end), pending-green one-hot, reward from true counts, split guard, engine reuse; slow Jinan tests: topology vs `neighbor_index`, 5 s grid, determinism, reset = fresh engine, surge on val | verifies plan D2 |
 | `tests/envs/test_metrics.py`, `tests/envs/test_perturb.py`, `tests/utils/test_stats.py` | created | hand-fed tracker values; noise bounds / seed / σ, dropout rate, surge duplicates; t-values, known CI, deterministic sample | verifies D3, D4 |
+| `src/trafficrl/agents/baselines/fixed_time.py` | created | `FixedTimeAgent`: phases 1 → 8, keep while `green_elapsed` < `green_seconds` (30 s), rejects a green not a multiple of Δt | ROADMAP 4.4, protocol §4 |
+| `src/trafficrl/agents/baselines/max_pressure.py` | created | `MaxPressureAgent.choose` / `act` from observed `info["lane_count"]`, ties → lowest id | ROADMAP 4.5; reused as the UG-MARL fallback |
+| `src/trafficrl/agents/__init__.py` | modified | `AGENTS`, `make_agent(name, env, cfg)` registry reading `cfg["agents"][name]` | one construction path for `evaluate.py` |
+| `tests/agents/__init__.py`, `tests/agents/test_rule_agents.py`, `tests/agents/test_interface.py` | created | Max-Pressure choice and ties; Fixed-Time timing in the env (decisions at 0, 15, 30, 50, 65 s; order 1 … 8, 1); every registered agent conforms to the interface | testing.md: interface conformance, Max-Pressure |
 | `worklog/015-…`, `worklog/README.md` | created / modified | this entry and its index row | work-log rule |
 
 ## Commits
