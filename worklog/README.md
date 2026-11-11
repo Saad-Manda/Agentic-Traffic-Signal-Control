@@ -75,3 +75,4 @@ Follow-up tasks.
 | [013](013-2026-11-10-phase3-audit-eda-features.md) | 2026-11-10 | Phase 3: data audit, train-split EDA, feature engineering | data, code, experiment, decision | 3.0, 3.3, 3.4 | done |
 | [014](014-2026-11-10-evaluation-protocol-freeze.md) | 2026-11-10 | Evaluation protocol frozen (Δt 15 s, reward −pressure) | decision, docs | 3.5, 5.0 | done |
 | [015](015-2026-11-10-phase4-env-baselines.md) | 2026-11-10 | Phase 4: env wrapper, metrics, robustness hooks, rule baselines, evaluation | code, experiment, decision | 4.1–4.6 | done |
+| [016](016-2026-11-11-phase5-rl-baselines.md) | 2026-11-11 | Phase 5: RL baselines (DQN, IDQN), training and tuning | code, experiment, decision | 5.1–5.5 | in-progress |
