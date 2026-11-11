@@ -1,5 +1,7 @@
-# DQN training (ROADMAP 5.2). Hyperparameters = configs/base.yaml `train:` defaults until the
-# Phase 5 tuning study (configs/search/rl_baselines.yaml) selects values; see worklog/016.
+# DQN training (ROADMAP 5.2). Hyperparameters selected by the Phase 5 tuning study
+# (configs/search/rl_baselines.yaml, 8 trials, seed 0, validation flow; selection rule in that
+# file): winner trial t6 (dqn_rl_baselines_t6_s0), best val avg travel time 298.86 s.
+# Everything else = configs/base.yaml `train:`. See worklog/016.
 base: base.yaml
 seed: 0
 
@@ -9,6 +11,10 @@ data:
 
 train:
   agent: dqn
+  lr: 1.0e-4             # tuned (study rl_baselines, trial t6)
+  gamma: 0.8             # tuned
+  batch_size: 64         # tuned
+  eps_decay_frac: 0.3    # tuned
 
 output:
   results_dir: results/train
