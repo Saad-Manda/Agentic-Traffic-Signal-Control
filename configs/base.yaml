@@ -41,7 +41,7 @@ train:                   # scripts/train.py (Phase 5; plan phase5-rl-baselines).
   agent: dqn             # learned agent to train (dqn | idqn)
   episodes: 100          # training episodes on the train flow
   val_every: 5           # greedy validation episode every N training episodes (+ the last)
-  device: cpu            # set by the step-6 benchmark (worklog/016)
+  device: cpu            # step-6 benchmark: CPU 1.1–1.5x faster than CUDA for these MLPs (worklog/016)
   torch_threads: 1       # one torch thread per process; runs are parallelised across processes
   reward_scale: 0.01     # constant, not fitted: r~ = 0.01 * (−|P|) (protocol §9, 11 Nov)
   lr: 3.0e-4

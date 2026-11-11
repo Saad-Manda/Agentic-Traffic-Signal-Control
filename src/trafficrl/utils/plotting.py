@@ -23,10 +23,21 @@ BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
 # sequential ramp (one hue, light -> dark) for magnitudes
 BLUE_RAMP = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#104281"]
 
-CONTROLLER_COLOR = {"fixed_time": BLUE, "max_pressure": ORANGE, "random": AQUA}
+# Results figures use slots 1-4 in this fixed order (validated: adjacent-pair CVD and
+# normal-vision separation pass; aqua / yellow are < 3:1 on the surface, so these series are
+# always direct-labelled). "random" appears only in EDA figures, never next to DQN.
+CONTROLLER_COLOR = {
+    "fixed_time": BLUE,
+    "max_pressure": ORANGE,
+    "dqn": AQUA,
+    "idqn": YELLOW,
+    "random": AQUA,
+}
 CONTROLLER_LABEL = {
     "fixed_time": "Fixed-Time",
     "max_pressure": "Max-Pressure",
+    "dqn": "DQN (shared)",
+    "idqn": "IDQN",
     "random": "Random phase",
 }
 

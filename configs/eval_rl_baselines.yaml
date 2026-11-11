@@ -1,0 +1,18 @@
+# Validation evaluation of trained RL baselines (ROADMAP 5.4; plan phase5-rl-baselines D10).
+# Seed s loads the checkpoint trained with seed s:
+#   python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent dqn --split val \
+#       --checkpoint 'results/train/dqn_final_s{seed}/checkpoints/best.pt'
+# Agent architecture comes from configs/base.yaml `agents:` and must match the trained runs.
+base: base.yaml
+seed: 0
+
+data:
+  dataset: jinan
+  split: val
+
+eval:
+  seeds: [0, 1, 2, 3, 4]
+  track: full
+
+output:
+  results_dir: results/eval
