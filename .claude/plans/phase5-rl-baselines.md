@@ -1,6 +1,6 @@
 # Plan — Phase 5: RL baselines (DQN, IDQN), training, tuning (ROADMAP 5.1–5.5)
 
-Status: **planned 11 Nov 2026** (decisions taken with the user the same day). Tick steps
+Status: **executed 11 Nov 2026** — DQN 299.8 ± 1.0 s, IDQN 312.7 ± 2.5 s on val (dev, WSL) (worklog/016; decisions taken with the user the same day). Tick steps
 `[x]` during execution and note deviations under each step.
 
 ## Goal
@@ -298,30 +298,73 @@ agents:
 
 ## Steps (each can be run and checked on its own)
 
-1. [ ] Decision Log rows in `ROADMAP.md` (U1–U12) + protocol §9 clarification row; worklog/016
+1. [x] Decision Log rows in `ROADMAP.md` (U1–U12) + protocol §9 clarification row; worklog/016
    started (`in-progress`).
-2. [ ] Core: `replay.py`, `networks.py`, `encoders.py`, `schedules.py` + unit tests.
-3. [ ] `qlearner.py` (loss, act / observe / update / save / load) + loss / determinism tests.
-4. [ ] `DQNAgent`, `IDQNAgent`, registry, `{seed}` checkpoint template + conformance tests.
-5. [ ] `train/loop.py` + `scripts/train.py` + `configs/dqn.yaml`, `idqn.yaml`, `base.yaml`
+2. [x] Core: `replay.py`, `networks.py`, `encoders.py`, `schedules.py` + unit tests.
+3. [x] `qlearner.py` (loss, act / observe / update / save / load) + loss / determinism tests.
+4. [x] `DQNAgent`, `IDQNAgent`, registry, `{seed}` checkpoint template + conformance tests.
+5. [x] `train/loop.py` + `scripts/train.py` + `configs/dqn.yaml`, `idqn.yaml`, `base.yaml`
    `train:` block; smoke test: 2 episodes, val every episode, on Jinan train/val.
-6. [ ] **D9 device benchmark** → set `train.device`; determinism check on that device; log
+6. [x] **D9 device benchmark** → set `train.device`; determinism check on that device; log
    timings in worklog.
-7. [ ] **Learning sanity run** (seed 0, default config, 100 episodes, DQN and IDQN): val travel
+7. [x] **Learning sanity run** (seed 0, default config, 100 episodes, DQN and IDQN): val travel
    time must drop clearly below the first evaluation and below Fixed-Time (434.84 s). If not,
    debug (reward sign, action mapping, target sync, discount) **before** tuning — logged as a
    dead end if it happens. This run is a dev run, not a tuning trial.
-8. [ ] Write and **commit** `configs/search/rl_baselines.yaml` (search space + selection rule)
+8. [x] Write and **commit** `configs/search/rl_baselines.yaml` (search space + selection rule)
    — before any tuning trial.
-9. [ ] `train/tune.py` + `scripts/tune.py` + tests; run DQN study (8 trials) and IDQN study
+9. [x] `train/tune.py` + `scripts/tune.py` + tests; run DQN study (8 trials) and IDQN study
    (8 trials), 4 workers.
-10. [ ] Apply the selection rule; copy winners into `configs/dqn.yaml` / `idqn.yaml`, commit.
-11. [ ] Final 5-seed runs for each agent (`tune.py --seeds 0 1 2 3 4`).
-12. [ ] Evaluate best checkpoints on val with full tracking (`evaluate.py … {seed}`);
+10. [x] Apply the selection rule; copy winners into `configs/dqn.yaml` / `idqn.yaml`, commit.
+11. [x] Final 5-seed runs for each agent (`tune.py --seeds 0 1 2 3 4`).
+12. [x] Evaluate best checkpoints on val with full tracking (`evaluate.py … {seed}`);
     `scripts/val_table.py`, `scripts/plot_training.py`.
-13. [ ] Docs: api.md, architecture.md, testing.md, how_it_works.md, CLAUDE.md, README; tick
+13. [x] Docs: api.md, architecture.md, testing.md, how_it_works.md, CLAUDE.md, README; tick
     ROADMAP 5.1–5.5; finish worklog/016 (files table cross-checked with `git status`);
     commits per `.claude/commands/commit.md`.
+
+### Deviations during execution (11 Nov)
+
+- **Step 3 — leakage guard added:** `run_episode` calls `agent.observe`, so the trainer's
+  validation episodes would have pushed **validation transitions into the replay buffer**.
+  `QLearner.observe` now stores experience only while `agent.training` is True (set by
+  `train_episode` only); tested (`test_validation_episodes_never_enter_the_buffer`).
+- **Step 4 — interface test:** `update() == {}` is asserted for rule agents only (learned
+  agents return losses); the "unknown agent" test now uses `"ppo"`.
+- **Step 4 — IDQN independence test** checks gradient isolation directly (a loss on network
+  0 gives exactly zero gradient to the others) instead of comparing two trainings, which
+  differed only by initialisation.
+- **Step 5 — run naming:** smoke runs `smoke_{dqn,idqn}` (2 episodes) are logged in
+  `docs/experiment_log.csv` with note "smoke".
+- **Step 6 — benchmark runs** logged to a scratch file, not the experiment log (timing, not
+  an experiment). Result: CPU 25.4 / 24.8 s vs CUDA 28.6 / 36.2 s (DQN / IDQN, 3 episodes +
+  1 val); 5 parallel CPU processes 36–43 s each (≈ 3.4× throughput); same seed → identical
+  weights (single and parallel). `train.device: cpu`. CUDA and CPU give different IDQN
+  numbers (floating point), so determinism is per device.
+- **Step 7 — sanity criterion met by episode 30** (DQN best 322.6 s @ 25, IDQN 351.8 s @ 30,
+  both < Fixed-Time 434.84 s), so the search space was committed (71b9b48) and the DQN study
+  started while the sanity runs finished their 100 episodes.
+- **Step 9 — tune.py smoke tests** (1-episode trials into a scratch results dir) appended 6
+  rows to the experiment log; they are annotated "SMOKE TEST … not a tuning trial". A
+  `train.py` print bug for results outside the repo was found and fixed by this smoke test.
+- **Step 9 — wall time:** DQN trials took 13–16 min, IDQN trials 28–43 min each with 4–6
+  runs sharing the CPU (12 per-network forward/backward passes per update), more than the
+  compute estimate below.
+- **Step 10 — same winner for both agents:** trial t6 (lr 1e-4, γ 0.8, batch 64, ε-decay 0.3);
+  DQN 298.86 s, IDQN 310.42 s best val. DQN trials span 298.9–308.5 s, IDQN 310.4–335.6 s.
+- **Step 11 — launch bug:** the first DQN finals launch failed (`python: command not found`,
+  exit 127): `source .venv/bin/activate && (A) & (B) &` activates the venv only for the first
+  background job. Relaunched with `.venv/bin/python`; no run was lost. IDQN finals used 4
+  workers (RAM ≈ 2.4 GB free while the last DQN seed ran).
+- **Step 12 — `.gitignore`:** `results/` also ignored `docs/results/`, so the generated val
+  table could not be committed; the pattern is now `/results/` (repo-root run outputs only).
+- **Step 12 — learning-curve figure** has a second, zoomed panel (episodes ≥ 20, y axis cut):
+  the first evaluation (~980 s) squeezed the 300–330 s range where the agents and
+  Max-Pressure differ.
+- `utils.config.read_yaml` added (public loader for the search file) instead of importing
+  the private `_parse`.
+- Memory: ≈ 0.9 GB RSS per training process (torch + buffer) on a 7.7 GB WSL VM → at most
+  ~6 concurrent runs.
 
 ## Verification
 

@@ -65,12 +65,19 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda_train.ipynb
 python scripts/evaluate.py --config configs/eval_baselines.yaml --agent max_pressure --split val
 #   test / heldout are refused unless --final (Phase 7 only); robustness via overrides,
 #   e.g. robustness.noise_std=0.1 robustness.dropout_p=0.1 robustness.surge=1.5
+
+# Phase 5 (RL baselines): train on Jinan train, checkpoint on val; tune; 5-seed finals
+python scripts/train.py --config configs/dqn.yaml [--run-name N] [overrides]   # or idqn.yaml
+python scripts/tune.py --search configs/search/rl_baselines.yaml --agent dqn --workers 4
+python scripts/tune.py --config configs/dqn.yaml --seeds 0 1 2 3 4 --workers 5
+python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent dqn --split val \
+    --checkpoint 'results/train/dqn_final_s{seed}/checkpoints/best.pt'
+python scripts/val_table.py && python scripts/plot_training.py
 ```
 
 Planned (not implemented yet — update once scripts exist):
 ```bash
-python scripts/train.py    --config configs/<experiment>.yaml
-python scripts/evaluate.py --config configs/<experiment>.yaml --agent <rl agent> --checkpoint <path>
+python scripts/run_ablation.py --config configs/<experiment>.yaml
 ```
 
 ## Project Structure (planned)
@@ -84,12 +91,14 @@ src/trafficrl/
   data/             # splits, roadnet model, audit checks, EDA traces + aggregations (train only)
   envs/             # traffic_env.py (TrafficEnv, make_env), features.py, metrics.py,
                     #   perturb.py (noise / dropout / surge), engine.py
-  eval/             # runner.py: run_episode, evaluate (shared by every agent)
+  eval/             # runner.py: run_episode, evaluate (shared by every agent); report.py
+  train/            # loop.py (train, train_episode), tune.py (random search, parallel runs)
   agents/
-    baselines/      # fixed_time, max_pressure, dqn (single), idqn (multi)
+    core/           # QLearner (Double DQN, SMDP target), replay, networks (K-head axis), encoders
+    baselines/      # fixed_time, max_pressure, dqn (single, shared), idqn (multi, independent)
     ugmarl/         # proposed: ensemble Q, neighbor attention, uncertainty gate
   utils/            # seeding, config, runlog (experiment log + env.json), plotting style
-scripts/            # train.py, evaluate.py, run_ablation.py
+scripts/            # train.py, tune.py, evaluate.py, val_table.py, plot_training.py, run_ablation.py
 tests/
 results/            # metrics CSVs, plots, checkpoints (gitignored)
 models/             # final selected checkpoints only (large files gitignored)

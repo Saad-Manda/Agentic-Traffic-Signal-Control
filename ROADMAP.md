@@ -161,15 +161,20 @@ Fixed-Time & Max-Pressure validation numbers · UG-MARL design diagram.
 ## Phase 5 — RL baselines (11–13 Nov) → R4, G7, G8
 
 - [x] 5.0 **Gate:** evaluation protocol frozen (3.5) — no RL training before this
-- [ ] 5.1 DQN core: replay buffer, target network, ε-greedy
-- [ ] 5.2 **Single-agent baseline**: one DQN, parameters shared across intersections, local obs only
-- [ ] 5.3 **Multi-agent baseline (IDQN)**: independent network + buffer per intersection
-- [ ] 5.4 `scripts/train.py`: checkpoint selection on **validation** flows, CSV/TensorBoard
+- [x] 5.1 DQN core: replay buffer, target network, ε-greedy — `agents/core/` (Double DQN, SMDP
+      target, grouped replay, K-head axis), 11 Nov
+- [x] 5.2 **Single-agent baseline**: one DQN, parameters shared across intersections, local obs only
+      — val (dev, WSL, 5 seeds) **299.8 ± 1.0 s** (MP 326.1, FT 434.8)
+- [x] 5.3 **Multi-agent baseline (IDQN)**: independent network + buffer per intersection
+      — val (dev, WSL, 5 seeds) **312.7 ± 2.5 s**; not transferable zero-shot to Hangzhou (7.4)
+- [x] 5.4 `scripts/train.py`: checkpoint selection on **validation** flows, CSV/TensorBoard
       logging; **every run appends one row to `docs/experiment_log.csv`** (Run ID | Split / seed |
       Model | Hyperparameters | Validation metric | Runtime | Git commit) and saves software
       versions + hardware (Python/PyTorch/CUDA/CityFlow versions, GPU/CPU) next to its results
-- [ ] 5.5 Light tuning on validation (lr, γ, batch size, ε schedule) — **search space written in
+- [x] 5.5 Light tuning on validation (lr, γ, batch size, ε schedule) — **search space written in
       `configs/` before the first tuning run**; grid or random search; test flows never inspected
+      — random search, 8 trials/agent (`configs/search/rl_baselines.yaml`, committed 71b9b48
+      before trials); both pick t6 (lr 1e-4, γ 0.8, batch 64, ε-decay 0.3). → worklog/016
 
 ## Phase 6 — Proposed UG-MARL (11–13 Nov) → R4, R5, G8
 

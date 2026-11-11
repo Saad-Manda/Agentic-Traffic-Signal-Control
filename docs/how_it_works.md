@@ -197,15 +197,35 @@ target = r + γ · max_a′ Q(s′, a′)      (γ ≈ 0.9–0.99: how much the 
 that is, "the reward I just got, plus the best I expect from where I ended up". No human
 label is needed. The reward and the network's own next estimate supply the target.
 
+What we actually implement (Phase 5, `trafficrl.agents.core.QLearner`) refines this in three
+ways, each needed for this particular simulator:
+
+```
+target = 0.01 · r  +  γ^(d / 15 s) · Q_target(s′, argmax_a′ Q(s′, a′))
+```
+
+- **Double DQN** — the *online* network picks the best next phase, a slowly updated *target*
+  copy scores it. Using one network for both systematically overestimates Q.
+- **Time-aware discount** — an interval lasts d = 15 s, or 20 s when the phase changes
+  (5 s yellow). Discounting by γ^(d/15) makes a switch "cost" its real time.
+- **Scaled reward** — −|pressure| is multiplied by a fixed 0.01 only inside training (keeps the
+  numbers near 1; a constant factor does not change which policy is best).
+- **No artificial end** — the hour stops at t = 3600 s but traffic does not, so the last
+  interval is still bootstrapped from Q(s′) rather than treated as "game over".
+
 ### 4.4 Episodes: replaying the same hour many times
 
-Training repeats the **same training hour** for hundreds of episodes *(number provisional)*:
+Training repeats the **same training hour** for **100 episodes** per run (about 10–20 min on
+the laptop CPU):
 
 - **Early episodes:** the agent explores, choosing many phases at random (ε-greedy), and big
   queues form. The reward is low.
 - **Later episodes:** it exploits what it has learned, for example "when the northbound queue
   is long and the eastbound one is empty, give north–south green". Queues shrink and
   the reward rises.
+
+Every 5 episodes the current policy is tried once, without exploration, on the **validation**
+hour; the version with the lowest validation travel time is kept as the run's checkpoint.
 
 Replaying one hour is **not cheating**, because the agent is being taught a *policy*
 (how to react to queues), not memorising the hour. Whether that policy generalises is
@@ -219,8 +239,8 @@ changes the traffic arriving at its neighbours. The baselines show the spectrum:
 | Method | Learning | Coordination |
 |---|---|---|
 | Fixed-Time, Max-Pressure | none (hand-designed rules) | none |
-| Single-agent DQN | one network shared by all 12 intersections | none (local view only) |
-| IDQN (multi-agent) | an independent network per intersection | none (each sees only itself) |
+| Single-agent DQN | one network (44 → 128 → 128 → 8) shared by all 12 intersections, one replay memory | none (local view only) |
+| IDQN (multi-agent) | an independent network and replay memory per intersection | none (each sees only itself) |
 | **UG-MARL (ours)** | one network per intersection, **ensemble of K heads** | **attention over neighbours' states** |
 
 ---

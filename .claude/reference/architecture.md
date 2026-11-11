@@ -53,8 +53,16 @@ Jinan/Hangzhou roadnet/flow files, and comparability with published CityFlow res
 |---|---|---|
 | Fixed-Time | conventional | fixed cycle, equal splits |
 | Max-Pressure | conventional | picks phase maximizing pressure; also UG-MARL fallback |
-| DQN | single-agent RL | one centralized agent (or shared params, no coordination) |
-| IDQN | multi-agent RL | independent DQN per intersection |
+| DQN | single-agent RL | Double DQN, one MLP 44-128-128-8 shared by all intersections, local obs, one buffer |
+| IDQN | multi-agent RL | Double DQN, one independent MLP + buffer per intersection (batched), local obs |
+
+All learned agents share `trafficrl.agents.core.QLearner` (Phase 5): Double-DQN target with
+SMDP discount γ^(duration/Δt), Huber loss, grad clip 10, hard target sync, uniform grouped
+replay, ε-greedy; reward × 0.01 for training only; the t = 3600 s cut is a truncation (always
+bootstrap). Networks output (G, B, K, A) — K = 1 for DQN / IDQN, K > 1 for UG-MARL's
+ensemble. Training: 100 episodes on the train flow, greedy val episode every 5, best
+checkpoint by val travel time (`scripts/train.py`). IDQN has one network per Jinan
+intersection, so it cannot run zero-shot on Hangzhou (Phase 7.4).
 | UG-MARL | proposed | below |
 
 ## UG-MARL

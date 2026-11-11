@@ -54,3 +54,16 @@ Experiment evaluation (not unit tests): results across ≥ 3 seeds, reported as 
 Before submission: clone into a fresh directory, follow only the README, regenerate the main
 comparison table (7.1) and one figure. Pass = results within seed variance of the reported
 numbers, with no hidden manual steps. Log the outcome in `worklog/`.
+- **Q-learning core** (`tests/agents/test_core.py`): replay wrap-around, per-group sampling,
+  seeded batches; `StackedMLPQNet` = loop of MLPs; hand-computed Double-DQN SMDP target
+  (15 s vs 20 s), bootstrap at the episode cut; observe only in training mode; update
+  schedule; target sync; ε exploration covers all phases, greedy is deterministic.
+- **DQN / IDQN** (`tests/agents/test_dqn_idqn.py`): param counts, shared vs per-intersection
+  groups, IDQN gradient isolation between intersections, save / load round trip and wrong-agent
+  refusal, same seed → same weights, `make_agent` reads the `train:` block.
+- **Training** (`tests/train/test_loop.py`, fake engine via monkeypatched `make_env`): refuses
+  val / test / held-out as training split (script exit 2), opens only train + val without
+  `allow_final`, writes every output + one log row, val episodes never enter the buffer, same
+  seed → identical checkpoint. **Tuning** (`tests/train/test_tune.py`): search file complete,
+  sampler deterministic / distinct / in-space, selection rule. **Report helpers**
+  (`tests/eval/test_report.py`).

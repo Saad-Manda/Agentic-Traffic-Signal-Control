@@ -133,7 +133,37 @@ The train values differ slightly from the EDA traces (515.21 / 344.13 s) because
 gives the first green 14 s instead of 15 s; copying that off-by-one into the env reproduces
 Max-Pressure's 344.13 s exactly (worklog/015).
 
-### 8. Tests and lint
+### 8. RL baselines: training, tuning, validation (ROADMAP Phase 5)
+
+```bash
+# one run: 100 episodes on Jinan train, greedy val episode every 5, best checkpoint on val
+python scripts/train.py --config configs/dqn.yaml  --run-name dqn_try   # ~12-30 min (CPU, load-dependent)
+python scripts/train.py --config configs/idqn.yaml --run-name idqn_try
+# tuning: 8 random trials from the committed search space, 4 parallel processes
+python scripts/tune.py --search configs/search/rl_baselines.yaml --agent dqn  --workers 4
+python scripts/tune.py --search configs/search/rl_baselines.yaml --agent idqn --workers 4
+# chosen configs on seeds 0-4, then full-tracking val evaluation (seed s loads checkpoint s)
+python scripts/tune.py --config configs/dqn.yaml  --seeds 0 1 2 3 4 --workers 5 --tag final
+python scripts/tune.py --config configs/idqn.yaml --seeds 0 1 2 3 4 --workers 5 --tag final
+python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent dqn --split val \
+    --checkpoint 'results/train/dqn_final_s{seed}/checkpoints/best.pt'
+python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent idqn --split val \
+    --checkpoint 'results/train/idqn_final_s{seed}/checkpoints/best.pt'
+python scripts/val_table.py        # docs/results/val_phase5.{csv,md}
+python scripts/plot_training.py    # docs/figures/training/learning_curves.{png,md}
+```
+
+Training runs write `results/train/<run>/` (train / val logs, `checkpoints/{best,last}.pt`,
+TensorBoard `tb/`, `summary.json`, config, `env.json`) and one row in
+`docs/experiment_log.csv`. `train.py` accepts only `data.split=train`. Device: CPU (faster
+than CUDA for these small MLPs, worklog/016). Phase 5 numbers are WSL *dev* numbers.
+Each run uses ~0.9 GB RAM; on a 7.7 GB WSL VM run at most 4–5 at once.
+
+Expected (WSL dev, Jinan val, 5 seeds; tuned trial t6 = lr 1e-4, γ 0.8, batch 64, ε-decay
+0.3 for both): DQN **299.8 ± 1.0 s**, IDQN **312.7 ± 2.5 s**, vs Max-Pressure 326.1 s and
+Fixed-Time 434.8 s (table `docs/results/val_phase5.md`).
+
+### 9. Tests and lint
 
 ```bash
 pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones
