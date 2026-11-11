@@ -1,0 +1,20 @@
+# Phase 5 tuning study for the RL baselines (ROADMAP 5.5; plan phase5-rl-baselines D8).
+# Written and committed BEFORE the first tuning trial (guidelines G8). Validation flow only.
+# Same space and the same sampled trials for DQN and IDQN. Everything not listed here is
+# fixed by configs/base.yaml `train:` (network 44-128-128-8, Adam, Huber, grad clip 10,
+# buffer 100k, learning_starts 2000, train_every 4, target_sync 1000, eps 1.0 -> 0.05,
+# 100 episodes, val every 5, reward scale 0.01).
+study: rl_baselines
+seed: 0                  # training seed of every trial (plan U3); finals use seeds 0-4
+sampler_seed: 2026       # random-search sampler (trials drawn without replacement)
+trials: 8                # per agent (36 combinations in the space)
+
+space:                   # config key -> candidate values
+  train.lr: [1.0e-4, 3.0e-4, 1.0e-3]
+  train.gamma: [0.8, 0.9, 0.95]          # per Δt = 15 s (SMDP: gamma ** (duration_s / 15))
+  train.batch_size: [64, 128]
+  train.eps_decay_frac: [0.3, 0.5]       # fraction of the episodes over which eps decays
+
+selection:               # fixed before the study
+  metric: best_val_avg_travel_time_s     # lower is better (best checkpoint of the run)
+  tie_tolerance_s: 1.0   # within 1 s of the best -> prefer the lower learning rate

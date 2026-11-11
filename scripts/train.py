@@ -33,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
     except TrainSplitError as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
-    print(f"results: {out.relative_to(REPO_ROOT)}")
+    print(f"results: {out.relative_to(REPO_ROOT) if out.is_relative_to(REPO_ROOT) else out}")
     return 0
 
 

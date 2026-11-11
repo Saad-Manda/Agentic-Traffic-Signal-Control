@@ -68,6 +68,11 @@ def _read_yaml(path: Path) -> dict[str, Any]:
     return data
 
 
+def read_yaml(path: str | Path) -> dict[str, Any]:
+    """Read one YAML mapping with the project loader (no ``base:`` resolution, no checks)."""
+    return _read_yaml(Path(path))
+
+
 def _load_with_bases(path: Path, chain: tuple[Path, ...]) -> dict[str, Any]:
     path = path.resolve()
     if path in chain:
