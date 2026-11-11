@@ -1,0 +1,14 @@
+# IDQN training (ROADMAP 5.3). Hyperparameters = configs/base.yaml `train:` defaults until the
+# Phase 5 tuning study (configs/search/rl_baselines.yaml) selects values; see worklog/016.
+base: base.yaml
+seed: 0
+
+data:
+  dataset: jinan
+  split: train           # training flow; checkpoints are selected on val inside train.py
+
+train:
+  agent: idqn
+
+output:
+  results_dir: results/train
