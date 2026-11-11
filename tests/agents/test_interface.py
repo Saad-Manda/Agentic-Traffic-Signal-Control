@@ -1,7 +1,7 @@
 import pytest
 
 from tests.envs.test_traffic_env import toy_env
-from trafficrl.agents import AGENTS, Agent, make_agent
+from trafficrl.agents import AGENTS, LEARNED_AGENTS, Agent, make_agent
 from trafficrl.data.splits import REPO_ROOT
 from trafficrl.utils.config import load_config
 
@@ -19,7 +19,9 @@ def test_every_agent_implements_the_interface(name, tmp_path):
         assert all(a in env.phase_ids for a in actions.values())
         obs, _, done, info = env.step(actions)
         agent.observe(info["transitions"])
-    assert agent.update() == {} and agent.last_explanations() == {}
+    if name not in LEARNED_AGENTS:
+        assert agent.update() == {}
+    assert agent.last_explanations() == {}
     agent.save(tmp_path / "x")
     agent.load(tmp_path / "x")
 
@@ -27,4 +29,4 @@ def test_every_agent_implements_the_interface(name, tmp_path):
 def test_unknown_agent():
     env, _ = toy_env()
     with pytest.raises(ValueError, match="unknown agent"):
-        make_agent("dqn", env, {})
+        make_agent("ppo", env, {})

@@ -9,7 +9,13 @@ from tests.data.test_splits import needs_raw
 from tests.envs.test_traffic_env import toy_env
 from trafficrl.agents import make_agent
 from trafficrl.data.splits import REPO_ROOT
-from trafficrl.eval.runner import condition_label, evaluate, run_episode, summary_table
+from trafficrl.eval.runner import (
+    condition_label,
+    evaluate,
+    resolve_checkpoint,
+    run_episode,
+    summary_table,
+)
 from trafficrl.utils.config import load_config
 
 CFG = REPO_ROOT / "configs" / "eval_baselines.yaml"
@@ -22,6 +28,12 @@ def test_run_episode_adds_agent_metrics():
     m = run_episode(env, make_agent("max_pressure", env, {}))
     assert m["decisions"] == 4 and m["fallback_rate"] == 0.0  # t = 0, 15, 30, 45
     assert m["decision_latency_ms"] >= 0 and m["avg_travel_time_s"] == 123.0
+
+
+def test_checkpoint_seed_template():
+    assert resolve_checkpoint(None, 3) is None
+    assert str(resolve_checkpoint("r/dqn_s{seed}/best.pt", 3)) == "r/dqn_s3/best.pt"
+    assert str(resolve_checkpoint("r/best.pt", 3)) == "r/best.pt"
 
 
 def test_condition_label():

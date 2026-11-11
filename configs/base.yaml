@@ -34,6 +34,27 @@ robustness:              # evaluation conditions (protocol §6; ROADMAP 4.3) —
 agents:                  # agent parameters, read by trafficrl.agents.make_agent
   fixed_time: {green_seconds: 30}   # protocol §4: 30 s green per phase, order 1 → 8
   max_pressure: {}                  # every Δt, ties → lowest phase id
+  dqn: {hidden: [128, 128]}         # shared-parameter DQN (5.2); size fixed, not tuned
+  idqn: {hidden: [128, 128]}        # one network per intersection (5.3)
+
+train:                   # scripts/train.py (Phase 5; plan phase5-rl-baselines). UG-MARL reuses it.
+  agent: dqn             # learned agent to train (dqn | idqn)
+  episodes: 100          # training episodes on the train flow
+  val_every: 5           # greedy validation episode every N training episodes (+ the last)
+  device: cpu            # set by the step-6 benchmark (worklog/016)
+  torch_threads: 1       # one torch thread per process; runs are parallelised across processes
+  reward_scale: 0.01     # constant, not fitted: r~ = 0.01 * (−|P|) (protocol §9, 11 Nov)
+  lr: 3.0e-4
+  gamma: 0.9             # per Δt = 15 s; SMDP: gamma ** (duration_s / 15)
+  batch_size: 64
+  buffer_size: 100000    # total transitions (IDQN: split evenly over intersections)
+  learning_starts: 2000  # transitions before the first gradient step
+  train_every: 4         # one gradient step per 4 new transitions
+  target_sync: 1000      # hard target-network copy every N gradient steps
+  grad_clip: 10.0        # max gradient L2 norm
+  eps_start: 1.0
+  eps_end: 0.05
+  eps_decay_frac: 0.5    # ε reaches eps_end after this fraction of the episodes
 
 eval:                    # scripts/evaluate.py
   seeds: [0, 1, 2, 3, 4] # protocol §6 (7.1 / 7.2); 7.3 / 7.4 use [0, 1, 2]

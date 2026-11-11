@@ -1,7 +1,7 @@
 """Evaluate one agent on one split over several seeds (ROADMAP 4.6).
 
     python scripts/evaluate.py --config configs/eval_baselines.yaml --agent max_pressure \
-        --split val [--seeds 0 1 2 3 4] [--checkpoint PATH] [--final] [overrides ...]
+        --split val [--seeds 0 1 2 3 4] [--checkpoint PATH[{seed}]] [--final] [overrides ...]
 
 Writes ``results/eval/<run_id>/{metrics,summary}.csv`` (+ config, env.json, data.json) and
 appends one row per seed to ``docs/experiment_log.csv``. ``--split test|heldout`` is refused
@@ -29,7 +29,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--split", choices=SPLIT_NAMES, help="overrides data.split")
     ap.add_argument("--dataset", help="overrides data.dataset")
     ap.add_argument("--seeds", type=int, nargs="+", help="default: eval.seeds from the config")
-    ap.add_argument("--checkpoint", type=Path)
+    ap.add_argument(
+        "--checkpoint",
+        help="learned agents: checkpoint path; '{seed}' is replaced by each evaluation seed",
+    )
     ap.add_argument("--track", choices=("full", "light"))
     ap.add_argument("--final", action="store_true", help="allow test / held-out (Phase 7 only)")
     ap.add_argument("--note", default="", help="free text for the experiment log")

@@ -58,6 +58,12 @@ def run_episode(env, agent, *, explore: bool = False) -> dict[str, Any]:
     return m
 
 
+def resolve_checkpoint(checkpoint: str | Path | None, seed: int) -> Path | None:
+    """``{seed}`` in the path is replaced by the evaluation seed, so each seed loads the model
+    trained with that seed (protocol §6: a seed fixes training **and** evaluation)."""
+    return None if checkpoint is None else Path(str(checkpoint).replace("{seed}", str(seed)))
+
+
 def condition_label(cfg: Mapping[str, Any]) -> str:
     rob = cfg.get("robustness", {}) or {}
     parts = []
@@ -121,8 +127,9 @@ def evaluate(
         t0 = time.perf_counter()
         env = make_env(run_cfg, int(seed), allow_final=final, track=track)
         agent = make_agent(agent_name, env, run_cfg)
-        if checkpoint is not None:
-            agent.load(checkpoint)
+        ckpt = resolve_checkpoint(checkpoint, int(seed))
+        if ckpt is not None:
+            agent.load(ckpt)
         m = run_episode(env, agent)
         runtime = time.perf_counter() - t0
         data_info[int(seed)] = env.data_info
@@ -133,7 +140,11 @@ def evaluate(
             split=split,
             seed=int(seed),
             model=agent_name,
-            hyperparameters={**hyper, "flow_file": env.data_info["flow_file"]},
+            hyperparameters={
+                **hyper,
+                "flow_file": env.data_info["flow_file"],
+                **({"checkpoint": str(ckpt)} if ckpt is not None else {}),
+            },
             metric_name=PRIMARY_METRIC,
             metric_value=m[PRIMARY_METRIC],
             validation_metric=m[PRIMARY_METRIC] if split == "val" else None,
