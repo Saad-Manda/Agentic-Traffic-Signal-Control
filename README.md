@@ -4,7 +4,8 @@ Built on the CityFlow simulator. Repository name: `Agentic-Traffic-Signal-Contro
 
 ## Install (Ubuntu 24.04: native or WSL2)
 
-Tested on WSL2 Ubuntu 24.04, Python 3.12.3, g++ 13.3, CMake 3.28.3 (28 Oct 2026).
+Tested on WSL2 Ubuntu 24.04, Python 3.12.3, g++ 13.3, CMake 3.28.3 (28 Oct 2026), and on
+native Ubuntu 24.04.3 (kernel 7.0, i5-13420H, 15 GB RAM; 11 Nov 2026).
 Clone the repo into the Linux filesystem (e.g. `~/Agentic-Traffic-Signal-Control`), not `/mnt/...`.
 
 ### 1. System packages
@@ -40,6 +41,14 @@ rm -rf extern/pybind11
 git clone --depth 1 --branch v2.13.6 https://github.com/pybind/pybind11 extern/pybind11
 pip install .            # with the project .venv active
 python -c "import cityflow; print(cityflow.__file__)"
+```
+
+No sudo / no system `cmake` (native Ubuntu, 11 Nov): install CMake into the venv and build
+without isolation, so the build sees the venv's `cmake`:
+
+```bash
+pip install cmake==3.28.3
+pip install --no-build-isolation .
 ```
 
 ### 4. Data (Jinan 3×4, Hangzhou 4×4)

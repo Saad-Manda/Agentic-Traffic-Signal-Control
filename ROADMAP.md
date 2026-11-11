@@ -40,10 +40,12 @@ see `PRD.md` §7).
 ## Phase 0 — Setup & decisions (27 Oct – 10 Nov) → G12
 
 - [x] 0.1 **Choose simulator** → CityFlow (see Decision Log); docs updated
-- [ ] 0.1b Build CityFlow (pybind11 bump for Py 3.12) on WSL + native Ubuntu; time one Jinan
+- [x] 0.1b Build CityFlow (pybind11 bump for Py 3.12) on WSL + native Ubuntu; time one Jinan
       episode with Fixed-Time & Max-Pressure; write install steps to README
       - [x] WSL: built (pybind11 v2.13.6), Jinan episode FT 2.7 s / MP 1.8 s, README written → worklog/007
-      - [ ] native Ubuntu: follow README, run `scripts/bench_cityflow.py`, record numbers
+      - [x] native Ubuntu (11 Nov): built (CMake 3.28.3 from pip, `--no-build-isolation`, no sudo),
+            FT 1.13 s / MP 1.14 s, metrics identical to WSL; Phase 5 val runs reproduced
+            **bit-identically** (FT, MP, DQN and IDQN, all 5 seeds) → worklog/018
 - [x] 0.2 Create `.venv`, `requirements.txt`, repo skeleton (`src/trafficrl`, `configs`, `scripts`, `tests`, `notebooks`)
 - [x] 0.3 Seeding utility + YAML config loader (`utils/seed.py`, `utils/config.py`)
 

@@ -77,3 +77,4 @@ Follow-up tasks.
 | [015](015-2026-11-10-phase4-env-baselines.md) | 2026-11-10 | Phase 4: env wrapper, metrics, robustness hooks, rule baselines, evaluation | code, experiment, decision | 4.1–4.6 | done |
 | [016](016-2026-11-11-phase5-rl-baselines.md) | 2026-11-11 | Phase 5: RL baselines (DQN, IDQN), training and tuning | code, experiment, decision | 5.1–5.5 | done |
 | [017](017-2026-11-11-phase6-ugmarl.md) | 2026-11-11 | Phase 6: proposed UG-MARL (plan + design decisions; execution pending) | decision, code, experiment | 6.1–6.7 | in-progress |
+| [018](018-2026-11-11-native-ubuntu-setup.md) | 2026-11-11 | Native Ubuntu setup; Phase 5 reproduced bit-identically | setup, experiment | 0.1b | done |
