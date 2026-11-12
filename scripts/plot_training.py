@@ -40,6 +40,7 @@ def main(argv: list[str] | None = None) -> int:
         "--title", default="RL baselines: greedy validation travel time during training"
     )
     ap.add_argument("--platform", default="dev, WSL", help="caption label, e.g. native")
+    ap.add_argument("--worklog", default="016", help="worklog entry that interprets the figure")
     args = ap.parse_args(argv)
     out = args.out if args.out.is_absolute() else REPO_ROOT / args.out
 
@@ -56,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
         rules[rule] = metric_stats(run / "metrics.csv", "avg_travel_time_s")["mean"]
     episodes_max = max(int(c["episode"].max()) for c in curves.values())
     summary = []
+    labels: list[tuple[float, float, str]] = []  # (y, x, text) of the zoom panel's end labels
     for agent, c in curves.items():
         color = CONTROLLER_COLOR[agent]
         for ax in (ax_full, ax_zoom):
@@ -72,15 +74,7 @@ def main(argv: list[str] | None = None) -> int:
                 label=f"{CONTROLLER_LABEL[agent]} (n = {int(c['n'].iloc[-1])} seeds)",
             )
         last = c.iloc[-1]
-        ax_zoom.annotate(
-            CONTROLLER_LABEL[agent],
-            (last["episode"], last["mean"]),
-            xytext=(6, 0),
-            textcoords="offset points",
-            va="center",
-            color=INK_SECONDARY,
-            fontsize=9,
-        )
+        labels.append((float(last["mean"]), float(last["episode"]), CONTROLLER_LABEL[agent]))
         best = c.loc[c["mean"].idxmin()]
         summary.append(
             f"{CONTROLLER_LABEL[agent]}: best mean {best['mean']:.1f} s at episode "
@@ -103,8 +97,24 @@ def main(argv: list[str] | None = None) -> int:
     hi = max(c.loc[c["episode"] >= z0, "ci95_high"].max() for c in curves.values())
     lo, hi = min(lo, rules["max_pressure"]), max(hi, rules["max_pressure"])
     pad = 0.08 * (hi - lo)
-    ax_zoom.set_xlim(z0 - 2, episodes_max * 1.18)  # room for the direct labels
+    ax_zoom.set_xlim(z0 - 2, episodes_max * 1.42)  # room for the direct labels
     ax_zoom.set_ylim(lo - pad, hi + pad)
+    # direct labels at the line ends, pushed apart so they never overlap
+    gap = 0.045 * (hi - lo + 2 * pad)
+    placed: list[float] = []
+    for y, x, text in sorted(labels):
+        y_lab = max(y, placed[-1] + gap) if placed else y
+        placed.append(y_lab)
+        ax_zoom.annotate(
+            text,
+            (x, y),
+            xytext=(x + 0.04 * episodes_max, y_lab),
+            textcoords="data",
+            va="center",
+            color=INK_SECONDARY,
+            fontsize=9,
+            arrowprops={"arrowstyle": "-", "color": INK_SECONDARY, "lw": 0.6},
+        )
     ax_zoom.annotate(
         CONTROLLER_LABEL["max_pressure"],
         (episodes_max, rules["max_pressure"]),
@@ -137,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
         + args.tag
         + "_s<seed>/val_log.csv`.\n\n"
         "**Values.** " + "; ".join(summary) + ".\n\n"
-        "**Interpretation.** See worklog/016 (Result) for the reading of this figure.\n"
+        f"**Interpretation.** See worklog/{args.worklog} (Result) for the reading of this figure.\n"
     )
     out.with_suffix(".md").write_text(caption)
     print(caption)
