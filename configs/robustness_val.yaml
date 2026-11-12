@@ -1,0 +1,29 @@
+# ROADMAP 6.8 — validation robustness references (plan .claude/plans/val-robustness-references.md).
+# Written and committed BEFORE the first run. Every baseline, UG-MARL and −gate on the Jinan
+# validation flow under the detector perturbations of configs/search/ugmarl_gate.yaml.
+# Evaluation only: nothing is selected from the result (checkpoints, K, d, p* and every
+# gate.json stay as locked in Phase 6).   python scripts/robustness.py --spec configs/robustness_val.yaml
+study: val_robustness
+dataset: jinan
+split: val                       # test / heldout are refused without --final (Phase 7.3)
+seeds: [0, 1, 2, 3, 4]           # learned models: seed s = checkpoint trained with seed s
+tag: final                       # training runs results/train/<train_model>_<tag>_s<seed>
+
+models:                          # row order of the table; key = model name in the table
+  fixed_time:    {config: configs/eval_baselines.yaml}
+  max_pressure:  {config: configs/eval_baselines.yaml}
+  dqn:           {config: configs/eval_rl_baselines.yaml}
+  idqn:          {config: configs/eval_rl_baselines.yaml}
+  ugmarl:        {config: configs/eval_ugmarl.yaml}           # gated, tau from gate.json
+  ugmarl-nogate:                                              # same checkpoints, gate off
+    config: configs/eval_ugmarl.yaml
+    agent: ugmarl
+    train_model: ugmarl
+    overrides: [agents.ugmarl.use_gate=false]
+
+conditions:                      # observation perturbations (protocol §6); surge not used
+  - {}                                   # clean
+  - {robustness.noise_std: 0.1}
+  - {robustness.noise_std: 0.2}
+  - {robustness.dropout_p: 0.1}
+  - {robustness.dropout_p: 0.2}
