@@ -1,6 +1,7 @@
 # 06 — Gap analysis and positioning of UG-MARL
 
-ROADMAP 2.6 (gap table, draft for Review 2 on 10 Nov) · Rubric R2 · Guideline G2
+ROADMAP 2.6 (gap table: draft for Review 2 on 10 Nov; UG-MARL row and action items updated 13 Nov
+to the system as built and evaluated in Phases 6–7) · Rubric R2 · Guideline G2
 
 ---
 
@@ -29,10 +30,12 @@ Legend: ✔ yes · ◐ partial / implicit · ✗ no · — not applicable.
 | Com-MP (Zhu & Tan 2026) | RL inside MP | ◐ via MP | ✗ | ✗ | ✔ MP always selects phase | ✔ claimed strong stability | ◐ | ◐ heterogeneity |
 | LLMLight (Lai 2025) | LLM agent | ✗/◐ | ✗ (not calibrated) | ✗ | ✗ | ✗ | ✔ natural-language | ◐ |
 | Hoel et al. 2020 *(driving, not TSC)* | Single-agent RL | — | ✔ ensemble + priors | ✔ threshold | ✔ fallback action | ✗ | ◐ | ✔ OOD |
-| **UG-MARL (ours)** | **MARL** | **✔ neighbour attention** | **✔ Q-ensemble σ(s)** | **✔ gate** | **✔ MP fallback** | **◐ → ✔ with queue trigger (01 §2)** | **✔ gate log + attention (+ faithfulness check)** | **✔ noise, dropout, surge, held-out city** |
+| **UG-MARL (ours)** | **MARL** | **✔ neighbour attention** | **✔ Q-ensemble σ(s)** | **✔ gate** | **✔ MP fallback** | **◐ MP stability if the gate always fires; mixed policy: sketch only (`methodology.md` §6)** | **✔ gate log, σ, attention weights (faithfulness check: Phase 8)** | **✔ noise, dropout, surge, held-out city** |
 
 *Rows are post-2015 papers, except the two background baselines we implement. Entries are from each paper's main method as summarised in files 01–05. Check every ✔/◐ against
-the PDF before the final report. This table is a draft for Review 2.*
+the PDF before the final report (ROADMAP 2.6, at the start of Phase 9). The UG-MARL row describes
+the system as built (13 Nov): the gate is σ > τ only — the queue / Lyapunov trigger (A2) was not
+added — so the guarantee stays ◐.*
 
 ## 2. The gap in one paragraph (draft for the report)
 
@@ -58,7 +61,9 @@ the PDF before the final report. This table is a draft for Review 2.*
    uncertainty/state decision logic, with the stability argument made explicit and its
    assumptions stated.
 3. An evaluation that isolates each part: −gate / −attention / −ensemble ablations, a
-   risk–coverage curve over τ, and an AUROC diagnostic of σ.
+   validation sweep of the τ percentile (p ∈ {80, 90, 95, 99}, `docs/results/gate_calibration.md`),
+   and a σ validity check (σ under shift, Spearman ρ between σ and |TD error|,
+   `docs/results/sigma_validity.csv`). No risk–coverage curve or AUROC (A6).
 
 **Not ours (cite, do not claim):** attention-based coordination (CoLight, DGN), pressure reward
 (PressLight), ensembles in TSC (Tan 2020, RELight), the ensemble→threshold→fallback pattern
@@ -73,17 +78,19 @@ the PDF before the final report. This table is a draft for Review 2.*
 
 ## 4. Action items this review creates for the project
 
-| # | Item | Where | Why |
-|---|---|---|---|
-| A1 | Reword PRD §1c "minimum acceptable outcome": MP does not bound per-vehicle max wait; make it an empirical hypothesis (or add a max-red constraint in the env) | `PRD.md` §1c | 01 §2 caveat 1 |
-| A2 | Decide: add queue/Lyapunov trigger (σ > τ **or** V > V_max) to the gate, plus an ablation | `architecture.md`, Decision Log | 01 §2 caveat 2; needed for any stability claim |
-| A3 | Use randomized prior functions in the Q-ensemble | `architecture.md` | 04 §2.3: σ must grow off-distribution |
-| A4 | Double DQN in **all** learners; shared parameters in IDQN and UG-MARL | `architecture.md` | Fair comparison (02 A3, B2) |
-| A5 | Consider Advanced-MP as an extra conventional baseline | ROADMAP Phase 4 | Credibility of H1 (03 §4.6) |
-| A6 | Add a τ sweep / risk–coverage plot and σ-AUROC diagnostic to the evaluation protocol | `docs/evaluation_protocol.md` (3.5) | 04 §3–4 |
-| A7 | Explicitly report gate-firing rates under shift (noise, held-out city) | protocol | Ovadia: ensembles can be confidently wrong under shift |
-| A8 | Attention faithfulness check (perturb high-α vs low-α neighbour) | Phase 8 | 05 B |
-| A9 | Datasets: Jinan/Hangzhou/New York come from the CoLight release, so comparable numbers exist | ROADMAP Phase 1 | 03 §4.3 |
+Status column added 13 Nov (after Phase 7). Dropped items are limitations to state in the report.
+
+| # | Item | Where | Why | Status (13 Nov) |
+|---|---|---|---|---|
+| A1 | Reword PRD §1c "minimum acceptable outcome": MP does not bound per-vehicle max wait; make it an empirical hypothesis (or add a max-red constraint in the env) | `PRD.md` §1c | 01 §2 caveat 1 | **Partly.** H2 made empirical with a three-level reading fixed before the test runs (PRD §1c, protocol §9). The "minimum acceptable outcome" line still says "the gate should guarantee this"; left as fixed, the report states it as an empirical check |
+| A2 | Decide: add queue/Lyapunov trigger (σ > τ **or** V > V_max) to the gate, plus an ablation | `architecture.md`, Decision Log | 01 §2 caveat 2; needed for any stability claim | **Dropped.** Gate is σ > τ only (Phase 6). The mixed policy has a drift sketch, not a guarantee (`methodology.md` §6) |
+| A3 | Use randomized prior functions in the Q-ensemble | `architecture.md` | 04 §2.3: σ must grow off-distribution | **Dropped.** Bernoulli(0.8) bootstrap masks instead (Phase 6 plan: one fewer component). σ still rises 4–11× under noise on val (`sigma_validity.csv`) |
+| A4 | Double DQN in **all** learners; shared parameters in IDQN and UG-MARL | `architecture.md` | Fair comparison (02 A3, B2) | **Done, with one deliberate exception.** Double DQN in every learner. DQN and UG-MARL share parameters. IDQN keeps independent nets because it is the PS16 independent-learner baseline |
+| A5 | Consider Advanced-MP as an extra conventional baseline | ROADMAP Phase 4 | Credibility of H1 (03 §4.6) | **Dropped.** Only Fixed-Time and Max-Pressure are implemented; a limitation for the report |
+| A6 | Add a τ sweep / risk–coverage plot and σ-AUROC diagnostic to the evaluation protocol | `docs/evaluation_protocol.md` (3.5) | 04 §3–4 | **Partly.** τ-percentile sweep on val (`gate_calibration.md`) and σ check by Spearman ρ (`sigma_validity*.csv`); no risk–coverage plot or AUROC |
+| A7 | Explicitly report gate-firing rates under shift (noise, held-out city) | protocol | Ovadia: ensembles can be confidently wrong under shift | **Done.** `test_robustness.md`, `test_safety_explain.md`, `heldout_generalisation.md` (fallback-rate sections) |
+| A8 | Attention faithfulness check (perturb high-α vs low-α neighbour) | Phase 8 | 05 B | **Open → Phase 8** (ROADMAP 8.2): perturb the high-α vs low-α neighbour on validation flows (no new test runs) |
+| A9 | Datasets: Jinan/Hangzhou/New York come from the CoLight release, so comparable numbers exist | ROADMAP Phase 1 | 03 §4.3 | **Done.** Both from the CoLight repo (`04440b7`); see Decision Log 10 Nov |
 
 ## 5. Search method (for the report's reproducibility)
 

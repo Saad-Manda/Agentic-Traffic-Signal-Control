@@ -94,7 +94,10 @@ evaluation only). Split: `data/processed/splits.json`; card: `docs/dataset_card.
 - [x] 2.5 Agentic / LLM traffic agents (LLMLight) — related work only → `docs/literature/05`
 - [ ] 2.6 **Gap table**: method × uncertainty × coordination × safety × explainability → motivates UG-MARL
       - [x] draft for Review 2 → `docs/literature/06` (worklog/010)
-      - [ ] final: check ✔/◐ entries and *(unverified)* numbers against PDFs; re-run novelty search before 16 Nov
+      - [x] UG-MARL row and action items A1–A9 brought in line with the built system (13 Nov,
+            worklog/021): stability stays ◐ (no queue trigger), A8 moved to 8.2
+      - [ ] final: check ✔/◐ entries and *(unverified)* numbers against PDFs; re-run novelty
+            search — at the start of Phase 9, before the related-work chapter, by 15 Nov
 
 ### ✅ Review 2 — 10 Nov (revised 9 Nov)
 Problem definition + H1–H3 + success criteria · dataset choice + audit + split plan ·
@@ -316,6 +319,9 @@ each run once)** → `docs/results/test_{main,ablation,robustness,efficiency,saf
 
 - [ ] 8.1 Comparison tables + bar/line charts
 - [ ] 8.2 Robustness degradation plot, ablation table, explainability figures
+      - **Attention faithfulness check** (gap analysis A8): on validation flows, perturb the
+        highest-α vs. the lowest-α neighbour's observation and compare the change in the
+        chosen action / Q; reported as an association check, no test-flow runs
 - [ ] 8.3 Written interpretation (why UG-MARL wins/loses where it does; limitations) —
       **attention weights, SHAP and gate statistics are described as associations, not causes**
 - [ ] 8.4 **Error analysis**
