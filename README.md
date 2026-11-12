@@ -172,7 +172,45 @@ Expected (WSL dev, Jinan val, 5 seeds; tuned trial t6 = lr 1e-4, γ 0.8, batch 6
 0.3 for both): DQN **299.8 ± 1.0 s**, IDQN **312.7 ± 2.5 s**, vs Max-Pressure 326.1 s and
 Fixed-Time 434.8 s (table `docs/results/val_phase5.md`).
 
-### 9. Tests and lint
+### 9. Proposed UG-MARL: grid, finals, gate calibration, validation (ROADMAP Phase 6)
+
+```bash
+# smoke: 2 episodes; the gate with tau = 0 must reproduce Max-Pressure (326.11 s on val)
+python scripts/train.py --config configs/ugmarl.yaml --run-name smoke_ugmarl train.episodes=2 train.val_every=1
+python scripts/evaluate.py --config configs/eval_ugmarl.yaml --agent ugmarl --split val --seeds 0 \
+    --checkpoint results/train/smoke_ugmarl/checkpoints/last.pt agents.ugmarl.gate.tau=0.0
+# grid K {3,5,10} x d {32,64,128} on seed 0 (search file committed first), winner -> configs/ugmarl.yaml
+python scripts/tune.py --search configs/search/ugmarl.yaml --agent ugmarl --workers 5
+# finals on seeds 0-4: full model and the two trained ablations
+python scripts/tune.py --config configs/ugmarl.yaml        --seeds 0 1 2 3 4 --workers 5
+python scripts/tune.py --config configs/ugmarl_noattn.yaml --seeds 0 1 2 3 4 --workers 5
+python scripts/tune.py --config configs/ugmarl_noens.yaml  --seeds 0 1 2 3 4 --workers 5
+# gate threshold per seed-model (validation only) -> results/train/<variant>_final_s<seed>/gate.json
+python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --config configs/eval_ugmarl.yaml --tag final --workers 5
+python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --config configs/eval_ugmarl.yaml --tag final --workers 5 \
+    agents.ugmarl.use_attention=false
+python scripts/sigma_check.py --tag final          # docs/figures/ugmarl/sigma_validity.{png,md}
+# validation evaluation of every variant (decision logs for the explanation figures)
+C=configs/eval_ugmarl.yaml
+python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decisions \
+    --checkpoint 'results/train/ugmarl_final_s{seed}/checkpoints/best.pt'
+python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decisions \
+    --checkpoint 'results/train/ugmarl_final_s{seed}/checkpoints/best.pt' agents.ugmarl.use_gate=false
+python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decisions \
+    --checkpoint 'results/train/ugmarl-noattn_final_s{seed}/checkpoints/best.pt' agents.ugmarl.use_attention=false
+python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decisions \
+    --checkpoint 'results/train/ugmarl-noens_final_s{seed}/checkpoints/best.pt' agents.ugmarl.use_ensemble=false
+python scripts/val_table.py --agents fixed_time max_pressure dqn idqn ugmarl ugmarl-nogate ugmarl-noattn \
+    ugmarl-noens --out docs/results/val_phase6 --title "Phase 6 — validation results (native Ubuntu)" --intro "…"
+python scripts/plot_training.py --agents dqn idqn ugmarl ugmarl-noattn ugmarl-noens \
+    --out docs/figures/training/learning_curves_phase6.png --platform native \
+    --title "UG-MARL and RL baselines: greedy validation travel time during training"
+```
+
+The gate acts at evaluation only; training and checkpoint selection are ungated. Equations
+and the stability argument: `docs/methodology.md`. Results: worklog/017.
+
+### 10. Tests and lint
 
 ```bash
 pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones

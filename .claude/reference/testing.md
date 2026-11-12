@@ -16,12 +16,10 @@ pytest -m "not slow"                # skip simulator-heavy tests (mark them @pyt
 - **Interface conformance**: every agent implements `act/observe/update/save/load`
   (`reference/api.md`) and returns a valid phase per intersection.
 - **Max-Pressure**: picks the max-pressure phase on hand-built states.
-- **UG-MARL gate**: σ ≤ τ → RL action; σ > τ → Max-Pressure action; ensemble σ computed correctly.
-- **Attention**: weights sum to 1 over N(i) ∪ {i}; shapes correct.
 - **Metrics**: travel time / wait / throughput computed correctly on a toy episode.
 - **Seeding**: same config + seed → identical short rollout.
-- **No data leakage**: train/val/test split files have no overlapping vehicles; normalization
-  stats computed only from train; evaluation code refuses to load test data in tuning mode.
+- **No data leakage**: train/val/test split files have no overlapping vehicles; nothing is
+  fitted (capacity scaling); evaluation / calibration code refuses test data outside `--final`.
 - **Roadnet** (`tests/data/test_roadnet.py`): canonical lane order, movements, phases 1–8,
   neighbours, capacities on a hand-built roadnet (`tests/data/toy.py`) and on both real files.
 - **Audit** (`tests/data/test_audit.py`): one synthetic defect per check is counted; a clean
@@ -67,3 +65,26 @@ numbers, with no hidden manual steps. Log the outcome in `worklog/`.
   seed → identical checkpoint. **Tuning** (`tests/train/test_tune.py`): search file complete,
   sampler deterministic / distinct / in-space, selection rule. **Report helpers**
   (`tests/eval/test_report.py`).
+- **Core, Phase 6 additions** (`tests/agents/test_core.py`): replay extras round trip /
+  wrap-around / column check; extras do not change the sampling stream; masked ensemble loss
+  by hand (incl. an empty head) and = Phase 5 loss for K = 1; K = 1 learner stores no mask
+  and its loss equals `smooth_l1` on the same batch (DQN / IDQN regression); Bernoulli(0.8)
+  masks; seeded mask stream; shared checkpoints load on other networks, independent do not.
+- **UG-MARL network** (`tests/agents/test_ugmarl_network.py`): encoder slots E, N, W, S and
+  boundary zeros; `encode_transition` = row of `encode_all`; α sums to 1 and is 0 on absent
+  slots; a neighbour's state changes Q only with attention; stacked heads = loop of heads;
+  a head's loss reaches only that head (+ encoder); parameter-count formula.
+- **UG-MARL agent / gate** (`tests/agents/test_ugmarl_agent.py`, `test_gate.py`): variant
+  names; flags build the right network; τ = None ungated; −ensemble σ = 0, never fires;
+  **τ = −1 reproduces Max-Pressure's actions over an episode**, τ = ∞ = gate off; strict σ > τ;
+  exploration never gated; architecture-checked checkpoints (`use_gate` may differ); shared
+  agent loads on a network of another size; determinism; σ by hand; percentiles; smaller-p
+  tie rule; `gate.json` round trip.
+- **Explanations / gate in evaluation** (`tests/eval/test_explain.py`): one recorder row per
+  ready decision, fallback share = `fallback_rate`, phase taken = fallback ? MP : greedy;
+  τ sources (config, `gate.json`, `{seed}` file, off) and refusal without τ before any output;
+  per-seed τ in `evaluate`; `-nogate` run / log names. **Tuning**: `tie_break`, full grid.
+  **Calibration script** (`tests/scripts/test_calibrate_gate.py`): refuses train / test /
+  held-out, variants without a gate, missing checkpoints.
+- **Real-simulator checks (not unit tests, worklog/017):** DQN training bit-identical before /
+  after the core change; τ = 0 on Jinan val = Max-Pressure's 326.11 s exactly.

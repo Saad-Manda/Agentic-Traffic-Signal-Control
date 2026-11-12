@@ -63,23 +63,35 @@ bootstrap). Networks output (G, B, K, A) — K = 1 for DQN / IDQN, K > 1 for UG-
 ensemble. Training: 100 episodes on the train flow, greedy val episode every 5, best
 checkpoint by val travel time (`scripts/train.py`). IDQN has one network per Jinan
 intersection, so it cannot run zero-shot on Hangzhou (Phase 7.4).
-| UG-MARL | proposed | below |
 
-## UG-MARL
+| UG-MARL | proposed | below (implemented 12 Nov; equations in `docs/methodology.md`) |
+
+## UG-MARL (Phase 6, plan `phase6-ugmarl.md`, decisions U1–U15)
 
 ```
-local obs sᵢ ─┐
-neighbor obs ─┴► attention encoder hᵢ = Σⱼ αᵢⱼ W s_j   (αᵢⱼ = softmax over j∈N(i)∪{i})
-hᵢ ─► K Q-heads Q₁..Q_K(hᵢ, ·)
-μ(a) = mean_k Q_k(a),  σ(sᵢ) = std_k Q_k(argmax_a μ(a))
-aᵢ = argmax_a μ(a)        if σ(sᵢ) ≤ τ
-     MaxPressure(sᵢ)      otherwise
+sᵢ, s_E, s_N, s_W, s_S (+ presence flags)          NeighborhoodEncoder: (5, 45) per intersection
+   └► e_j = ReLU(W_e s_j) + p_slot(j)                shared by all intersections (one network)
+      α_ij = softmax_j (W_q e_i · W_k e_j / √d)      1 GAT layer, 1 head, absent slots masked
+      z_i = [e_i ‖ Σ_j α_ij W_v e_j]                 −attention: z_i = e_i
+   └► K independent MLP heads (2d → 128 → 8)         −ensemble: K = 1
+μ(a) = mean_k Q_k(a),  a* = argmax μ,  σ(sᵢ) = std_k Q_k(a*)
+aᵢ = MaxPressure(observed counts)  if gate on and σ(sᵢ) > τ   (evaluation only)
+     a*                            otherwise
 ```
-- Ensemble heads trained with bootstrapped masks / different init (TODO: decide).
-- τ chosen on validation flows (e.g. a percentile of σ).
-- Stability argument: when the gate fires, behavior equals Max-Pressure, which is
-  throughput-optimal / queue-stable under Varaiya (2013) assumptions → bounded worst case.
-- Explainability: log αᵢⱼ, σ, gate decisions per step.
+- **Training** = the shared `QLearner`: ε-greedy on μ (same schedule as the baselines), never
+  gated; each transition stores a Bernoulli(0.8) mask over the K heads; per-head Double-DQN
+  target; masked Huber loss averaged over heads (1/K). Checkpoint = best **ungated** val episode.
+- **τ** = p-th percentile of the model's σ on one clean, ungated val episode (`gate.json`
+  next to each checkpoint); one p ∈ {80, 90, 95, 99} for all seeds, chosen on clean +
+  noise / dropout validation (`scripts/calibrate_gate.py`, protocol §9 12 Nov).
+- **Ablations:** −gate = same checkpoints with `use_gate=false`; −attention, −ensemble are
+  trained (configs `ugmarl_noattn.yaml`, `ugmarl_noens.yaml`) with the full model's K, d.
+- **Stability:** if the gate always fires the closed loop *is* Max-Pressure (queue-stable
+  under Varaiya 2013 assumptions); the mixed policy has only a drift sketch — never call it
+  "provably stable" (`docs/methodology.md` §6).
+- **Explainability:** `last_explanations()` (σ, τ, fallback, learned vs Max-Pressure phase,
+  α, mean Q) → `evaluate.py --log-decisions` → `decisions_s<seed>.csv`; σ validity check in
+  `scripts/sigma_check.py`. Associations, not causes.
 
 ## Data flow
 
@@ -104,14 +116,16 @@ Must be re-checked line by line against the final code before submission.
 seeds S. **Output:** trained ensemble Q* per agent, threshold τ*, test metrics.
 
 1. Split the primary city's flows into F_train, F_val, F_test; keep F_heldout untouched.
-2. On F_train, compute observation normalisation statistics.
+2. Build observations by lane-capacity scaling (from the roadnet only; nothing is fitted).
 3. For each h ∈ H (and seed s ∈ S): train UG-MARL on F_train — for each step, every
    intersection i encodes (sᵢ, s_N(i)) with attention, the K Q-heads give μ and σ, the agent
    acts ε-greedily on μ, transitions go to replay, and each head is updated on its bootstrap
    mask with a target network.
-4. Evaluate each trained model on F_val; record σ distribution; set τ(h) = chosen percentile
-   of σ on F_val.
-5. Select h*, τ* = argmax over validation score.
+4. Select h* = (K, d) by the best ungated validation travel time (grid, seed 0); train h* on
+   every seed s ∈ S, checkpoint = best ungated validation episode.
+5. For each seed-model, record σ on one clean ungated F_val episode; τ_s(p) = p-th percentile.
+   Choose one p* ∈ {80, 90, 95, 99} by the mean validation travel time over clean and
+   noise / dropout-perturbed F_val; τ*_s = τ_s(p*).
 6. Run the gated policy (σ > τ* ? Max-Pressure : argmax μ) **once** on F_test and F_heldout
    for every seed; report mean ± std and 95% CI.
 

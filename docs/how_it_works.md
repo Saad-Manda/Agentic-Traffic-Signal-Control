@@ -241,7 +241,7 @@ changes the traffic arriving at its neighbours. The baselines show the spectrum:
 | Fixed-Time, Max-Pressure | none (hand-designed rules) | none |
 | Single-agent DQN | one network (44 → 128 → 128 → 8) shared by all 12 intersections, one replay memory | none (local view only) |
 | IDQN (multi-agent) | an independent network and replay memory per intersection | none (each sees only itself) |
-| **UG-MARL (ours)** | one network per intersection, **ensemble of K heads** | **attention over neighbours' states** |
+| **UG-MARL (ours)** | one network **shared** by all 12 intersections, with an **ensemble of K heads** | **attention over the up-to-4 neighbours' states** |
 
 ---
 
@@ -286,7 +286,22 @@ differently:
 - **Heads agree** (low σ): the situation is familiar, so use the learned decision.
 - **Heads disagree** (high σ): the agent hasn't really learned this situation (*epistemic
   uncertainty*), so **fall back to Max-Pressure**, a rule with a proof of queue stability
-  (Varaiya 2013). This bounds how bad the controller can get.
+  (Varaiya 2013, under idealised assumptions). If the gate fires at every decision the
+  controller *is* Max-Pressure; for the mixed policy we only give a sketch, not a proof
+  (`docs/methodology.md` §6).
+
+How the pieces are set (details and equations: `docs/methodology.md`):
+
+- **Training never uses the gate.** The agent explores and learns on the mean Q exactly like
+  the DQN baseline; each head learns from its own random 80 % of the replayed experience
+  (bootstrap masks), which is what makes the heads disagree where data is thin.
+- **The threshold τ** is a percentile p of the model's own σ on one clean validation
+  episode (p = 90 → about 10 % of clean decisions would fall back). p is chosen from
+  {80, 90, 95, 99} on validation traffic **with and without broken detectors** (noise,
+  dropout), because on clean data the learned policy already beats Max-Pressure and the
+  gate only pays off when inputs are unreliable.
+- **Attention:** each intersection weighs itself and its neighbours (E, N, W, S) with
+  weights that sum to 1; missing neighbours at the edge of the grid get weight 0.
 - **Explainability:** how often the gate fires, where and when, plus attention weights
   (which neighbours an agent paid attention to). We report these as associations, not causes.
 

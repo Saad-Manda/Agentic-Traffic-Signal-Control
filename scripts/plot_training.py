@@ -1,6 +1,8 @@
 """Learning curves of the RL baselines on the validation flow (plan D10).
 
     python scripts/plot_training.py [--agents dqn idqn] [--tag final] [--seeds 0 1 2 3 4]
+    python scripts/plot_training.py --agents dqn idqn ugmarl ugmarl-noattn ugmarl-noens \
+        --out docs/figures/training/learning_curves_phase6.png --title "…" --platform native
 
 Plots the greedy validation average travel time (s) against the training episode: mean over
 seeds with a 95 % CI band (Student t), Fixed-Time and Max-Pressure validation values as dashed
@@ -11,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
@@ -32,7 +35,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--agents", nargs="+", default=["dqn", "idqn"])
     ap.add_argument("--tag", default="final")
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
+    ap.add_argument("--out", type=Path, default=OUT)
+    ap.add_argument(
+        "--title", default="RL baselines: greedy validation travel time during training"
+    )
+    ap.add_argument("--platform", default="dev, WSL", help="caption label, e.g. native")
     args = ap.parse_args(argv)
+    out = args.out if args.out.is_absolute() else REPO_ROOT / args.out
 
     apply_style()
     fig, (ax_full, ax_zoom) = plt.subplots(
@@ -112,12 +121,12 @@ def main(argv: list[str] | None = None) -> int:
     for ax in (ax_full, ax_zoom):
         ax.set_xlabel("Training episode (1 episode = 3600 s of Jinan train flow)")
     ax_full.set_ylabel("Validation avg travel time (s)")
-    fig.suptitle("RL baselines: greedy validation travel time during training", fontweight="bold")
+    fig.suptitle(args.title, fontweight="bold")
     fig.tight_layout()
-    save_figure(fig, OUT)
+    save_figure(fig, out)
     caption = (
-        "# Figure — RL-baseline learning curves (dev, WSL)\n\n"
-        f"![learning curves]({OUT.name})\n\n"
+        f"# Figure — {args.title} ({args.platform})\n\n"
+        f"![learning curves]({out.name})\n\n"
         "**Caption.** Average travel time (s, lower is better) of the greedy policy on the "
         "Jinan validation flow (`real_2000`), evaluated every 5 training episodes. Line = mean "
         f"over training seeds {args.seeds}; band = 95 % CI (Student t). Dashed lines: "
@@ -130,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
         "**Values.** " + "; ".join(summary) + ".\n\n"
         "**Interpretation.** See worklog/016 (Result) for the reading of this figure.\n"
     )
-    OUT.with_suffix(".md").write_text(caption)
+    out.with_suffix(".md").write_text(caption)
     print(caption)
     return 0
 

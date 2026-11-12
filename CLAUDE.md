@@ -76,9 +76,22 @@ python scripts/tune.py --config configs/dqn.yaml --seeds 0 1 2 3 4 --workers 5
 python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent dqn --split val \
     --checkpoint 'results/train/dqn_final_s{seed}/checkpoints/best.pt'
 python scripts/val_table.py && python scripts/plot_training.py
+
+# Phase 6 (UG-MARL): grid K x d on val, 5-seed finals (full / −attention / −ensemble),
+# gate calibration (τ per seed-model -> gate.json), σ check, val evaluation of all variants
+python scripts/tune.py --search configs/search/ugmarl.yaml --agent ugmarl --workers 5
+python scripts/tune.py --config configs/ugmarl.yaml --seeds 0 1 2 3 4 --workers 5   # + ugmarl_noattn / _noens
+python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml \
+    --config configs/eval_ugmarl.yaml --tag final --workers 5 [agents.ugmarl.use_attention=false]
+python scripts/sigma_check.py --tag final
+python scripts/evaluate.py --config configs/eval_ugmarl.yaml --agent ugmarl --split val --log-decisions \
+    --checkpoint 'results/train/ugmarl_final_s{seed}/checkpoints/best.pt' [agents.ugmarl.use_gate=false]
+python scripts/val_table.py --agents fixed_time max_pressure dqn idqn ugmarl ugmarl-nogate \
+    ugmarl-noattn ugmarl-noens --out docs/results/val_phase6 --title "…" --intro "…"
 ```
 
-Planned (not implemented yet — update once scripts exist):
+Planned (not implemented yet — update once scripts exist; ablations are run with the
+commands above, Phase 7 may wrap them):
 ```bash
 python scripts/run_ablation.py --config configs/<experiment>.yaml
 ```
@@ -94,18 +107,22 @@ src/trafficrl/
   data/             # splits, roadnet model, audit checks, EDA traces + aggregations (train only)
   envs/             # traffic_env.py (TrafficEnv, make_env), features.py, metrics.py,
                     #   perturb.py (noise / dropout / surge), engine.py
-  eval/             # runner.py: run_episode, evaluate (shared by every agent); report.py
+  eval/             # runner.py: run_episode, evaluate, resolve_gate (shared by every agent);
+                    #   explain.py (DecisionRecorder); report.py
   train/            # loop.py (train, train_episode), tune.py (random search, parallel runs)
   agents/
     core/           # QLearner (Double DQN, SMDP target), replay, networks (K-head axis), encoders
     baselines/      # fixed_time, max_pressure, dqn (single, shared), idqn (multi, independent)
-    ugmarl/         # proposed: ensemble Q, neighbor attention, uncertainty gate
+    ugmarl/         # proposed: network.py (attention + K heads), agent.py (σ, gate,
+                    #   explanations, ablation flags), gate.py (σ, percentile τ, gate.json)
   utils/            # seeding, config, runlog (experiment log + env.json), plotting style
-scripts/            # train.py, tune.py, evaluate.py, val_table.py, plot_training.py, run_ablation.py
+scripts/            # train.py, tune.py, evaluate.py, val_table.py, plot_training.py,
+                    #   calibrate_gate.py, sigma_check.py, run_ablation.py (planned)
 tests/
 results/            # metrics CSVs, plots, checkpoints (gitignored)
 models/             # final selected checkpoints only (large files gitignored)
 docs/               # dataset_card.md, data_audit.md (generated), evaluation_protocol.md,
+                    #   methodology.md (UG-MARL equations, stability argument), results/,
                     #   experiment_log.csv (tracked; mentor-facing), figures/{audit,eda}/
 report/             # LaTeX report sources (12–15 pages, one PDF; references.bib)
 poster/             # poster PPTX built on `updated poster sample.pptx` (+ PDF export)
@@ -195,8 +212,8 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
   episodes), native Jinan/Hangzhou data, and comparability with CoLight/PressLight/MPLight
   results. SUMO was rejected (slower; Jinan/Hangzhou only as conversions); revisit only for
   a stretch demo. Report final numbers from native Ubuntu runs only.
-- **Open task — validate CityFlow install** on WSL + native Ubuntu and time one Jinan episode
-  (Fixed-Time, Max-Pressure) — ROADMAP 0.1b.
+- CityFlow install validated on WSL and native Ubuntu (ROADMAP 0.1b, worklog/018); CUDA is
+  not available on native Ubuntu (driver not loaded) — training runs on CPU anyway.
 - **Evaluation protocol frozen (3.5, 10 Nov):** `docs/evaluation_protocol.md` — Δt = 15 s,
   reward −|pressure|, seeds 0–4 for 7.1 / 7.2 and 0–2 for 7.3 / 7.4; rule-based baselines are
   deterministic (reported with std = 0). Any change needs a dated Decision Log entry.
@@ -204,7 +221,13 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
   (shared-parameter DQN, no coordination), multi-agent RL (IDQN; IPPO optional).
 - Solo project: when time is short, follow ROADMAP "scope controls" — never cut the main
   comparison, ablation, report, poster, or demo.
-- Ablations: −gate, −coordination (attention), −ensemble/uncertainty.
+- Ablations: −gate (same checkpoints, `agents.ugmarl.use_gate=false`), −attention
+  (`configs/ugmarl_noattn.yaml`), −ensemble (`configs/ugmarl_noens.yaml`, K = 1, no gate).
+- **UG-MARL (Phase 6, `docs/methodology.md`):** the gate acts at **evaluation only**
+  (training / checkpoint selection are ungated); τ comes from `gate.json` next to each
+  checkpoint (`scripts/calibrate_gate.py`, validation only); a gated evaluation without τ is
+  refused. Run / log names use the variant (`ugmarl`, `ugmarl-nogate`, `ugmarl-noattn`,
+  `ugmarl-noens`).
 - Workflow: read `.claude/commands/prime.md` at session start; check `ROADMAP.md` for the
   current phase; plan non-trivial work into `.claude/plans/` before executing; tick completed
   ROADMAP tasks and add decisions to its Decision Log; commit per `.claude/commands/commit.md`.

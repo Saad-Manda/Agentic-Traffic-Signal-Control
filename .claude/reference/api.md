@@ -44,7 +44,7 @@ surge_flow(roadnet_path, flow_path, out_dir, surge, rng) -> (roadnet copy, flow,
 make_engine(roadnet_path, flow_path, seed, threads, workdir) -> cityflow.Engine
 ```
 
-## Agent (`src/trafficrl/agents/`) — implemented for rule agents and DQN / IDQN (ROADMAP 4.4–4.5, 5.1–5.3)
+## Agent (`src/trafficrl/agents/`) — implemented: rule agents, DQN / IDQN, UG-MARL (ROADMAP 4.4–4.5, 5.1–5.3, 6.1–6.5)
 
 ```python
 class Agent(Protocol):                                     # agents/base.py
@@ -54,8 +54,8 @@ class Agent(Protocol):                                     # agents/base.py
     def observe(self, transitions: list[Transition]) -> None   # no-op for rule agents
     def update(self) -> dict[str, float]                   # training losses; {} for rule agents
     def save(self, path) -> None ; def load(self, path) -> None
-    def last_explanations(self) -> dict                    # {} by default; UG-MARL: σ, attention,
-                                                           #   {"fallback": {iid: bool}} (-> fallback rate)
+    def last_explanations(self) -> dict                    # {} by default; UG-MARL: see below
+                                                           #   "fallback": {iid: bool} -> fallback rate
 class RuleAgent  # no-op base
 FixedTimeAgent(phase_ids, delta_t, green_seconds=30)       # keep while green_elapsed < 30 s
 MaxPressureAgent(features).choose(iid, lane_count) -> int  # observed counts; ties -> lowest id
@@ -63,27 +63,57 @@ make_agent(name, env, cfg) -> Agent                        # registry AGENTS; pa
                                                            # learned (LEARNED_AGENTS): + cfg["train"], cfg["seed"]
 DQNAgent(env, params, seed)    # shared MLP 44-128-128-8, one replay group, local obs (5.2)
 IDQNAgent(env, params, seed)   # StackedMLPQNet: one MLP + one replay group per intersection (5.3)
+model_label(name, cfg) -> str  # run / log name: agent name, or the UG-MARL variant
+```
+
+### UG-MARL (`src/trafficrl/agents/ugmarl/`) — implemented (ROADMAP 6.1–6.5; plan phase6-ugmarl)
+
+```python
+UGMARLNet(obs_dim=44, n_actions=8, attn_dim=64, head_hidden=128, heads=5, use_attention=True)
+    forward(x (G, B, 5, 45), return_attention=False) -> (G, B, K, A) [, α (G, B, 5) | None]
+    encode(x) -> (z, α) ; heads_forward(z) -> (..., K, A)
+expected_params(obs_dim, n_actions, attn_dim, head_hidden, heads, use_attention) -> int
+UGMARLAgent(env, params, seed)          # QLearner subclass, shared net, NeighborhoodEncoder
+    params: use_attention, use_ensemble (False -> K = 1), use_gate, heads, attn_dim,
+            head_hidden, mask_prob, gate: {tau, file}  (configs/base.yaml agents.ugmarl)
+    act(obs, info, explore)   # explore: ε-greedy on mean Q, never gated;
+                              # greedy: σ > tau -> Max-Pressure(info["lane_count"]), else argmax μ
+    .tau (None = ungated) ; .gate_requested ; .gate_active ; variant() ; forward_all(states)
+    last_explanations() -> {"fallback", "sigma", "tau", "greedy_phase", "mp_phase",
+                            "attention" ({iid: (5,)} | None), "q_mean" ({iid: (8,)})}  # {} while exploring
+    save / load               # checkpoint "arch" must match (use_gate may differ: −gate)
+variant_name(params) -> "ugmarl" | "ugmarl-noattn" | "ugmarl-noens" | "ugmarl-nogate"
+# gate.py
+sigma_from_q(q (..., K, A)) -> (μ (..., A), a* (...), σ (...))      # population std at a*
+percentile_thresholds(sigmas, percentiles) -> {p: τ} ; select_percentile(df[p, score], tol)
+save_gate(path, dict) ; load_gate(path) ; gate_file_for(checkpoint) -> <run>/gate.json
 ```
 
 ### Q-learning core (`src/trafficrl/agents/core/`) — implemented (ROADMAP 5.1)
 
 ```python
-ReplayBuffer(groups, capacity_per_group, state_shape, rng)
-    add(group, state, action_idx, reward_raw, next_state, duration_s, done) ; sample(B) -> (G, B, ...)
+ReplayBuffer(groups, capacity_per_group, state_shape, rng, extras=None)
+    add(group, state, action_idx, reward_raw, next_state, duration_s, done, **extras)
+    sample(B) -> (G, B, ...) incl. extras  # extras={"mask": ((K,), float32)} for K > 1
 MLPQNet(in_dim, n_actions, hidden=(128,128), heads=1)          # (G, B, in) -> (G, B, K, A), shared
 StackedMLPQNet(groups, in_dim, n_actions, hidden, heads)       # G independent nets, one bmm
 LocalEncoder(intersection_ids, obs_dim).encode_all(obs) / encode_transition(tr)
+NeighborhoodEncoder(ids, obs_dim, index, mask) / .from_env(env)   # (n, 5, obs_dim + 1):
+    # slot 0 self, 1-4 neighbours E, N, W, S, last column presence flag
 LinearSchedule(start, end, duration).value(t)
 QLearner(net, encoder, intersection_ids, phase_ids, delta_t, *, shared, params, seed)
     act(obs, info, explore)      # argmax of mean over heads; ε per intersection (own RNG)
     observe(transitions)         # stores ONLY while .training is True (val/eval never enter replay)
-    update() -> {loss, q_mean, td_abs, grad_norm} | {}   # 1 step per train_every new transitions
+    update() -> {loss, q_mean, td_abs, grad_norm[, sigma_mean]} | {}   # 1 step / train_every
+    # K = net.heads; K > 1: Bernoulli(mask_prob) masks (RNG seed + 40 000), masked_ensemble_loss
     td_target(batch)             # c·r + γ^(d/Δt)·Q_target(s′, argmax Q_online(s′)); always bootstraps
-    save(path) / load(path)      # net, target, optimiser, counters, params; checks agent + intersections
+    save(path) / load(path)      # net, target, optimiser, counters, params; checks agent name;
+                                 # shared: phase set + state shape; independent: intersections
+    checkpoint_extra() / check_checkpoint(ckpt)   # subclass hooks (UG-MARL architecture)
     .epsilon, .training, .grad_steps, .buffer, .net
 DEFAULTS                         # = configs/base.yaml `train:` learning keys
 ```
-Phase 6 reuses `QLearner` with K > 1 heads and a neighbourhood encoder.
+UG-MARL reuses `QLearner` with K > 1 heads and the neighbourhood encoder.
 
 ## Training (`src/trafficrl/train/`) — implemented (ROADMAP 5.4, 5.5)
 
@@ -94,7 +124,8 @@ train(cfg, *, run_name=None, log_path=EXPERIMENT_LOG, note="", verbose=True) -> 
     # -> results/train/<run>/{train_log,val_log}.csv, checkpoints/{best,last}.pt, tb/,
     #    config.yaml, env.json, summary.json + one experiment-log row
 # tune.py
-load_search(path) ; sample_trials(space, n, seed) ; select_best(df, metric, tie_tolerance)
+load_search(path) ; sample_trials(space, n, seed)   # n = grid size -> the full grid
+select_best(df, metric, tie_tolerance, tie_break=("train.lr",))
 run_parallel(jobs, workers, log_dir) ; train_argv(...) ; collect(results_dir, runs)
 ```
 
@@ -111,10 +142,16 @@ observed lane counts and Fixed-Time needs the green elapsed time; neither is in 
 
 ```python
 resolve_checkpoint(checkpoint, seed) -> Path | None          # "{seed}" -> seed
-run_episode(env, agent, *, explore=False) -> metrics + decisions, fallback_rate,
+run_episode(env, agent, *, explore=False, recorder=None) -> metrics + decisions, fallback_rate,
                                              decision_latency_ms (mean), decision_latency_ms_p95
 evaluate(cfg, agent_name, seeds, *, final=False, checkpoint=None, track="full", note="",
-         log_path=EXPERIMENT_LOG) -> (out_dir, metrics DataFrame)
+         log_path=EXPERIMENT_LOG, log_decisions=False) -> (out_dir, metrics DataFrame)
+    # UG-MARL: τ per seed via resolve_gate; run / log name = model_label; metrics + tau, tau_source
+resolve_gate(cfg, checkpoint, seed) -> (τ | None, source)   # GateError if gated without τ
+# explain.py
+DecisionRecorder(env).record(t, info, actions, expl) ; .frame() ; .save(path)
+    # one row per ready intersection: t, iid, sigma, tau, fallback, greedy_phase, mp_phase,
+    # phase_taken, attn_{self,E,N,W,S}, q_gap, in_veh_observed
 condition_label(cfg) -> "clean" | "noise0.1-drop0.1-surge1.5" ; summary_table(metrics) -> DataFrame
 # utils/stats.py
 summarise(values) -> {mean, std, ci95_low, ci95_high, n, deterministic} ; t975(df)
@@ -189,6 +226,7 @@ append_experiment_row(*, run_id, split, seed, model, hyperparameters, metric_nam
                       metric_value, runtime_s, validation_metric=None, notes="", path=...)
                       # one row in docs/experiment_log.csv (header written if new)
 env_info() -> dict ; save_env_info(path) -> Path      # versions + hardware -> env.json
+platform_tag() -> "dev-WSL" | "native"               # notes column of training rows
 git_commit() -> str                                   # short hash, "-dirty" if uncommitted
 
 # plotting.py — shared figure style
@@ -204,15 +242,20 @@ Every experiment config starts with `base: base.yaml` (`configs/base.yaml`).
 - `scripts/collect_traces.py --config configs/eda.yaml [overrides]` — train-split rule-controller
   rollouts → `results/eda/<run>/`, rows in `docs/experiment_log.csv`
 - `scripts/dataset_stats.py`, `scripts/bench_cityflow.py` — dataset sizes; install benchmark
-- `scripts/train.py --config configs/{dqn,idqn}.yaml [--run-name N] [overrides]` — train on
+- `scripts/train.py --config configs/{dqn,idqn,ugmarl,ugmarl_noattn,ugmarl_noens}.yaml [--run-name N] [overrides]` — train on
   Jinan train, checkpoint on val → `results/train/<run>/` + one log row; exit 2 on non-train split
 - `scripts/tune.py --search configs/search/rl_baselines.yaml --agent dqn [--workers 4]` — random
   search (trials in parallel) → `results/tune/<study>_<agent>/{trials.csv,best.json,configs/,logs/}`;
   `scripts/tune.py --config configs/dqn.yaml --seeds 0 1 2 3 4 [--tag final]` — multi-seed runs
-- `scripts/val_table.py` → `docs/results/val_phase5.{csv,md}`; `scripts/plot_training.py` →
+- `scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --config configs/eval_ugmarl.yaml
+  --tag final [--workers 4] [agents.ugmarl.use_attention=false]` — τ per seed-model on val →
+  `results/train/<variant>_<tag>_s<seed>/gate.json`, `docs/results/gate_calibration*.{csv,md}`
+- `scripts/sigma_check.py --tag final` — σ validity (val) → `docs/results/sigma_validity*.csv`,
+  `docs/figures/ugmarl/sigma_validity.{png,md}`
+- `scripts/val_table.py [--agents …] [--out PATH]` → `docs/results/val_phase5.{csv,md}`; `scripts/plot_training.py` →
   `docs/figures/training/learning_curves.{png,md}`
 - `scripts/evaluate.py --config configs/eval_baselines.yaml --agent <name> --split val [--seeds …]
-  [--checkpoint PATH (may contain {seed})] [--final] [overrides]` — any agent × seeds → `results/eval/<run>/`
+  [--checkpoint PATH (may contain {seed})] [--log-decisions] [--final] [overrides]` — any agent × seeds → `results/eval/<run>/`
   (`metrics.csv`, `summary.csv`, config, env.json, data.json) + one log row per seed; exit 2 on
   test / heldout without `--final`
 - `scripts/run_ablation.py --config <yaml>` — TODO
