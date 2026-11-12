@@ -1,6 +1,6 @@
 # Plan — Phase 6: proposed UG-MARL (ROADMAP 6.1–6.7)
 
-Status: **planned 11 Nov 2026, not executed.** Decisions U1–U15 were taken with the user on
+Status: **executing since 12 Nov 2026 on native Ubuntu (ROADMAP 0.1b done → numbers are *final-val*).** Decisions U1–U15 were taken with the user on
 11 Nov. Tick steps `[x]` during execution and note deviations under "Deviations".
 
 ## Goal
@@ -427,7 +427,7 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
 
 ## Steps (each can be run and checked on its own)
 
-1. [ ] Protocol §9 clarification row + PRD §9 (close the τ question). The ROADMAP Decision
+1. [x] Protocol §9 clarification row + PRD §9 (close the τ question). The ROADMAP Decision
    Log row (U1–U15) and worklog/017 (`in-progress`) were already added at planning time
    (11 Nov) — continue that worklog entry, do not create a new one.
 2. [ ] Core changes: replay extras, masked loss, mask RNG, relaxed `load` + tests; confirm

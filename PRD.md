@@ -150,4 +150,6 @@ Re-baselined 9 Nov (see ROADMAP Decision Log).
 - ~~Reward (−pressure vs. −queue)~~ — **resolved 10 Nov: −|pressure|** (`docs/evaluation_protocol.md`).
 - ~~Decision interval Δt~~ — **resolved 10 Nov: 15 s** (Max-Pressure 8 % better than 10 s on the
   train flow, `notebooks/01_eda_train.ipynb` §10).
-- Gate threshold τ selection method (chosen on validation; method decided in Phase 6).
+- ~~Gate threshold τ selection method~~ — **resolved 11 Nov (Phase 6): τ = p-th percentile of
+  each model's σ on a clean validation episode; one p ∈ {80, 90, 95, 99} chosen on clean +
+  perturbed validation** (`docs/evaluation_protocol.md` §9, plan `phase6-ugmarl.md` D9).
