@@ -190,6 +190,8 @@ python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --conf
 python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --config configs/eval_ugmarl.yaml --tag final --workers 5 \
     agents.ugmarl.use_attention=false
 python scripts/sigma_check.py --tag final          # docs/figures/ugmarl/sigma_validity.{png,md}
+# 6.8: every baseline + UG-MARL / −gate under detector noise / dropout on validation (evaluation only)
+python scripts/robustness.py --spec configs/robustness_val.yaml --workers 5   # docs/results/val_robustness.{csv,md}
 # validation evaluation of every variant (decision logs for the explanation figures)
 C=configs/eval_ugmarl.yaml
 python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decisions \

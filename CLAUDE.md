@@ -84,6 +84,7 @@ python scripts/tune.py --config configs/ugmarl.yaml --seeds 0 1 2 3 4 --workers 
 python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml \
     --config configs/eval_ugmarl.yaml --tag final --workers 5 [agents.ugmarl.use_attention=false]
 python scripts/sigma_check.py --tag final
+python scripts/robustness.py --spec configs/robustness_val.yaml --workers 5   # 6.8: model x condition on val
 python scripts/evaluate.py --config configs/eval_ugmarl.yaml --agent ugmarl --split val --log-decisions \
     --checkpoint 'results/train/ugmarl_final_s{seed}/checkpoints/best.pt' [agents.ugmarl.use_gate=false]
 python scripts/val_table.py --agents fixed_time max_pressure dqn idqn ugmarl ugmarl-nogate \
@@ -117,7 +118,8 @@ src/trafficrl/
                     #   explanations, ablation flags), gate.py (σ, percentile τ, gate.json)
   utils/            # seeding, config, runlog (experiment log + env.json), plotting style
 scripts/            # train.py, tune.py, evaluate.py, val_table.py, plot_training.py,
-                    #   calibrate_gate.py, sigma_check.py, run_ablation.py (planned)
+                    #   calibrate_gate.py, sigma_check.py, robustness.py (model × condition table,
+                    #   val now / test in 7.3), run_ablation.py (planned)
 tests/
 results/            # metrics CSVs, plots, checkpoints (gitignored)
 models/             # final selected checkpoints only (large files gitignored)

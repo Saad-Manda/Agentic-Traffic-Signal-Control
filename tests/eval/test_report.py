@@ -5,7 +5,13 @@ import json
 import pandas as pd
 import pytest
 
-from trafficrl.eval.report import fmt, latest_eval_run, training_summaries, val_curves
+from trafficrl.eval.report import (
+    condition_table,
+    fmt,
+    latest_eval_run,
+    training_summaries,
+    val_curves,
+)
 from trafficrl.utils.stats import summarise
 
 
@@ -37,3 +43,28 @@ def test_fmt_and_latest_run(tmp_path):
         (tmp_path / f"dqn_jinan-val_clean_{stamp}").mkdir()
     (tmp_path / "dqn_jinan-val_noise0.1_20261112-1").mkdir()
     assert latest_eval_run(tmp_path, "dqn", "jinan", "val").name.endswith("20261111-1")
+
+
+def test_condition_table(tmp_path):
+    def run(name, att, wait, fb):
+        d = tmp_path / name
+        d.mkdir()
+        pd.DataFrame(
+            {"seed": range(len(att)), "avg_travel_time_s": att, "max_waiting_time_s": wait,
+             "fallback_rate": fb}
+        ).to_csv(d / "metrics.csv", index=False)  # fmt: skip
+        return d
+
+    t = condition_table(
+        {
+            ("max_pressure", "clean"): run("a", [326.0, 326.0], [100, 100], [0.0, 0.0]),
+            ("ugmarl", "noise0.2"): run("b", [420.0, 430.0], [1200, 1300], [0.9, 1.0]),
+        }
+    ).set_index(["model", "condition"])
+    mp, ug = t.loc[("max_pressure", "clean")], t.loc[("ugmarl", "noise0.2")]
+    assert mp["deterministic"] and mp["avg_travel_time_std"] == 0.0 and mp["n_seeds"] == 2
+    ref = summarise([420.0, 430.0])
+    assert ug["avg_travel_time_mean"] == 425.0 and not ug["deterministic"]
+    assert ug["avg_travel_time_ci95_low"] == pytest.approx(ref["ci95_low"])
+    assert ug["max_waiting_time_mean"] == 1250.0
+    assert ug["fallback_rate_mean"] == pytest.approx(0.95)
