@@ -1,6 +1,7 @@
 # Plan — 6.8 Validation robustness references (ROADMAP 6.8)
 
-Status: **planned 12 Nov 2026**, not executed. Tick steps `[x]` during execution and note
+Status: **executed 12 Nov 2026** — outcome mixed: (a) holds against DQN / IDQN, tie with
+Max-Pressure under noise (worklog/019). Tick steps `[x]` during execution and note
 deviations under each step.
 
 ## Goal
@@ -141,12 +142,15 @@ passed to `evaluate.py`, which seeds Python, NumPy, PyTorch, CityFlow and the pe
 
 ## Steps and verification
 
-1. [ ] `configs/robustness_val.yaml`; commit (spec before runs).
-2. [ ] `condition_table` + test; `scripts/robustness.py` + tests.
+1. [x] `configs/robustness_val.yaml`; commit (spec before runs).
+2. [x] `condition_table` + test; `scripts/robustness.py` + tests.
    `pytest tests/scripts/test_robustness.py tests/eval/test_report.py` and `ruff check src tests scripts` pass.
-3. [ ] Smoke: a throw-away spec (Max-Pressure + DQN, seed 0, clean + noise 0.1) with a
+3. [x] Smoke: a throw-away spec (Max-Pressure + DQN, seed 0, clean + noise 0.1) with a
    scratch output dir → 4 runs, table written; rows labelled smoke in the log note.
-4. [ ] Full run: `python scripts/robustness.py --spec configs/robustness_val.yaml --workers 5`
+   *Deviation:* the first smoke used a results dir outside the repo; the 4 episodes ran and
+   were logged, then `evaluate.py` failed printing a repo-relative path. Re-run with the
+   default `results/robustness/` → 8 smoke rows in the log instead of 4.
+4. [x] Full run: `python scripts/robustness.py --spec configs/robustness_val.yaml --workers 5`
    → 30 jobs, 150 episodes. Checks:
    - clean column equals `docs/results/val_phase6.md` (Fixed-Time 434.8, Max-Pressure 326.1,
      DQN 299.8 ± 1.0, IDQN 312.7 ± 2.5, UG-MARL 302.3 ± 1.1, −gate 301.8 ± 0.8);
@@ -154,9 +158,10 @@ passed to `evaluate.py`, which seeds Python, NumPy, PyTorch, CityFlow and the pe
      (p = 80 and ungated rows);
    - 150 new `val` rows in `docs/experiment_log.csv`, none `test` / `heldout`.
    A mismatch is investigated and logged before the table is used.
-5. [ ] Read the table against ROADMAP 6.8 (a) / (b); report to the user. Outcome (b) → stop,
+   *Result:* all three checks pass (158 rows with the smoke runs).
+5. [x] Read the table against ROADMAP 6.8 (a) / (b); report to the user. Outcome (b) → stop,
    the next step is the user's decision.
-6. [ ] ROADMAP (tick 6.8, Decision Log), README / CLAUDE.md commands, worklog/019, commits
+6. [x] ROADMAP (tick 6.8, Decision Log), README / CLAUDE.md commands, worklog/019, commits
    per `.claude/commands/commit.md`.
 
 ## Experiment log

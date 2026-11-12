@@ -197,7 +197,7 @@ Fixed-Time & Max-Pressure validation numbers · UG-MARL design diagram.
       `configs/`**, every run logged in `docs/experiment_log.csv` — grid K × d (9 runs) → K = 3,
       d = 128 locked; p from {80, 90, 95, 99} → 80
 
-- [ ] 6.8 **Validation robustness references (added 12 Nov, user decision after U14)** — evaluate
+- [x] 6.8 **Validation robustness references (added 12 Nov, user decision after U14)** — evaluate
       the locked **DQN, IDQN, Max-Pressure and Fixed-Time** on the validation flow under the same
       four detector perturbations used for the gate calibration (noise 0.1 / 0.2, dropout
       10 / 20 %; surge not used), seeds 0–4, existing checkpoints, **evaluation only**. Purpose:
@@ -218,6 +218,14 @@ Fixed-Time & Max-Pressure validation numbers · UG-MARL design diagram.
         **(b)** DQN is robust without a gate, or Max-Pressure under noise beats gated UG-MARL →
         reported as a finding (not tuned away); the next step (Phase 7 as is, or one time-boxed,
         pre-registered improvement attempt) is the user's decision.
+
+      - **done 12 Nov** → `docs/results/val_robustness.md` (150 val episodes; clean column and
+        UG-MARL / −gate rows reproduce `val_phase6.md` and `gate_calibration.md` exactly).
+        Outcome **mixed**: DQN / IDQN collapse under noise like −gate (553 / 855 s and
+        529 / 767 s at noise 0.1 / 0.2) — reading (a) holds for the learned baselines;
+        Max-Pressure under noise (372 / 415 s) is level with gated UG-MARL (376 / 423 s,
+        CIs overlap, Max-Pressure nominally 5–9 s lower) — the (b) element. Next step is the
+        user's decision. → worklog/019
 
 ## Phase 7 — Experiments (13–15 Nov) → R5, R6, G10, G11
 
@@ -410,3 +418,4 @@ Tick all before submission on 17 Nov.
 | 12 Nov | **Final-submission format changed** (course instructions, 12 Nov): a **poster** on `updated poster sample.pptx` **replaces the 10-slide presentation**; the **report is 12–15 pages (was ≤ 8)**, one PDF, in the chapter structure of `updated Sections of a Machine Learning Project Report.pdf` (preliminaries; 1 Introduction, 2 Literature Review, 3 Proposed Methodology, 4 Results and Discussion, 5 Conclusion and Future Scope; references, appendix). These two documents win over the PS16 rubric and the guidelines for report/poster format; demo, viva, 17 Nov date and marks unchanged. Tooling: LaTeX report in `report/`, PPTX poster in `poster/`. Claude drafts, student reviews. Ethics folded into Ch 5 limitations, reproducibility notes into the appendix. → worklog/019 |
 | 12 Nov | **Phase 6 executed (native Ubuntu; numbers are final-val).** Grid (`configs/search/ugmarl.yaml`, committed first): best 301.08 s (K 10, d 128); K 10 / d 64 and **K 3 / d 128** within the 1 s tolerance → smallest K wins, **locked (U14)** though σ over 3 heads is a noisy estimate. Gate calibration (`configs/search/ugmarl_gate.yaml`): **p\* = 80** (80 and 90 tie within 1 s → smaller p). −attention gets its own τ; its calibration also selected 80 (the plan said "same p as full" — identical here). Calibration episodes use full tracking (plan: light) so max wait is reported. Validation (5 seeds): UG-MARL 302.3 ± 1.1 s, −gate 301.8, −attention 301.9, −ensemble 303.7, DQN 299.8, IDQN 312.7 — On val UG-MARL beats IDQN and Max-Pressure with separated CIs (the H1 pattern) but **not** DQN, and attention shows no gain over −attention (H3 pattern not supported); test decides in Phase 7. H2 is mixed on val: on clean val the gate slightly raises max wait (761 vs 691 s, CIs overlap), under detector noise 0.1 / 0.2 it keeps travel time at 376 / 423 s where the ungated policy degrades to 599 / 909 s (max wait 1238 vs 3307 s at 0.2). **Next step after this result is the user's decision (U14).** Also fixed: training rows were always labelled `dev-WSL`. → worklog/017 |
 | 12 Nov | **After Phase 6 (U14): no retuning to beat DQN; add validation robustness references first (6.8).** UG-MARL is 2.5 s behind DQN on clean val with touching CIs, and H1 names IDQN and Max-Pressure, not DQN; another tuning round aimed at one baseline would break the locked-on-validation rule. The claim to test is two-sided — about equal to the learned baselines on clean data and better under degraded detectors; better than Max-Pressure on clean data — and only the −gate half is measured. 6.8 runs DQN, IDQN, Max-Pressure and Fixed-Time under the gate-calibration perturbations on validation (evaluation only, nothing selected, readings (a) / (b) written before the runs). Phase 7 starts after 6.8. Evaluation protocol unchanged. → worklog/019 |
+| 12 Nov | **6.8 result (validation, evaluation only, nothing selected): the gate makes UG-MARL track the better controller in each condition, but it does not beat Max-Pressure under noise.** Travel time, 5 seeds: DQN 300 → 553 → 855 s, IDQN 313 → 529 → 767 s, −gate 302 → 599 → 909 s, Max-Pressure 326 → 372 → 415 s, UG-MARL 302 → 376 → 423 s (clean → noise 0.1 → 0.2; fallback 21 → 81 → 96 %). Under dropout 10 / 20 % UG-MARL (306 / 311 s) stays with DQN (305 / 309 s) and ahead of Max-Pressure (323 / 322 s). Max wait at noise 0.2: DQN 3407 s, Max-Pressure 1277 s, UG-MARL 1238 s. Mean over the five conditions: UG-MARL 344 s, Max-Pressure 351 s, DQN 464 s, Fixed-Time 435 s (optimistic for UG-MARL: p\* was chosen on this score). Pre-written reading: (a) holds against DQN / IDQN; against Max-Pressure under noise the result is a tie with overlapping CIs (the (b) element), which is the ceiling of a gate that falls back to Max-Pressure. **Not tuned away; whether to go to Phase 7 as locked or make one pre-registered improvement attempt is the user's decision.** `scripts/robustness.py` is reused for 7.3. → worklog/019 |
