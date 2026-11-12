@@ -10,7 +10,7 @@ Solo project. Timeline: **27 Oct → 17 Nov 2026**. Reviews: **3 Nov, 10 Nov, 17
 | 10–11 Nov | 3.3–3.5 EDA + **protocol freeze**; Phase 4 env + Fixed-Time / Max-Pressure |
 | 11–13 Nov | Phases 5–6: DQN, IDQN, UG-MARL + validation tuning |
 | 13–15 Nov | Phase 7 runs (overnight on native Ubuntu), Phase 8 analysis |
-| 14–16 Nov | Phase 9 report/slides/demo; Phase 2 literature written alongside throughout |
+| 14–16 Nov | Phase 9 report/poster/demo; Phase 2 literature written alongside throughout |
 | 16 Nov | Phase 10 viva prep |
 Tick `[x]` as tasks complete; record decisions in the Decision Log at the bottom.
 Full what/why/how of each piece of work lives in `worklog/` (index: `worklog/README.md`).
@@ -220,36 +220,56 @@ Log.
       - **Sensitivity:** to seed, to τ (small sweep around the chosen value, on validation flows
         only), and to distribution shift (held-out city from 7.4)
 
-## Phase 9 — Report, slides, demo (14–16 Nov) → R8, G12
+## Phase 9 — Report, poster, demo (14–16 Nov) → R8, G12
 
-- [ ] 9.1 Report ≤ 8 pages, guidelines' 10 sections:
-      1. Title, abstract, contributions
-      2. Introduction & problem statement (`PRD.md` §1a–1c)
-      3. Related work & gap (gap table)
-      4. Dataset & quality audit
-      5. Split protocol & methodology (MDP, ensemble uncertainty, attention, gate + stability
-         argument)
-      6. Experimental setup & baselines (why each baseline is included)
-      7. Results (tables + plots, mean ± std / 95% CI)
-      8. Error analysis & ablations
-      9. Limitations, ethics & conclusion
-      10. References & reproducibility notes
+Format changed 12 Nov (Decision Log): **poster replaces the 10 slides; report is 12–15 pages**
+in the structure of `updated Sections of a Machine Learning Project Report.pdf`. Claude drafts
+the report and poster; the student reviews and edits before submission.
+
+- [ ] 9.1 **Report — LaTeX in `report/`, one PDF, 12–15 pages including all sections.** Each
+      chapter starts on a new page as a numbered chapter; every figure, table, equation and
+      algorithm is numbered and referenced in the text; proper citations (`references.bib`),
+      no plagiarism. Rough page budget: preliminaries ~3, Ch 1 ~1.5, Ch 2 ~1.5, Ch 3 ~3.5,
+      Ch 4 ~3, Ch 5 ~1, references ~1, appendix ≤ 1.
+      - **Preliminary pages:** title page (author name, roll number, e-mail, department as
+        **placeholders** — the student fills them in) · abstract · table of contents · list of
+        figures and tables
+      - **1 Introduction:** background and motivation · problem statement (`PRD.md` §1a–1c) ·
+        objectives (H1–H3, success criteria) · scope of the work · **contributions (3–5)**
+      - **2 Literature Review:** existing approaches (conventional TSC, RL-TSC, uncertainty /
+        safe RL; Phase 2) · research gaps (gap table)
+      - **3 Proposed Methodology:** dataset description (dataset card, audit) · data
+        preprocessing (split protocol, leakage controls, lane-capacity scaling) · EDA (train
+        split only) · proposed model architecture (diagram 9.5; MDP, Q-ensemble uncertainty,
+        neighbour attention, gate + stability argument) · algorithm (9.6) · experimental setup
+        (baselines and why each is included, seeds, tuning / search spaces, hardware, software)
+      - **4 Results and Discussion:** performance evaluation metrics · experimental results
+        (7.1 table, mean ± std / 95 % CI) · comparison with existing models (Fixed-Time,
+        Max-Pressure, DQN, IDQN; published Jinan / Hangzhou numbers only where the setup is
+        comparable) · graphical analysis · discussion of findings (error analysis 8.3, ablation
+        7.2, robustness 7.3, generalisation 7.4, explainability 8.4)
+      - **5 Conclusion and Future Scope:** key findings · limitations (incl. ethics, 9.8) ·
+        future research directions
+      - **End matter:** references · appendix (reproducibility notes: commands, seeds, versions,
+        hyperparameters; extra figures if needed)
 
       **Writing rule:** keep clearly separate what was *planned*, what was *implemented*, what
       the *evidence shows*, and what *remains uncertain*.
-- [ ] 9.2 10 slides (guidelines order, compressed):
-      1. Title, motivation, problem & objectives
-      2. Literature review & gap
-      3. Dataset, audit, splits & leakage controls
-      4. Baselines & experiment protocol
-      5. UG-MARL architecture diagram
-      6. Math: MDP, uncertainty, gate & stability
-      7. Main results & comparison
-      8. Error analysis & explainability
-      9. Ablation, robustness & limitations
-      10. Conclusion, future work, references / Q&A
+- [ ] 9.2 **Poster — `poster/`, PPTX on the `updated poster sample.pptx` template** (one 16:9
+      slide, 13.33 × 7.5 in; keep its header band, IIT Patna + IMPACT logos, colours and box
+      layout), plus a PDF export:
+      - **Header:** title · author name, roll number, e-mail · department, institute
+        (**placeholders** `[Author Name]`, `[Roll No.]`, `[E-mail]`, `[Department]` — the student
+        fills them in)
+      - **Left column:** Abstract · Introduction (3 cited bullets) · Problem Statement
+      - **Middle column:** Key Contributions (3 bullets) · Methodology (Figure 1: UG-MARL
+        architecture, 9.5) · Algorithm 1 (compact version of 9.6)
+      - **Right column:** Result and Discussion (Table 1: UG-MARL vs. baselines on test; one
+        key plot, e.g. ablation or robustness) · Conclusion
+      - **Bottom strip:** numbered references
 
-      **Every claim on a slide is backed by an experiment or a citation.**
+      **Every claim on the poster is backed by an experiment or a citation**; numbers match the
+      report exactly.
 - [ ] 9.3 Live demo: Fixed-Time vs. UG-MARL side by side; **recorded backup video**
 - [ ] 9.4 README: dataset access (download commands, license), install, **exact train/evaluate
       commands for every table and figure**, and **expected outputs** (numbers ± tolerance, file
@@ -258,7 +278,7 @@ Log.
       normalisation (*fit on train only*) → CityFlow env → attention encoder → Q-ensemble → gate
       (σ > τ ? Max-Pressure : argmax μ) → phase action → metrics; **separate training path**
       (replay, ensemble updates, τ chosen on validation) from **inference path**; caption. Used
-      in report §5 and slide 5.
+      in report §3 (proposed model architecture) and as poster Figure 1.
 - [ ] 9.6 **Algorithm pseudocode** (guidelines p.23): "Algorithm 1: UG-MARL training, tuning and
       evaluation" — Input (roadnet, train/val/test flows, search space H), Output (trained
       ensemble Q*, τ*, test metrics), numbered steps. **Checked line by line against the final
@@ -266,7 +286,7 @@ Log.
 - [ ] 9.7 **Fresh-clone reproduction test:** clone into a new directory, follow only the README,
       regenerate the main comparison table (7.1) and one figure; results within seed variance of
       the reported ones. Log the outcome in the worklog.
-- [ ] 9.8 **Ethics & limitations write-up** (report §9):
+- [ ] 9.8 **Ethics & limitations write-up** (report Ch 5, limitations):
       - dataset licenses / terms of use
       - privacy (anonymised trajectories, no personal data)
       - fairness (can minor approaches be starved? max wait per approach)
@@ -311,12 +331,12 @@ Tick all before submission on 17 Nov.
 - [ ] Held-out evaluation completed → 7.1–7.4
 - [ ] Results and failures interpreted → 8.3, 8.4
 - [ ] Seeds, versions and commands recorded → 5.4, 9.4
-- [ ] Code, report and slides organized → 9.1, 9.2, 9.7
+- [ ] Code, report and poster organized → 9.1, 9.2, 9.7
 - [ ] Limitations and references included → 9.1, 9.8
 
 ## Solo-project scope controls
 
-- **Never cut:** 7.1 main comparison, 7.2 ablation, report, slides, demo.
+- **Never cut:** 7.1 main comparison, 7.2 ablation, report, poster, demo.
 - **Shrink first if late:** 7.3 (fewer noise levels), 7.4 (one held-out set), seeds 3 → 2 for
   robustness runs only, episode length 3600 s → 1800 s.
 - **Optional:** IPPO baseline, extra datasets beyond primary + held-out, SHAP.
@@ -357,3 +377,4 @@ Tick all before submission on 17 Nov.
 | 11 Nov | **RL baselines design (Phase 5, plan `phase5-rl-baselines.md`):** Double DQN + Huber loss + grad clipping, target network, uniform replay, ε-greedy (no dueling / PER / n-step, so the UG-MARL comparison isolates attention / ensemble / gate). One configurable Q-learner core shared by DQN, IDQN and later UG-MARL (heads axis K, grouped replay, pluggable encoder). DQN = one MLP 44→128→128→8 shared by all intersections, one buffer; IDQN = 12 independent MLPs (batched) + 12 buffers; both local obs only; network size fixed, not tuned. Training target: SMDP discount γ^(duration_s/Δt); episode end treated as time-limit truncation (always bootstrap); reward multiplied by a fixed constant 0.01 for training only (optimal policy unchanged; metrics use raw −\|P\|). 100 episodes per run, greedy val episode every 5, best checkpoint by val avg travel time. Tuning: random search, 8 trials per agent on seed 0, same space for both (lr, γ, batch, ε-decay fraction); chosen config then trained on seeds 0–4. → worklog/016 |
 | 11 Nov | **Phase 5 runs on WSL are *dev* numbers.** Locked configs are retrained and evaluated on native Ubuntu in Phase 7 for the reported results (protocol §7 unchanged); ROADMAP 0.1b must be done before Phase 7. → worklog/016 |
 | 11 Nov | **UG-MARL design (Phase 6, plan `phase6-ugmarl.md`, decisions U1–U15):** one network **shared** by all intersections (zero-shot on Hangzhou; shared DQN beat IDQN on val). **Attention:** one CoLight-style GAT layer, one attention head, over self + ≤ 4 neighbours with a slot embedding. **Ensemble:** shared encoder + K independent MLP heads, Bernoulli(0.8) bootstrap masks in replay, per-head Double-DQN target. **σ(s)** = std over heads of Q at the greedy action of the mean Q. **Gate at evaluation only** (training and checkpoint selection are ungated, ε-greedy on mean Q as the baselines), so −gate = the same checkpoint with the gate off. **τ** = p-th percentile of each seed-model's σ on a clean val episode; one p for all seeds, from {80, 90, 95, 99}, chosen by mean val travel time over clean + perturbed validation (noise 0.1 / 0.2, dropout 10 / 20 %; surge not used) — clean val alone would select "never fire" because DQN already beats Max-Pressure. **Tuning:** full grid K ∈ {3, 5, 10} × d ∈ {32, 64, 128}, seed 0; lr / γ / batch / ε-decay inherited from baseline trial t6; best config **locked whatever it scores** (no extra tuning; next step decided afterwards). **Ablations:** −attention and −ensemble (K = 1, no gate) trained on seeds 0–4 with the full model's (K, d). Extra: σ validity check on validation. Math write-up → `docs/methodology.md`; the stability claim is rigorous only for "gate always fires = Max-Pressure", the mixed policy gets a sketch. **Platform:** long runs on native Ubuntu if 0.1b is done (numbers then reportable, baselines' finals re-run there), else WSL dev; never mixed in one table. Rejected alternatives: plan § Justification. → worklog/017 |
+| 12 Nov | **Final-submission format changed** (course instructions, 12 Nov): a **poster** on `updated poster sample.pptx` **replaces the 10-slide presentation**; the **report is 12–15 pages (was ≤ 8)**, one PDF, in the chapter structure of `updated Sections of a Machine Learning Project Report.pdf` (preliminaries; 1 Introduction, 2 Literature Review, 3 Proposed Methodology, 4 Results and Discussion, 5 Conclusion and Future Scope; references, appendix). These two documents win over the PS16 rubric and the guidelines for report/poster format; demo, viva, 17 Nov date and marks unchanged. Tooling: LaTeX report in `report/`, PPTX poster in `poster/`. Claude drafts, student reviews. Ethics folded into Ch 5 limitations, reproducibility notes into the appendix. → worklog/019 |

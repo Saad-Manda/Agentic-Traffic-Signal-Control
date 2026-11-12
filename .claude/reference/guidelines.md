@@ -3,7 +3,9 @@
 Source: `ProjectGuidelines.pdf` (IIT Patna IMPACT Lab, "End-to-End Machine Learning Project
 Guidelines", 5 Nov 2026, 24 slides). Read this instead of the PDF; open the PDF only for the
 exact wording. **Where the guidelines conflict with the PS16 rubric (`Problem Statement.pdf`),
-the rubric wins** — e.g. 10 slides (not 10–15), report ≤ 8 pages.
+the rubric wins.** **Final-submission format (12 Nov) overrides both** for the report and the
+poster: `updated Sections of a Machine Learning Project Report.pdf` (12–15-page report, chapter
+structure below) and `updated poster sample.pptx` (poster replaces the 10 slides).
 
 Core rule: *every methodological decision should be justified, recorded and verified.*
 Goal: a scientifically sound, reproducible, clearly documented solution — not merely a high score.
@@ -34,22 +36,37 @@ Goal: a scientifically sound, reproducible, clearly documented solution — not 
 4. Claiming novelty or improvements without adequate baselines.
 5. Reporting a single favourable run without uncertainty or failure analysis.
 6. Plots without labels, units, captions or interpretation.
-7. Notebooks or slides without reproducible code and documentation.
+7. Notebooks or poster/report without reproducible code and documentation.
 
-## Report (slide 18) — 10 sections, ≤ 8 pages (rubric)
+## Report — 12 Nov structure (supersedes slide 18's 10 sections and the rubric's 8 pages)
 
-Title/abstract/contributions · Introduction & problem · Related work & gap · Dataset & quality
-audit · Split protocol & methodology · Experimental setup & baselines · Results · Error
-analysis & ablations · Limitations, ethics & conclusion · References & reproducibility notes.
-**Separate what was planned, what was implemented, what the evidence shows, what remains
-uncertain.** (Project mapping: ROADMAP 9.1.)
+Source: `updated Sections of a Machine Learning Project Report.pdf`. **Single PDF, 12–15 pages
+including all sections.**
+- Preliminary pages: title page · abstract · table of contents · list of figures and tables.
+- 1 Introduction: background and motivation · problem statement · objectives · scope of the
+  work · your contributions (minimum 3–5).
+- 2 Literature Review: existing approaches · research gaps.
+- 3 Proposed Methodology: dataset description · data preprocessing · EDA · proposed model
+  architecture · algorithm · experimental setup.
+- 4 Results and Discussion: performance evaluation metrics · experimental results · comparison
+  with existing models · graphical analysis · discussion of findings.
+- 5 Conclusion and Future Scope: key findings · limitations · future research directions.
+- End matter: references · appendix (if required).
+Each main section begins as a separate numbered chapter; all figures, tables, equations and
+algorithms numbered and referenced; proper citations, no plagiarism. Guideline content still
+applies inside this structure (audit, splits, ablations, ethics → Ch 5 limitations,
+reproducibility notes → appendix). **Separate what was planned, what was implemented, what
+the evidence shows, what remains uncertain.** (Project mapping: ROADMAP 9.1.)
 
-## Slides (slide 19) — rubric: 10 slides
+## Poster — 12 Nov (replaces slide 19's slides and the rubric's 10 slides)
 
-Guideline order (compressed to 10 in ROADMAP 9.2): motivation & problem → literature & gap →
-dataset, audit, splits, leakage controls → baselines & protocol → proposed method → results →
-error analysis → ablation, robustness, limitations → conclusion & references.
-**Every claim backed by an experiment or a citation.**
+Source: `updated poster sample.pptx` — one 16:9 slide (13.33 × 7.5 in). Header band: IIT Patna
+logo · title / author name, roll number, e-mail / department, institute · IMPACT logo. Three
+boxed columns: (left) Abstract, Introduction, Problem Statement; (middle) Key Contributions,
+Methodology with "Figure 1" architecture, "Algorithm 1" (Require / Ensure + numbered steps);
+(right) Result and Discussion with "Table 1" proposed vs. baselines + plots, Conclusion. Bottom
+strip: numbered references. **Every claim backed by an experiment or a citation.** (Project
+mapping: ROADMAP 9.2.)
 
 ## Title (slide 21)
 

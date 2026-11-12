@@ -104,11 +104,22 @@ The metric set above is **frozen** (10 Nov 2026) with definitions in `docs/evalu
 
 ## 7. Rubric Mapping
 
-**Governing documents:** `Problem Statement.pdf` (PS16 + graded rubric) and
-`ProjectGuidelines.pdf` (IIT Patna IMPACT Lab end-to-end ML guidelines, 5 Nov 2026). Where they
-conflict, **the PS16 rubric wins** (it is what is graded):
-- Presentation: **10 slides**, following the guidelines' slide order (p.19) compressed into 10.
-- Report: **≤ 8 pages**, using the guidelines' 10-section structure (p.18).
+**Governing documents:** `Problem Statement.pdf` (PS16 + graded rubric),
+`ProjectGuidelines.pdf` (IIT Patna IMPACT Lab end-to-end ML guidelines, 5 Nov 2026), and the
+final-submission format issued 12 Nov 2026: `updated Sections of a Machine Learning Project
+Report.pdf` and `updated poster sample.pptx`. **For the report and poster format the 12 Nov
+documents win**; otherwise the PS16 rubric wins (it sets the marks):
+- Poster: **one 16:9 poster** on the `updated poster sample.pptx` template; it **replaces the
+  10-slide presentation** (ROADMAP 9.2).
+- Report: **12–15 pages including all sections, one PDF**, in the prescribed structure — title
+  page, abstract, table of contents, lists of figures and tables; chapters 1 Introduction,
+  2 Literature Review, 3 Proposed Methodology, 4 Results and Discussion, 5 Conclusion and
+  Future Scope; references, appendix. Every chapter starts on a new page; all figures, tables,
+  equations and algorithms are numbered and referenced; proper citations, no plagiarism
+  (ROADMAP 9.1).
+- Unchanged: code demo + technical viva, final review 17 Nov 2026, rubric marks. The rubric's
+  row 8 "Presentation (10 slides) and Documentation (8 pages max)" now means poster + the
+  12–15-page report.
 
 | Rubric row (marks) | Covered by |
 |---|---|
@@ -119,7 +130,7 @@ conflict, **the PS16 rubric wins** (it is what is graded):
 | Methodology, baseline, ablation (10) | F4, F7, math (MDP, uncertainty, stability argument) |
 | Results & comparison (10) | F6, F8, F9 |
 | Viva + demo (30) | F11, team understanding |
-| Presentation & report (20) | 10 slides (guidelines order), ≤ 8 pages (guidelines' 10 sections) |
+| Presentation & report (20) | Poster (template layout), 12–15-page report in the 12 Nov chapter structure |
 
 ## 8. Milestones
 
@@ -131,7 +142,7 @@ Re-baselined 9 Nov (see ROADMAP Decision Log).
 | 11 Nov 2026 | EDA, **evaluation protocol frozen**, env + Fixed-Time & Max-Pressure results |
 | 13 Nov 2026 | DQN, IDQN, UG-MARL implemented and tuned on validation |
 | 15 Nov 2026 | Test runs, ablations, robustness, generalization, error analysis |
-| 17 Nov 2026 (Review 3) | Report, slides, demo, reproduction test passed |
+| 17 Nov 2026 (Review 3) | Report (PDF), poster, demo, reproduction test passed |
 
 ## 9. Open Questions
 

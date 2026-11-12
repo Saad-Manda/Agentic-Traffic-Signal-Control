@@ -10,7 +10,7 @@ and the result. One file per piece of work, numbered in the order the work happe
 - **One file per piece of work.** If the work spans several days, update the same file and
   record the end date in its header.
 - **Log:** setup and installs, decisions, code, experiments, non-trivial debugging, and
-  report/slides/demo work. **Don't log:** pure Q&A where nothing changed.
+  report/poster/demo work. **Don't log:** pure Q&A where nothing changed.
 - **Log failures too**, with status `failed` or `abandoned`. They feed the report's
   limitations section and the viva.
 - **Files changed is mandatory and per file** (from entry 012 on). List every file created,

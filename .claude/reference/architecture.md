@@ -90,7 +90,7 @@ training (train flows) → tuning (val flows) → final eval (test flows, held-o
 
 ## Diagram requirements (guidelines, ROADMAP 9.5)
 
-Report/slide diagram: labelled blocks in data-flow order — raw flows → split → capacity scaling
+Report/poster diagram: labelled blocks in data-flow order — raw flows → split → capacity scaling
 (roadnet only, nothing fitted) → CityFlow env → attention encoder → Q-ensemble → gate → phase action
 → metrics. Show the **training path** (replay, ensemble updates, τ chosen on validation)
 separately from the **inference path**, and add a caption.

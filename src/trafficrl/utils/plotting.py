@@ -1,6 +1,6 @@
 """Shared matplotlib style for every project figure (audit, EDA, results).
 
-One place for colours and axis styling so figures in the report and slides look like one
+One place for colours and axis styling so figures in the report and poster look like one
 set. Colours are the first slots of a categorical palette checked for colour-blind
 separation; each controller keeps its colour in every figure (colour follows the entity).
 """
