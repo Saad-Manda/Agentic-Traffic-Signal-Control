@@ -180,14 +180,22 @@ Fixed-Time & Max-Pressure validation numbers · UG-MARL design diagram.
 
 ## Phase 6 — Proposed UG-MARL (11–13 Nov) → R4, R5, G8
 
-- [ ] 6.1 Neighbor-attention encoder (variable neighbor count)
-- [ ] 6.2 Q-ensemble (K heads, bootstrap masks) → μ(a), σ(s)
-- [ ] 6.3 Uncertainty gate: σ > τ → Max-Pressure, else argmax μ; τ = percentile of σ on validation
-- [ ] 6.4 Explanation logging: attention weights, σ, gate firings
-- [ ] 6.5 Ablation flags: `use_attention`, `use_ensemble`, `use_gate`
-- [ ] 6.6 Math write-up: MDP, ensemble uncertainty, attention equations, gate stability argument
-- [ ] 6.7 Tune K, τ percentile, attention dim on validation — **predefined search space in
-      `configs/`**, every run logged in `docs/experiment_log.csv`
+- [x] 6.1 Neighbor-attention encoder (variable neighbor count) — `NeighborhoodEncoder` + 1-head
+      GAT layer in `UGMARLNet`, absent neighbours masked (12 Nov, worklog/017)
+- [x] 6.2 Q-ensemble (K heads, bootstrap masks) → μ(a), σ(s) — Bernoulli(0.8) masks in replay,
+      per-head Double-DQN target, masked loss; DQN path bit-identical
+- [x] 6.3 Uncertainty gate: σ > τ → Max-Pressure, else argmax μ; τ = percentile of σ on validation
+      — evaluation only; τ = 0 reproduces Max-Pressure (326.11 s); `scripts/calibrate_gate.py`
+      → p* = 80, `gate.json` per seed-model (`docs/results/gate_calibration*.md`)
+- [x] 6.4 Explanation logging: attention weights, σ, gate firings — `DecisionRecorder`,
+      `evaluate.py --log-decisions`; σ validity check `docs/figures/ugmarl/sigma_validity.png`
+- [x] 6.5 Ablation flags: `use_attention`, `use_ensemble`, `use_gate` — −attention / −ensemble
+      trained on seeds 0–4, −gate = same checkpoints (`docs/results/val_phase6.md`)
+- [x] 6.6 Math write-up: MDP, ensemble uncertainty, attention equations, gate stability argument
+      — `docs/methodology.md`
+- [x] 6.7 Tune K, τ percentile, attention dim on validation — **predefined search space in
+      `configs/`**, every run logged in `docs/experiment_log.csv` — grid K × d (9 runs) → K = 3,
+      d = 128 locked; p from {80, 90, 95, 99} → 80
 
 ## Phase 7 — Experiments (13–15 Nov) → R5, R6, G10, G11
 
@@ -378,3 +386,4 @@ Tick all before submission on 17 Nov.
 | 11 Nov | **Phase 5 runs on WSL are *dev* numbers.** Locked configs are retrained and evaluated on native Ubuntu in Phase 7 for the reported results (protocol §7 unchanged); ROADMAP 0.1b must be done before Phase 7. → worklog/016 |
 | 11 Nov | **UG-MARL design (Phase 6, plan `phase6-ugmarl.md`, decisions U1–U15):** one network **shared** by all intersections (zero-shot on Hangzhou; shared DQN beat IDQN on val). **Attention:** one CoLight-style GAT layer, one attention head, over self + ≤ 4 neighbours with a slot embedding. **Ensemble:** shared encoder + K independent MLP heads, Bernoulli(0.8) bootstrap masks in replay, per-head Double-DQN target. **σ(s)** = std over heads of Q at the greedy action of the mean Q. **Gate at evaluation only** (training and checkpoint selection are ungated, ε-greedy on mean Q as the baselines), so −gate = the same checkpoint with the gate off. **τ** = p-th percentile of each seed-model's σ on a clean val episode; one p for all seeds, from {80, 90, 95, 99}, chosen by mean val travel time over clean + perturbed validation (noise 0.1 / 0.2, dropout 10 / 20 %; surge not used) — clean val alone would select "never fire" because DQN already beats Max-Pressure. **Tuning:** full grid K ∈ {3, 5, 10} × d ∈ {32, 64, 128}, seed 0; lr / γ / batch / ε-decay inherited from baseline trial t6; best config **locked whatever it scores** (no extra tuning; next step decided afterwards). **Ablations:** −attention and −ensemble (K = 1, no gate) trained on seeds 0–4 with the full model's (K, d). Extra: σ validity check on validation. Math write-up → `docs/methodology.md`; the stability claim is rigorous only for "gate always fires = Max-Pressure", the mixed policy gets a sketch. **Platform:** long runs on native Ubuntu if 0.1b is done (numbers then reportable, baselines' finals re-run there), else WSL dev; never mixed in one table. Rejected alternatives: plan § Justification. → worklog/017 |
 | 12 Nov | **Final-submission format changed** (course instructions, 12 Nov): a **poster** on `updated poster sample.pptx` **replaces the 10-slide presentation**; the **report is 12–15 pages (was ≤ 8)**, one PDF, in the chapter structure of `updated Sections of a Machine Learning Project Report.pdf` (preliminaries; 1 Introduction, 2 Literature Review, 3 Proposed Methodology, 4 Results and Discussion, 5 Conclusion and Future Scope; references, appendix). These two documents win over the PS16 rubric and the guidelines for report/poster format; demo, viva, 17 Nov date and marks unchanged. Tooling: LaTeX report in `report/`, PPTX poster in `poster/`. Claude drafts, student reviews. Ethics folded into Ch 5 limitations, reproducibility notes into the appendix. → worklog/019 |
+| 12 Nov | **Phase 6 executed (native Ubuntu; numbers are final-val).** Grid (`configs/search/ugmarl.yaml`, committed first): best 301.08 s (K 10, d 128); K 10 / d 64 and **K 3 / d 128** within the 1 s tolerance → smallest K wins, **locked (U14)** though σ over 3 heads is a noisy estimate. Gate calibration (`configs/search/ugmarl_gate.yaml`): **p\* = 80** (80 and 90 tie within 1 s → smaller p). −attention gets its own τ; its calibration also selected 80 (the plan said "same p as full" — identical here). Calibration episodes use full tracking (plan: light) so max wait is reported. Validation (5 seeds): UG-MARL 302.3 ± 1.1 s, −gate 301.8, −attention 301.9, −ensemble 303.7, DQN 299.8, IDQN 312.7 — On val UG-MARL beats IDQN and Max-Pressure with separated CIs (the H1 pattern) but **not** DQN, and attention shows no gain over −attention (H3 pattern not supported); test decides in Phase 7. H2 is mixed on val: on clean val the gate slightly raises max wait (761 vs 691 s, CIs overlap), under detector noise 0.1 / 0.2 it keeps travel time at 376 / 423 s where the ungated policy degrades to 599 / 909 s (max wait 1238 vs 3307 s at 0.2). **Next step after this result is the user's decision (U14).** Also fixed: training rows were always labelled `dev-WSL`. → worklog/017 |

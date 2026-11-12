@@ -1,6 +1,6 @@
 # Plan — Phase 6: proposed UG-MARL (ROADMAP 6.1–6.7)
 
-Status: **executing since 12 Nov 2026 on native Ubuntu (ROADMAP 0.1b done → numbers are *final-val*).** Decisions U1–U15 were taken with the user on
+Status: **executed 12 Nov 2026 on native Ubuntu (numbers are *final-val*); results in worklog/017.** Decisions U1–U15 were taken with the user on
 11 Nov. Tick steps `[x]` during execution and note deviations under "Deviations".
 
 ## Goal
@@ -450,14 +450,14 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
    the DQN / IDQN 5-seed finals and val evaluation there first.
 9. [x] Grid study: `tune.py --search configs/search/ugmarl.yaml --agent ugmarl --workers 4`
    → apply the selection rule → copy the winner into `configs/ugmarl*.yaml`, commit.
-10. [ ] Final runs, seeds 0–4: full, −attention, −ensemble (`tune.py --config … --seeds 0 1 2 3 4`),
+10. [x] Final runs, seeds 0–4: full, −attention, −ensemble (`tune.py --config … --seeds 0 1 2 3 4`),
     15 runs, ≤ 5 workers (RAM ≈ 1 GB per process).
-11. [ ] `scripts/calibrate_gate.py` for the full and the −attention models → `gate.json`
+11. [x] `scripts/calibrate_gate.py` for the full and the −attention models → `gate.json`
     files, `docs/results/gate_calibration.*`; `scripts/sigma_check.py` → figure + table.
-12. [ ] Val evaluation, full tracking, 5 seeds, `--log-decisions`: full, −gate, −attention,
+12. [x] Val evaluation, full tracking, 5 seeds, `--log-decisions`: full, −gate, −attention,
     −ensemble → `val_table.py` (`val_phase6`), `plot_training.py`.
-13. [ ] `docs/methodology.md` (D12), checked equation by equation against the code.
-14. [ ] Docs (api / architecture / testing / how_it_works / CLAUDE / README), tick ROADMAP
+13. [x] `docs/methodology.md` (D12), checked equation by equation against the code.
+14. [x] Docs (api / architecture / testing / how_it_works / CLAUDE / README), tick ROADMAP
     6.1–6.7, finish worklog/017 (file table cross-checked with `git status`), commits per
     `.claude/commands/commit.md` (no Claude co-author line).
 
@@ -554,6 +554,12 @@ No row has split `test` or `heldout`.
   the smoke model (1 seed, 2 p, 2 conditions) worked end to end; its outputs were deleted.
   `sigma_check.py` computes Spearman ρ as the Pearson correlation of ranks (scipy is not a
   dependency). `val_table.py` gains `--out/--title/--intro` and a fallback-rate column.
+- **Step 11:** the −attention calibration ran the full p selection on its own models instead
+  of reusing the full model's p*; both selected p* = 80, so the outcome is as planned.
+  `sigma_check.py` caches its TD episodes; one re-run (figure fix) duplicated 5 log rows.
+- **Step 12:** decision latency was first measured while 5 trainings ran; all four UG-MARL
+  variants were re-evaluated on an idle machine (identical travel times) and the table uses
+  those runs. The Phase 5 figure was not regenerated (WSL dev record).
 
 ## Worklog
 

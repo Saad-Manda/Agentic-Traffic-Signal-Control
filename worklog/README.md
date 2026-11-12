@@ -76,5 +76,5 @@ Follow-up tasks.
 | [014](014-2026-11-10-evaluation-protocol-freeze.md) | 2026-11-10 | Evaluation protocol frozen (Δt 15 s, reward −pressure) | decision, docs | 3.5, 5.0 | done |
 | [015](015-2026-11-10-phase4-env-baselines.md) | 2026-11-10 | Phase 4: env wrapper, metrics, robustness hooks, rule baselines, evaluation | code, experiment, decision | 4.1–4.6 | done |
 | [016](016-2026-11-11-phase5-rl-baselines.md) | 2026-11-11 | Phase 5: RL baselines (DQN, IDQN), training and tuning | code, experiment, decision | 5.1–5.5 | done |
-| [017](017-2026-11-11-phase6-ugmarl.md) | 2026-11-11 | Phase 6: proposed UG-MARL (plan + design decisions; execution pending) | decision, code, experiment | 6.1–6.7 | in-progress |
+| [017](017-2026-11-11-phase6-ugmarl.md) | 2026-11-11 | Phase 6: proposed UG-MARL — design, code, grid (K 3, d 128), 5-seed finals + ablations, gate calibration (p* 80), σ check, methodology | decision, code, experiment | 6.1–6.7 | done |
 | [018](018-2026-11-11-native-ubuntu-setup.md) | 2026-11-11 | Native Ubuntu setup; Phase 5 reproduced bit-identically | setup, experiment | 0.1b | done |
