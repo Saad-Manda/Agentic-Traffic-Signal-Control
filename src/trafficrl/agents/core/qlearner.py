@@ -14,8 +14,14 @@ Double DQN with Huber loss, a hard-synced target network, uniform grouped replay
   target always bootstraps (Pardo et al., 2018).
 
 The network maps ``(G, B, in)`` to ``(G, B, K, A)``. Shared parameters (DQN) use one group;
-independent learners (IDQN) use one group per intersection. K = 1 here; UG-MARL's ensemble
-(Phase 6) reuses this class with K > 1.
+independent learners (IDQN) use one group per intersection. K (``net.heads``) is 1 for DQN /
+IDQN. UG-MARL's ensemble (Phase 6, plan phase6-ugmarl D4) uses K > 1: every stored transition
+gets a bootstrap mask m ∈ {0, 1}^K, m_k ~ Bernoulli(``mask_prob``), and the loss is
+
+    L = (1/K) Σ_k [ Σ_b m_bk · Huber(Q_k(s_b, a_b) − y_bk) / max(1, Σ_b m_bk) ]
+
+with the per-head Double-DQN target y_k. With K = 1 there is no mask and L is the Phase 5
+loss (same code path, same RNG streams).
 
 Experience is stored only while ``self.training`` is True (set by the trainer for training
 episodes). Validation / evaluation episodes therefore never enter the replay buffer.
@@ -49,10 +55,12 @@ DEFAULTS: dict[str, Any] = {
     "grad_clip": 10.0,
     "reward_scale": 0.01,
     "eps_end": 0.05,
+    "mask_prob": 0.8,
     "device": "cpu",
 }
 ACT_SEED_OFFSET = 20_000  # exploration RNG stream = seed + offset
 REPLAY_SEED_OFFSET = 30_000  # replay sampling RNG stream
+MASK_SEED_OFFSET = 40_000  # bootstrap-mask RNG stream (K > 1 only)
 
 
 class QLearner:
@@ -81,6 +89,7 @@ class QLearner:
         self.shared = shared
         n = len(self.intersection_ids)
         self.groups = 1 if shared else n
+        self.heads = int(getattr(net, "heads", 1))
         self._group = {iid: (0 if shared else k) for k, iid in enumerate(self.intersection_ids)}
 
         self.net = net.to(self.device)
@@ -90,9 +99,15 @@ class QLearner:
         self.optim = torch.optim.Adam(self.net.parameters(), lr=float(p["lr"]))
 
         capacity = max(1, int(p["buffer_size"]) // self.groups)
+        extras = {"mask": ((self.heads,), np.float32)} if self.heads > 1 else None
         self.buffer = ReplayBuffer(
-            self.groups, capacity, encoder.state_shape, make_rng(seed + REPLAY_SEED_OFFSET)
+            self.groups,
+            capacity,
+            encoder.state_shape,
+            make_rng(seed + REPLAY_SEED_OFFSET),
+            extras=extras,
         )
+        self.mask_rng = make_rng(seed + MASK_SEED_OFFSET)
         self.rng = make_rng(seed + ACT_SEED_OFFSET)
         self.epsilon = float(p["eps_end"])
         self.training = False
@@ -128,8 +143,12 @@ class QLearner:
     def observe(self, transitions: Sequence[Any]) -> None:
         if not self.training:
             return
+        prob = float(self.params["mask_prob"])
         for tr in transitions:
             s, s2 = self.encoder.encode_transition(tr)
+            extras = {}
+            if self.heads > 1:
+                extras["mask"] = (self.mask_rng.random(self.heads) < prob).astype(np.float32)
             self.buffer.add(
                 self._group[tr.iid],
                 s,
@@ -138,6 +157,7 @@ class QLearner:
                 s2,
                 float(tr.duration_s),
                 bool(tr.done),
+                **extras,
             )
             self.transitions_seen += 1
             if self.transitions_seen > int(self.params["learning_starts"]):
@@ -170,7 +190,10 @@ class QLearner:
         idx = batch["action"][..., None, None].expand(*q.shape[:-1], 1)
         q_sa = q.gather(-1, idx).squeeze(-1)  # (G, B, K)
         y = self.td_target(batch)
-        loss = F.smooth_l1_loss(q_sa, y)
+        if "mask" in batch:
+            loss = masked_ensemble_loss(q_sa, y, batch["mask"])
+        else:
+            loss = F.smooth_l1_loss(q_sa, y)
         self.optim.zero_grad(set_to_none=True)
         loss.backward()
         grad_norm = nn.utils.clip_grad_norm_(self.net.parameters(), float(p["grad_clip"]))
@@ -178,12 +201,15 @@ class QLearner:
         self.grad_steps += 1
         if self.grad_steps % int(p["target_sync"]) == 0:
             self.target.load_state_dict(self.net.state_dict())
-        return {
+        stats = {
             "loss": float(loss.detach()),
             "q_mean": float(q_sa.detach().mean()),
             "td_abs": float((q_sa - y).detach().abs().mean()),
             "grad_norm": float(grad_norm),
         }
+        if self.heads > 1:  # head disagreement at the taken action (population std)
+            stats["sigma_mean"] = float(q_sa.detach().std(dim=-1, unbiased=False).mean())
+        return stats
 
     # --- persistence -------------------------------------------------------------------
 
@@ -201,6 +227,9 @@ class QLearner:
                 "params": {k: v for k, v in self.params.items() if k != "device"},
                 "intersection_ids": self.intersection_ids,
                 "phase_ids": list(self.phase_ids),
+                "shared": self.shared,
+                "state_shape": list(self.encoder.state_shape),
+                **self.checkpoint_extra(),
             },
             path,
         )
@@ -209,16 +238,47 @@ class QLearner:
         ckpt = torch.load(Path(path), map_location=self.device, weights_only=False)
         if ckpt.get("name") != self.name:
             raise ValueError(f"checkpoint is for {ckpt.get('name')!r}, agent is {self.name!r}")
-        if list(ckpt["intersection_ids"]) != self.intersection_ids:
+        if self.shared:
+            # one network for every intersection: it runs on any network with the same
+            # state layout and phase set (e.g. zero-shot on Hangzhou, protocol §6)
+            if list(ckpt["phase_ids"]) != list(self.phase_ids):
+                raise ValueError("checkpoint was trained with a different phase set")
+            shape = ckpt.get("state_shape")
+            if shape is not None and tuple(shape) != tuple(self.encoder.state_shape):
+                raise ValueError(
+                    f"checkpoint state shape {tuple(shape)} != {tuple(self.encoder.state_shape)}"
+                )
+        elif list(ckpt["intersection_ids"]) != self.intersection_ids:
             raise ValueError("checkpoint was trained on a different set of intersections")
+        self.check_checkpoint(ckpt)
         self.net.load_state_dict(ckpt["net"])
         self.target.load_state_dict(ckpt["target"])
         self.optim.load_state_dict(ckpt["optim"])
         self.grad_steps = int(ckpt["grad_steps"])
         self.transitions_seen = int(ckpt["transitions_seen"])
 
+    def checkpoint_extra(self) -> dict[str, Any]:
+        """Extra entries saved in the checkpoint (subclasses: architecture description)."""
+        return {}
+
+    def check_checkpoint(self, ckpt: Mapping[str, Any]) -> None:
+        """Raise if ``ckpt`` does not fit this agent (subclasses); called before loading."""
+        return None
+
     def last_explanations(self) -> dict[str, Any]:
         return {}
+
+
+def masked_ensemble_loss(q_sa: torch.Tensor, y: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+    """Bootstrapped-ensemble Huber loss, all tensors ``(G, B, K)``.
+
+    Per head: mean Huber loss over the transitions its mask selects (a head with an all-zero
+    mask column contributes 0); then the mean over heads and groups (1/K keeps the shared
+    encoder's gradient scale independent of K, Osband et al. 2016).
+    """
+    h = F.smooth_l1_loss(q_sa, y, reduction="none") * mask
+    per_head = h.sum(dim=1) / mask.sum(dim=1).clamp(min=1.0)  # (G, K)
+    return per_head.mean()
 
 
 def _clone(net: nn.Module) -> nn.Module:

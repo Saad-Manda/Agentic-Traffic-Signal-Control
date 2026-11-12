@@ -430,7 +430,7 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
 1. [x] Protocol §9 clarification row + PRD §9 (close the τ question). The ROADMAP Decision
    Log row (U1–U15) and worklog/017 (`in-progress`) were already added at planning time
    (11 Nov) — continue that worklog entry, do not create a new one.
-2. [ ] Core changes: replay extras, masked loss, mask RNG, relaxed `load` + tests; confirm
+2. [x] Core changes: replay extras, masked loss, mask RNG, relaxed `load` + tests; confirm
    DQN / IDQN regression test and the full existing suite pass.
 3. [ ] `NeighborhoodEncoder` + `UGMARLNet` + tests.
 4. [ ] `UGMARLAgent` (μ, σ, gate, flags, explanations, checkpoint), `gate.py`, registry,
@@ -520,7 +520,16 @@ No row has split `test` or `heldout`.
 
 ## Deviations during execution
 
-(none yet)
+- **Step 2 — platform label in the experiment log.** `train/loop.py` wrote `dev-WSL` into the
+  notes of every training row, also on native Ubuntu (the 10 native Phase 5 rows of
+  worklog/018 carry it wrongly). Now `utils.runlog.platform_tag()` writes `dev-WSL` or
+  `native`; old rows are left as they are (append-only log) and the mislabel is noted in
+  worklog/017.
+- **Step 2 — regression check done on CityFlow too:** 2 DQN training episodes (900 s,
+  learning_starts 200) on the pre-change commit and on the new code give the same loss and
+  the same SHA-256 of the weights.
+- `QLearner` reads K from `net.heads` (not a separate `heads` param) and gains two hooks,
+  `checkpoint_extra()` / `check_checkpoint()`, for the UG-MARL architecture check.
 
 ## Worklog
 

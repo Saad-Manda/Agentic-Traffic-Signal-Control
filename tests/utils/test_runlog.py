@@ -42,3 +42,9 @@ def test_env_info_keys(tmp_path):
         assert key in info
     p = save_env_info(tmp_path / "run" / "env.json")
     assert json.loads(p.read_text())["python"] == info["python"]
+
+
+def test_platform_tag_is_wsl_or_native():
+    from trafficrl.utils.runlog import platform_tag
+
+    assert platform_tag() in {"dev-WSL", "native"}

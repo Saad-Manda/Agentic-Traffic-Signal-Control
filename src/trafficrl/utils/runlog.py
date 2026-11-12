@@ -70,6 +70,16 @@ def _cpu_model() -> str:
     return platform.processor() or "unknown"
 
 
+def platform_tag() -> str:
+    """``dev-WSL`` on WSL (dev numbers), ``native`` otherwise (Decision Log 11 Nov)."""
+    try:
+        if "microsoft" in Path("/proc/version").read_text().lower():
+            return "dev-WSL"
+    except OSError:
+        pass
+    return "native"
+
+
 def env_info() -> dict[str, Any]:
     """Software versions and hardware of the current machine."""
     info: dict[str, Any] = {

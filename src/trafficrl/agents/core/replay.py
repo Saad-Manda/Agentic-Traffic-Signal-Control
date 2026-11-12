@@ -8,9 +8,15 @@ draws ``batch`` transitions uniformly **from each group** and returns arrays sha
 Rewards are stored raw (−|P_i|); the learner applies the constant reward scale. ``duration_s``
 (15 s or 20 s; shorter at the episode cut) is kept for the SMDP discount. ``done`` marks the
 time-limit cut and is stored for logging only (the learner always bootstraps).
+
+Optional ``extras`` add named per-transition columns (UG-MARL: the bootstrap mask of the K
+heads, plan phase6-ugmarl D4). Without extras the buffer and its sampling RNG stream are
+exactly those of Phase 5.
 """
 
 from __future__ import annotations
+
+from collections.abc import Mapping
 
 import numpy as np
 
@@ -22,6 +28,7 @@ class ReplayBuffer:
         capacity: int,
         state_shape: tuple[int, ...],
         rng: np.random.Generator,
+        extras: Mapping[str, tuple[tuple[int, ...], type | np.dtype]] | None = None,
     ) -> None:
         if groups < 1 or capacity < 1:
             raise ValueError("groups and capacity must be >= 1")
@@ -36,6 +43,10 @@ class ReplayBuffer:
         self.reward = np.zeros(shape, dtype=np.float32)
         self.duration = np.zeros(shape, dtype=np.float32)
         self.done = np.zeros(shape, dtype=bool)
+        self.extras = {
+            name: np.zeros(shape + tuple(eshape), dtype=dtype)
+            for name, (eshape, dtype) in (extras or {}).items()
+        }
         self.pos = np.zeros(groups, dtype=np.int64)
         self.size = np.zeros(groups, dtype=np.int64)
 
@@ -48,8 +59,13 @@ class ReplayBuffer:
         next_state: np.ndarray,
         duration_s: float,
         done: bool,
+        **extras: np.ndarray,
     ) -> None:
+        if set(extras) != set(self.extras):
+            raise ValueError(f"extras {sorted(extras)} != buffer columns {sorted(self.extras)}")
         k = int(self.pos[group])
+        for name, value in extras.items():
+            self.extras[name][group, k] = value
         self.state[group, k] = state
         self.next_state[group, k] = next_state
         self.action[group, k] = action
@@ -72,7 +88,7 @@ class ReplayBuffer:
             raise ValueError("cannot sample: a group is empty")
         idx = np.stack([self.rng.integers(0, self.size[g], size=batch) for g in range(self.groups)])
         g = np.arange(self.groups)[:, None]
-        return {
+        out = {
             "state": self.state[g, idx],
             "action": self.action[g, idx],
             "reward": self.reward[g, idx],
@@ -80,3 +96,5 @@ class ReplayBuffer:
             "duration": self.duration[g, idx],
             "done": self.done[g, idx],
         }
+        out.update({name: col[g, idx] for name, col in self.extras.items()})
+        return out

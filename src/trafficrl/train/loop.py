@@ -33,7 +33,12 @@ from trafficrl.data.splits import REPO_ROOT
 from trafficrl.envs.traffic_env import make_env
 from trafficrl.eval.runner import PRIMARY_METRIC, run_episode
 from trafficrl.utils.config import save_config
-from trafficrl.utils.runlog import EXPERIMENT_LOG, append_experiment_row, save_env_info
+from trafficrl.utils.runlog import (
+    EXPERIMENT_LOG,
+    append_experiment_row,
+    platform_tag,
+    save_env_info,
+)
 from trafficrl.utils.seed import seed_everything
 
 TRAIN_SPLIT = "train"
@@ -68,6 +73,8 @@ def train_episode(env, agent) -> dict[str, float]:
     }
     for key in ("loss", "q_mean", "td_abs", "grad_norm"):
         out[key] = float(np.mean([s[key] for s in stats])) if stats else float("nan")
+    if stats and "sigma_mean" in stats[0]:  # UG-MARL ensemble: head disagreement
+        out["sigma_mean"] = float(np.mean([s["sigma_mean"] for s in stats]))
     return out
 
 
@@ -184,7 +191,9 @@ def train(
         metric_value=best[0],
         validation_metric=best[0],
         runtime_s=runtime,
-        notes="; ".join(x for x in ("dev-WSL", f"best episode {best[1]}/{episodes}", note) if x),
+        notes="; ".join(
+            x for x in (platform_tag(), f"best episode {best[1]}/{episodes}", note) if x
+        ),
         path=log_path,
     )
     return out
