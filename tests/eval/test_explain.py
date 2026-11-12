@@ -12,7 +12,7 @@ from trafficrl.agents import UGMARLAgent, make_agent
 from trafficrl.agents.ugmarl.gate import save_gate
 from trafficrl.data.splits import REPO_ROOT
 from trafficrl.eval import runner
-from trafficrl.eval.explain import COLUMNS, DecisionRecorder
+from trafficrl.eval.explain import COLUMNS, DecisionRecorder, StepRecorder
 from trafficrl.eval.runner import GateError, evaluate, resolve_gate, run_episode
 from trafficrl.utils.config import load_config
 
@@ -128,3 +128,24 @@ def test_nogate_variant_name_in_run_and_log(tmp_path, toy_make_env):
                             log_path=tmp_path / "log.csv")  # fmt: skip
     assert out.name.startswith("ugmarl-nogate_") and metrics["fallback_rate"].tolist() == [0.0]
     assert list(csv.DictReader((tmp_path / "log.csv").open()))[0]["model"] == "ugmarl-nogate"
+
+
+def test_step_recorder_logs_true_state_and_leaves_metrics_unchanged(tmp_path):
+    def play(with_recorder):
+        env = busy_toy(episode=60)
+        rec = StepRecorder(env) if with_recorder else None
+        m = run_episode(env, make_agent("max_pressure", env, {}), step_recorder=rec)
+        m = {k: v for k, v in m.items() if not k.startswith("decision_latency")}
+        return env, rec, m
+
+    env, rec, m = play(True)
+    assert play(False)[2] == m  # read-only: same metrics with and without the recorder
+    f = rec.frame()
+    assert list(f.columns[:5]) == ["t", "iid", "phase", "in_yellow", "ready"]
+    assert sum(c.startswith("q_") for c in f.columns) == 12
+    assert f["t"].iloc[0] == 0 and f["t"].iloc[-1] == 60 and set(f["iid"]) == {"C"}
+    assert bool(f["ready"].iloc[0]) and not bool(f["ready"].iloc[-1])  # nothing decides at the end
+    lanes = env.features.roadnet.intersections["C"].in_lanes
+    assert f.loc[0, [f"n_{k}" for k in range(12)]].tolist() == [env.true_count[ln] for ln in lanes]
+    out = rec.save(tmp_path / "trace.csv")
+    assert len(list(csv.DictReader(out.open()))) == len(f)

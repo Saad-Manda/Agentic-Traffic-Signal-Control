@@ -210,6 +210,7 @@ class TrafficEnv:
         true_count = self.engine.get_lane_vehicle_count()
         true_wait = self.engine.get_lane_waiting_vehicle_count()
         self.tracker.on_step(true_wait)
+        self.true_count, self.true_wait = true_count, true_wait  # read-only, for StepRecorder
         count, wait = self.sensor.observe(true_count, true_wait)
         phases = {
             iid: c.green if c.green is not None else self.phase_ids[0]

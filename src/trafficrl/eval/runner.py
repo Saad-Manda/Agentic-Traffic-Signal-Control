@@ -8,6 +8,8 @@ seeds and writes, under ``<results_dir>/<run_id>/``:
 * ``summary.csv``  — per metric: mean, std, 95 % CI, n, deterministic flag;
 * ``config.yaml``, ``env.json`` (software + hardware), ``data.json`` (flow file, surge hash);
 * ``decisions_s<seed>.csv`` with ``log_decisions=True`` (:mod:`trafficrl.eval.explain`);
+* ``trace_s<seed>.csv`` (per step × intersection) and ``vehicles_s<seed>.csv`` (per vehicle)
+  with ``log_trace=True`` — the inputs of the Phase 8 error analysis;
 
 and appends one row per seed to ``docs/experiment_log.csv``.
 
@@ -40,9 +42,14 @@ from trafficrl.utils.stats import summarise
 PRIMARY_METRIC = "avg_travel_time_s"
 
 
-def run_episode(env, agent, *, explore: bool = False, recorder=None) -> dict[str, Any]:
-    """Play one episode; ``recorder`` (a :class:`DecisionRecorder`) logs every decision."""
+def run_episode(
+    env, agent, *, explore: bool = False, recorder=None, step_recorder=None
+) -> dict[str, Any]:
+    """Play one episode; ``recorder`` (a :class:`DecisionRecorder`) logs every decision,
+    ``step_recorder`` (a :class:`StepRecorder`) the true network state at every env step."""
     obs, info = env.reset()
+    if step_recorder is not None:
+        step_recorder.record(info)
     latency_ms: list[float] = []
     decisions = fallbacks = 0
     done = False
@@ -57,6 +64,8 @@ def run_episode(env, agent, *, explore: bool = False, recorder=None) -> dict[str
         decisions += len(info["ready"])
         fallbacks += sum(bool(flags.get(iid, False)) for iid in info["ready"])
         obs, _, done, info = env.step(actions)
+        if step_recorder is not None:
+            step_recorder.record(info)
         agent.observe(info["transitions"])
     m = env.metrics()
     m.update(
@@ -137,12 +146,15 @@ def evaluate(
     note: str = "",
     log_path: Path = EXPERIMENT_LOG,
     log_decisions: bool = False,
+    log_trace: bool = False,
 ) -> tuple[Path, pd.DataFrame]:
     split = cfg["data"]["split"]
     if split in FINAL_SPLITS and not final:
         raise PermissionError(
             f"split {split!r} is final-evaluation only: pass final=True (--final) in Phase 7"
         )
+    if log_trace and track != "full":
+        raise ValueError("log_trace needs track='full' (per-vehicle log)")
     condition = condition_label(cfg)
     label = model_label(agent_name, cfg)
     if agent_name == "ugmarl":  # fail before any output if a seed has no τ
@@ -183,9 +195,17 @@ def evaluate(
             from trafficrl.eval.explain import DecisionRecorder
 
             recorder = DecisionRecorder(env)
-        m = run_episode(env, agent, recorder=recorder)
+        stepper = None
+        if log_trace:
+            from trafficrl.eval.explain import StepRecorder
+
+            stepper = StepRecorder(env)
+        m = run_episode(env, agent, recorder=recorder, step_recorder=stepper)
         if recorder is not None:
             recorder.save(out / f"decisions_s{seed}.csv")
+        if stepper is not None:
+            stepper.save(out / f"trace_s{seed}.csv")
+            env.tracker.vehicle_frame().to_csv(out / f"vehicles_s{seed}.csv", index=False)
         runtime = time.perf_counter() - t0
         data_info[int(seed)] = env.data_info
         rows.append({"seed": int(seed), **m, **gate_info, "runtime_s": round(runtime, 3)})

@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 
 from trafficrl.envs.metrics import EpisodeTracker
@@ -24,3 +25,22 @@ def test_light_tracker_and_bad_level():
     assert m["throughput_veh"] is None and m["in_network_at_end"] == 3
     with pytest.raises(ValueError):
         EpisodeTracker(["a"], "medium")
+
+
+def test_vehicle_frame_and_wait_percentiles():
+    tr = EpisodeTracker(["a"])
+    seq = [{"v1": 5.0}, {"v1": 0.0, "v2": 0.05}, {"v2": 0.0}, {"v2": 3.0}, {"v2": 3.0}]
+    for speeds in seq:
+        tr.on_second(speeds)
+    f = tr.vehicle_frame().set_index("vehicle")
+    assert f.loc["v1", "enter_t"] == 1 and f.loc["v1", "leave_t"] == 3
+    assert f.loc["v1", "wait_s"] == 1
+    assert f.loc["v2", "enter_t"] == 2 and pd.isna(f.loc["v2", "leave_t"])  # still inside
+    assert f.loc["v2", "wait_s"] == 2
+    m = tr.result(10.0, 1)
+    assert m["max_waiting_time_s"] == 2 and m["throughput_veh"] == 1  # unchanged definitions
+    assert m["wait_p95_s"] == pytest.approx(1.95) and m["wait_p99_s"] == pytest.approx(1.99)
+    light = EpisodeTracker(["a"], "light")
+    assert light.result(5.0, 0)["wait_p95_s"] is None
+    with pytest.raises(RuntimeError):
+        light.vehicle_frame()

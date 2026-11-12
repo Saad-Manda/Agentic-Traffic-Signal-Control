@@ -81,3 +81,49 @@ class DecisionRecorder:
         path.parent.mkdir(parents=True, exist_ok=True)
         self.frame().to_csv(path, index=False)
         return path
+
+
+class StepRecorder:
+    """Per-step network state for the Phase 8 error analysis (plan phase7 P6).
+
+    One row per env step × intersection: time, green phase (pending green during a yellow),
+    yellow flag, whether the intersection decides at this step, and the **true** waiting
+    vehicles ``q_0…q_11`` and vehicle counts ``n_0…n_11`` on its incoming lanes (canonical
+    lane order of :class:`~trafficrl.envs.features.FeatureBuilder`). Read-only: it never
+    touches the engine, the sensor model or the agent.
+    """
+
+    def __init__(self, env: Any) -> None:
+        self._env = env
+        inter = env.features.roadnet.intersections
+        self._in_lanes = {iid: list(inter[iid].in_lanes) for iid in env.intersection_ids}
+        self.rows: list[tuple] = []
+        n = max(len(v) for v in self._in_lanes.values())
+        self.columns = [
+            "t", "iid", "phase", "in_yellow", "ready",
+            *(f"q_{k}" for k in range(n)), *(f"n_{k}" for k in range(n)),
+        ]  # fmt: skip
+        self._n = n
+
+    def record(self, info: Mapping[str, Any]) -> None:
+        wait, count = self._env.true_wait, self._env.true_count
+        ready = set(info["ready"])
+        pad = [float("nan")] * self._n
+        for iid, lanes in self._in_lanes.items():
+            q = [wait.get(ln, 0) for ln in lanes]
+            c = [count.get(ln, 0) for ln in lanes]
+            self.rows.append(
+                (
+                    int(info["t"]), iid, info["phase"][iid], bool(info["in_yellow"][iid]),
+                    iid in ready, *(q + pad)[: self._n], *(c + pad)[: self._n],
+                )
+            )  # fmt: skip
+
+    def frame(self) -> pd.DataFrame:
+        return pd.DataFrame(self.rows, columns=self.columns)
+
+    def save(self, path: str | Path) -> Path:
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self.frame().to_csv(path, index=False)
+        return path
