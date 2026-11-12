@@ -20,6 +20,9 @@ GRID = "#e1e0d9"
 AXIS = "#c3c2b7"
 
 BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
+# Phase 6 additions: the proposed model gets a strong colour of its own; its trained
+# ablations are muted variants and always direct-labelled.
+VIOLET, MAGENTA, SLATE = "#6b3fc4", "#c2417a", "#6f6c64"
 # sequential ramp (one hue, light -> dark) for magnitudes
 BLUE_RAMP = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#104281"]
 
@@ -32,6 +35,10 @@ CONTROLLER_COLOR = {
     "dqn": AQUA,
     "idqn": YELLOW,
     "random": AQUA,
+    "ugmarl": VIOLET,
+    "ugmarl-nogate": VIOLET,  # same weights as ugmarl; drawn dashed where both appear
+    "ugmarl-noattn": MAGENTA,
+    "ugmarl-noens": SLATE,
 }
 CONTROLLER_LABEL = {
     "fixed_time": "Fixed-Time",
@@ -39,6 +46,10 @@ CONTROLLER_LABEL = {
     "dqn": "DQN (shared)",
     "idqn": "IDQN",
     "random": "Random phase",
+    "ugmarl": "UG-MARL (proposed)",
+    "ugmarl-nogate": "UG-MARL −gate",
+    "ugmarl-noattn": "UG-MARL −attention",
+    "ugmarl-noens": "UG-MARL −ensemble",
 }
 
 
