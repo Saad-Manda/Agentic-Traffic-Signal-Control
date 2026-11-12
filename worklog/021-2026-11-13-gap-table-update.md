@@ -40,7 +40,7 @@ and `PRD.md` §1c. No code, experiment or result changed.
 | `worklog/README.md` | modified | Row 021 | Index |
 
 ## Commits
-_pending_
+`7409220` docs(lit): align gap table with the built UG-MARL, status of A1-A9
 
 ## Next
 Phase 8 (incl. A8). At the start of Phase 9: PDF check + novelty re-search → tick 2.6.
