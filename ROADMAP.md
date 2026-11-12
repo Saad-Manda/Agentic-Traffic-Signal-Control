@@ -234,13 +234,40 @@ starts**. Test flows are run **once** per agent / configuration · ≥ 3 seeds �
 95% CI** · long runs overnight. If a bug forces a re-run, log it with the reason in the Decision
 Log.
 
-- [ ] 7.1 Main comparison: 5 agents on primary test set **(must-have)**, reported as **Model |
+- [x] 7.1 Main comparison: 5 agents on primary test set **(must-have)**, reported as **Model |
       Validation score | Test score | Training time | Model size** (`PRD.md` §5)
-- [ ] 7.2 Ablation: full vs. −gate / −attention / −ensemble **(must-have)**
-- [ ] 7.3 Robustness: noise {0, 0.1, 0.2}, dropout {0, 10, 20 %}, surge ×1.5
-- [ ] 7.4 Generalization: zero-shot on held-out dataset
-- [ ] 7.5 Efficiency: inference latency, training time, params, GPU memory
-- [ ] 7.6 Safety & explainability: max wait, % fallback, attention heatmaps, gate-firing analysis
+- [x] 7.2 Ablation: full vs. −gate / −attention / −ensemble **(must-have)**
+- [x] 7.3 Robustness: noise {0, 0.1, 0.2}, dropout {0, 10, 20 %}, surge ×1.5
+- [x] 7.4 Generalization: zero-shot on held-out dataset
+- [x] 7.5 Efficiency: inference latency, training time, params, GPU memory (not used: CPU)
+- [x] 7.6 Safety & explainability: max wait, % fallback, attention heatmaps, gate-firing analysis
+      (tables done; the heatmap / gate figures are drawn in 8.2 from the saved logs)
+
+**Phase 7 result (12 Nov, native Ubuntu, commit `94c1bbb`, 240 test + 105 held-out episodes,
+each run once)** → `docs/results/test_{main,ablation,robustness,efficiency,safety_explain}.md`,
+`docs/results/heldout_generalisation.md`, worklog/020:
+
+| Model | Val (s) | **Test (s)** | Test, noise 0.2 (s) | Test, surge ×1.5 (s) | Hangzhou, 3 flows (s) |
+|---|---|---|---|---|---|
+| Fixed-Time | 434.8 | 462.2 | 462.2 | 661.4 | 667.5 |
+| Max-Pressure | 326.1 | 320.8 | 413.7 | 435.2 | 431.8 |
+| DQN (shared) | 299.8 | **292.2 ± 0.6** | 828.2 | 373.0 | 410.4 ± 7.1 |
+| IDQN | 312.7 | 307.9 ± 1.4 | 758.9 | 455.3 | not transferable |
+| UG-MARL | 302.3 | 295.4 ± 1.1 | 420.5 | 375.0 | 410.0 ± 2.9 |
+| −gate | 301.8 | 295.0 ± 1.0 | 870.2 | 376.4 | 420.1 ± 14.6 |
+| −attention | 301.9 | 294.2 ± 1.1 | 419.3 | 376.3 | 403.8 ± 1.2 |
+| −ensemble | 303.7 | 297.3 ± 1.5 | 864.9 | 395.1 | 423.7 ± 14.9 |
+
+- **H1 supported** (UG-MARL's CI [294.1, 296.8] below Max-Pressure 320.8 and IDQN [306.1, 309.7]).
+- **H2 supported by the pre-fixed rule**: max wait at noise 0.2 1493 vs 3306 s and travel-time
+  increase +125 vs +575 s are clear (paired CIs exclude 0); the clean max-wait difference
+  (896 vs 910 s) is inside seed noise (paired −15 ± 296 s) and must be described as "no
+  difference on clean data".
+- **H3 not supported** (−attention 294.2 vs full 295.4 s, CIs overlap) — negative result.
+- **Minimum outcome met** in every condition (UG-MARL max wait ≤ Max-Pressure's).
+- **UG-MARL is worse than DQN on clean data** (+3.2 s, CIs separated) — not part of H1, reported.
+- **Smallest worst-case regret: UG-MARL 6.8 s** (Max-Pressure 62 s, Fixed-Time 288 s, IDQN
+  345 s, DQN 415 s). It does not beat Max-Pressure under noise (+3.5 / +6.8 s, CIs overlap).
 
 **Phase 7 set-up (fixed 12 Nov, before any test / held-out flow is opened; plan
 `.claude/plans/phase7-final-experiments.md`):**
@@ -406,10 +433,10 @@ Tick all before submission on 17 Nov.
 - [ ] Literature and gap documented → Phase 2
 - [x] Dataset source and license recorded → 1.5, 1.6
 - [x] Data audit and EDA completed → 3.0, 3.3
-- [ ] Leak-free split and pipeline verified → 3.1, 3.2, 3.5
+- [x] Leak-free split and pipeline verified → 3.1, 3.2, 3.5
 - [x] Simple baseline established → 4.4, 4.5
-- [ ] Models tuned using validation only → 5.5, 6.7
-- [ ] Held-out evaluation completed → 7.1–7.4
+- [x] Models tuned using validation only → 5.5, 6.7
+- [x] Held-out evaluation completed → 7.1–7.4
 - [ ] Results and failures interpreted → 8.3, 8.4
 - [ ] Seeds, versions and commands recorded → 5.4, 9.4
 - [ ] Code, report and poster organized → 9.1, 9.2, 9.7
@@ -466,3 +493,4 @@ Tick all before submission on 17 Nov.
 | 12 Nov | **Protocol amendment (before any final run): seeds 0–4 for 7.3 and 7.4** (was 0–2). Five trained seeds exist and an episode takes ~6 s; the 95 % CI uses t = 2.78 instead of 4.30; same seeds as the validation table 6.8; the clean column of 7.3 is then the same runs as 7.1 / 7.2, so every test episode runs exactly once. `docs/evaluation_protocol.md` §6, §9. → worklog/020 |
 | 12 Nov | **Phase 7 readings fixed before the runs** (ROADMAP Phase 7 set-up; `PRD.md` §1c; protocol §9): H1 / H3 by CI rule on the clean test flow; **H2 in three levels** — (i) max wait clean, (ii) max wait at noise 0.2, (iii) travel-time increase clean → noise 0.2, gate vs −gate; supported = all three, partly supported = (ii) + (iii) — because PRD §1c did not say in which condition max wait is compared and validation differs between clean (761 vs 691 s) and noise 0.2 (1238 vs 3307 s). Added descriptive statistic: per-condition **regret** against the best of the five agents (largest and mean over conditions). Verdicts are computed by code written before the test flow is opened. → worklog/020 |
 | 12 Nov | **Phase 7 execution design:** one runner (`scripts/robustness.py`) for 7.1–7.4, two specs (`final_test`, `final_heldout`), each episode run once with `--workers 1` (valid decision latency), all Phase 8 inputs logged in the same pass (per-step, per-vehicle, per-decision), lock manifest `models/manifest.json` verified by `--final`. IDQN is reported as "not transferable" on Hangzhou. No combined perturbations and no perturbed Hangzhou (not in the protocol). The planned `scripts/run_ablation.py` is dropped (ablations are rows of the same grid). SHAP (optional) not done. → worklog/020 |
+| 12 Nov | **Phase 7 executed (native Ubuntu, commit `94c1bbb`; models verified against `models/manifest.json`; every test / held-out episode run once, no re-run).** Jinan test, clean, 5 seeds: DQN 292.2 ± 0.6, UG-MARL 295.4 ± 1.1, IDQN 307.9 ± 1.4, Max-Pressure 320.8, Fixed-Time 462.2 s. **H1 supported; H3 not supported** (−attention 294.2 ± 1.1 s, 61 % fewer parameters); **H2 supported by the pre-fixed three-part rule**, with the caveat that part (i) (clean max wait 896 vs 910 s) is inside seed noise while (ii) max wait at noise 0.2 (1493 vs 3306 s) and (iii) travel-time increase (+125 vs +575 s) are clear; minimum outcome met in all six conditions. **UG-MARL is 3.2 s worse than DQN on clean data (CIs separated)** and level with Max-Pressure under noise (370 / 421 s vs 367 / 414 s); DQN / IDQN / −gate / −ensemble collapse under noise (759–870 s at 0.2). **Worst-case regret over six conditions: UG-MARL 6.8 s, Max-Pressure 62 s, DQN 415 s** — the pre-written claim holds. Surge ×1.5 (untuned): UG-MARL 375 s ≈ DQN 373 s, Max-Pressure 435 s; the gate fires on 55 % of decisions and max wait rises to 2162 s (DQN 1161 s, Max-Pressure 3260 s). Hangzhou zero-shot (3 flows): UG-MARL 410.0 ± 2.9, DQN 410.4 ± 7.1, −attention 403.8 ± 1.2, Max-Pressure 431.8, Fixed-Time 667.5 s; fallback 34 %; UG-MARL's max wait there (2262 s) is below Max-Pressure's (2734 s) but above DQN's (1660 s). Latency 0.81 ms per joint decision (DQN 0.22, Max-Pressure 0.14). Nothing selected; the optional smoothing extension is not started. → worklog/020 |

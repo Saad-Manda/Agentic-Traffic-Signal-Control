@@ -212,7 +212,34 @@ python scripts/plot_training.py --agents dqn idqn ugmarl ugmarl-noattn ugmarl-no
 The gate acts at evaluation only; training and checkpoint selection are ungated. Equations
 and the stability argument: `docs/methodology.md`. Results: worklog/017.
 
-### 10. Tests and lint
+### 10. Final evaluation: test flow and held-out city (ROADMAP Phase 7)
+
+Run once, after everything above is fixed. `--final` is refused unless `models/manifest.json`
+matches the checkpoints, and it stops on a started-but-unfinished job (`--rerun-failed` after
+logging the reason in the ROADMAP Decision Log).
+
+```bash
+python scripts/lock_models.py --write      # models/manifest.json: hashes of best.pt / gate.json / config (commit it)
+python scripts/lock_models.py --verify
+# Jinan test: 8 models x 6 conditions x seeds 0-4 = 240 episodes (~30 min, one process -> valid latency)
+python scripts/robustness.py --spec configs/final_test.yaml --final --workers 1 --results-dir results/final
+# Hangzhou, zero-shot: 7 models x 3 flows x seeds 0-4 = 105 episodes (~15 min)
+python scripts/robustness.py --spec configs/final_heldout.yaml --final --workers 1 --results-dir results/final
+# tables (pure reader, repeatable): docs/results/test_{main,ablation,robustness,efficiency,safety_explain}.{csv,md}
+#                                   docs/results/heldout_generalisation.{csv,md}
+python scripts/final_tables.py --study all
+```
+
+Every final episode also writes `trace_s<seed>.csv` (per step × intersection),
+`vehicles_s<seed>.csv` (per vehicle) and, for UG-MARL variants, `decisions_s<seed>.csv` under
+`results/final/<study>/eval/<model>__<condition>/` — the inputs of the Phase 8 figures.
+
+Expected output (deterministic on the same machine; learned agents mean ± std over 5 seeds),
+average travel time on the clean test flow: Fixed-Time 462.2 s, Max-Pressure 320.8 s,
+DQN 292.2 ± 0.6 s, IDQN 307.9 ± 1.4 s, UG-MARL 295.4 ± 1.1 s. Hypothesis verdicts printed by
+`final_tables.py`: H1 supported, H2 supported, H3 not supported. Results: worklog/020.
+
+### 11. Tests and lint
 
 ```bash
 pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones

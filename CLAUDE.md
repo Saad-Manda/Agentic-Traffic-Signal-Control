@@ -91,11 +91,14 @@ python scripts/val_table.py --agents fixed_time max_pressure dqn idqn ugmarl ugm
     ugmarl-noattn ugmarl-noens --out docs/results/val_phase6 --title "…" --intro "…"
 ```
 
-Planned (not implemented yet — update once scripts exist; ablations are run with the
-commands above, Phase 7 may wrap them):
 ```bash
-python scripts/run_ablation.py --config configs/<experiment>.yaml
+# Phase 7 (final, DONE 12 Nov — do not re-run the --final commands): lock, test, held-out, tables
+python scripts/lock_models.py --write | --verify            # models/manifest.json
+python scripts/robustness.py --spec configs/final_test.yaml    --final --workers 1 --results-dir results/final
+python scripts/robustness.py --spec configs/final_heldout.yaml --final --workers 1 --results-dir results/final
+python scripts/final_tables.py --study all                  # pure reader -> docs/results/test_*.md, heldout_generalisation.md
 ```
+Ablations are rows of the same studies (no `run_ablation.py`).
 
 ## Project Structure (planned)
 
@@ -109,7 +112,8 @@ src/trafficrl/
   envs/             # traffic_env.py (TrafficEnv, make_env), features.py, metrics.py,
                     #   perturb.py (noise / dropout / surge), engine.py
   eval/             # runner.py: run_episode, evaluate, resolve_gate (shared by every agent);
-                    #   explain.py (DecisionRecorder); report.py
+                    #   explain.py (DecisionRecorder, StepRecorder); report.py; lock.py (manifest);
+                    #   hypotheses.py (H1–H3 verdict rules, regret — fixed before the test runs)
   train/            # loop.py (train, train_episode), tune.py (random search, parallel runs)
   agents/
     core/           # QLearner (Double DQN, SMDP target), replay, networks (K-head axis), encoders
@@ -118,11 +122,13 @@ src/trafficrl/
                     #   explanations, ablation flags), gate.py (σ, percentile τ, gate.json)
   utils/            # seeding, config, runlog (experiment log + env.json), plotting style
 scripts/            # train.py, tune.py, evaluate.py, val_table.py, plot_training.py,
-                    #   calibrate_gate.py, sigma_check.py, robustness.py (model × condition table,
-                    #   val now / test in 7.3), run_ablation.py (planned)
+                    #   calibrate_gate.py, sigma_check.py, robustness.py (model × condition runs:
+                    #   val 6.8, final test / held-out with --final), lock_models.py (manifest),
+                    #   final_tables.py (Phase 7 tables + hypothesis verdicts)
 tests/
 results/            # metrics CSVs, plots, checkpoints (gitignored)
-models/             # final selected checkpoints only (large files gitignored)
+models/             # manifest.json: SHA-256 lock of the final checkpoints / gate.json (checkpoints
+                    #   themselves stay in results/train/, gitignored)
 docs/               # dataset_card.md, data_audit.md (generated), evaluation_protocol.md,
                     #   methodology.md (UG-MARL equations, stability argument), results/,
                     #   experiment_log.csv (tracked; mentor-facing), figures/{audit,eda}/
@@ -217,10 +223,16 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
 - CityFlow install validated on WSL and native Ubuntu (ROADMAP 0.1b, worklog/018); CUDA is
   not available on native Ubuntu (driver not loaded) — training runs on CPU anyway.
 - **Evaluation protocol frozen (3.5, 10 Nov):** `docs/evaluation_protocol.md` — Δt = 15 s,
-  reward −|pressure|, seeds 0–4 for 7.1 / 7.2 and 0–2 for 7.3 / 7.4; rule-based baselines are
+  reward −|pressure|, seeds 0–4 for 7.1–7.4 (7.3 / 7.4 amended from 0–2 on 12 Nov); rule-based baselines are
   deterministic (reported with std = 0). Any change needs a dated Decision Log entry.
 - Baselines required by PS16: conventional (Fixed-Time, Max-Pressure), single-agent RL
   (shared-parameter DQN, no coordination), multi-agent RL (IDQN; IPPO optional).
+- **Phase 7 is done (12 Nov):** test and held-out flows were run once at commit `94c1bbb`;
+  results in `docs/results/test_*.md` and `heldout_generalisation.md`, per-episode logs in
+  `results/final/` (gitignored — keep them, Phase 8 reads them). H1 supported, H2 supported
+  (clean max-wait part inside seed noise), H3 not supported; UG-MARL is 3.2 s behind DQN on
+  clean test and has the smallest worst-case regret (6.8 s). **Do not re-run `--final`, retrain
+  or re-calibrate**; `scripts/final_tables.py` may be re-run freely. Seeds are 0–4 for 7.1–7.4.
 - Solo project: when time is short, follow ROADMAP "scope controls" — never cut the main
   comparison, ablation, report, poster, or demo.
 - Ablations: −gate (same checkpoints, `agents.ugmarl.use_gate=false`), −attention

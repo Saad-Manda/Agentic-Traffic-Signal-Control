@@ -258,4 +258,14 @@ Every experiment config starts with `base: base.yaml` (`configs/base.yaml`).
   [--checkpoint PATH (may contain {seed})] [--log-decisions] [--final] [overrides]` — any agent × seeds → `results/eval/<run>/`
   (`metrics.csv`, `summary.csv`, config, env.json, data.json) + one log row per seed; exit 2 on
   test / heldout without `--final`
-- `scripts/run_ablation.py --config <yaml>` — TODO
+- `scripts/evaluate.py … --log-trace` — also writes `trace_s<seed>.csv` (t, iid, phase, in_yellow,
+  ready, true queue `q_0…q_11` and count `n_0…n_11` per incoming lane) and `vehicles_s<seed>.csv`
+  (vehicle, enter_t, leave_t, wait_s); `metrics.csv` has `wait_p95_s`, `wait_p99_s`
+- `scripts/robustness.py --spec <yaml> [--final --workers 1 --results-dir results/final]` — model ×
+  condition runs (one `evaluate.py` job each); spec keys: `models` (`config`, `agent`,
+  `train_model`, `overrides`, `log_decisions`), `conditions` (overrides, optional `name`),
+  `log_trace`, `table`. `--final` verifies `models/manifest.json` (`scripts/lock_models.py
+  --write | --verify`) and stops on unfinished final jobs (`--rerun-failed`)
+- `scripts/final_tables.py --study test|heldout|all` — Phase 7 tables from `results/final/`;
+  verdict rules in `trafficrl.eval.hypotheses` (`h1`, `h2`, `h3`, `minimum_outcome`,
+  `regret_table`). Ablations are rows of the same studies (no `run_ablation.py`)

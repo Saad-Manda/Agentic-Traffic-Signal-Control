@@ -1,6 +1,7 @@
 # Plan — Phase 7 final experiments (ROADMAP 7.1–7.6)
 
-Status: **in execution since 12 Nov 2026.** Tick steps `[x]` during execution and note
+Status: **executed 12 Nov 2026** — H1 supported, H2 supported (part (i) inside seed noise), H3 not
+supported; UG-MARL 3.2 s behind DQN on clean test, smallest worst-case regret (worklog/020). Tick steps `[x]` during execution and note
 deviations under each step.
 
 ## Goal
@@ -263,21 +264,25 @@ CityFlow, the perturbation and the surge RNG; seed s loads the checkpoint traine
 5. [x] **Lock:** `python scripts/lock_models.py --write`; check τ and validation scores in the
    manifest against `gate_calibration.md` / `val_phase6.md`; commit code, specs and manifest.
    Working tree clean (the experiment log must show a commit hash without `-dirty`).
-6. [ ] **Final test study** (idle machine, mains power):
+6. [x] **Final test study** (idle machine, mains power):
    `python scripts/robustness.py --spec configs/final_test.yaml --final --workers 1 --results-dir results/final`
    → 48 jobs, 240 episodes. Checks: 240 new `test` rows; rule-based agents identical across
    seeds on the clean flow; no job failed.
-7. [ ] **Final held-out study:**
+7. [x] **Final held-out study:**
    `python scripts/robustness.py --spec configs/final_heldout.yaml --final --workers 1 --results-dir results/final`
    → 21 jobs, 105 episodes, 105 `heldout` rows.
-8. [ ] **Tables:** `python scripts/final_tables.py --study all` → the six tables; verdicts
+8. [x] **Tables:** `python scripts/final_tables.py --study all` → the six tables; verdicts
    printed. Read against the pre-written readings; report to the user as measured.
-9. [ ] **Close:** ROADMAP ticks 7.1–7.6 and Decision Log row with the results; final-gate
+9. [x] **Close:** ROADMAP ticks 7.1–7.6 and Decision Log row with the results; final-gate
    lines "Models tuned using validation only" and "Held-out evaluation completed";
    README / CLAUDE.md commands; worklog/020; commits per `.claude/commands/commit.md`
    (no Claude co-author).
 
-Time: steps 1–5 on 13 Nov, steps 6–8 the same evening (≈ 1 h of runs), step 9 and Phase 8
+*Result:* steps 6–7 ran on 12 Nov at commit `94c1bbb` (clean tree, manifest verified): 240
+`test` and 105 `heldout` rows, no failed job, no re-run; Fixed-Time / Max-Pressure identical
+across seeds on the clean flow. *Deviation:* everything was done on 12 Nov, not 13 Nov.
+
+Time (as planned): steps 1–5 on 13 Nov, steps 6–8 the same evening (≈ 1 h of runs), step 9 and Phase 8
 from 14 Nov.
 
 ## Experiment log

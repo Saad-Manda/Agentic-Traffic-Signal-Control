@@ -79,3 +79,4 @@ Follow-up tasks.
 | [017](017-2026-11-11-phase6-ugmarl.md) | 2026-11-11 | Phase 6: proposed UG-MARL — design, code, grid (K 3, d 128), 5-seed finals + ablations, gate calibration (p* 80), σ check, methodology | decision, code, experiment | 6.1–6.7 | done |
 | [018](018-2026-11-11-native-ubuntu-setup.md) | 2026-11-11 | Native Ubuntu setup; Phase 5 reproduced bit-identically | setup, experiment | 0.1b | done |
 | [019](019-2026-11-12-val-robustness-references.md) | 2026-11-12 | 6.8: baselines under detector noise / dropout on validation — DQN / IDQN collapse, UG-MARL level with Max-Pressure under noise | decision, code, experiment | 6.8 | done |
+| [020](020-2026-11-12-phase7-final-experiments.md) | 2026-11-12 | Phase 7: final test + Hangzhou — H1 and H2 supported, H3 not; UG-MARL 3.2 s behind DQN on clean test, smallest worst-case regret (6.8 s) | decision, code, experiment | 7.1–7.6 | done |
