@@ -367,7 +367,7 @@ def robustness_table(df, spec, args, prefix) -> dict:
 def efficiency_table(df, spec, args, prefix, held: pd.DataFrame | None) -> None:
     rows, recs = [], []
     for m in spec["models"]:
-        lat = cell(df, m, "clean", "decision_latency_ms", 2)
+        lat = cell(df, m, "clean", "decision_latency_ms", 3)
         p95 = f"{np.mean(vals(df, m, 'clean', 'decision_latency_ms_p95')):.2f}"
         hz = "—"
         if held is not None and m in set(held["model"]):

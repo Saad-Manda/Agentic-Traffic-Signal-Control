@@ -39,15 +39,20 @@ COLUMNS = (
 
 
 def git_commit(repo: Path = REPO_ROOT) -> str:
-    """Short commit hash, with ``-dirty`` if the working tree has uncommitted changes."""
+    """Short commit hash, with ``-dirty`` if the working tree has uncommitted changes.
+
+    The experiment log itself is ignored: every run appends to it, so a study of several
+    runs started from a clean tree would otherwise mark all rows after the first as dirty.
+    """
     try:
         head = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
             cwd=repo, capture_output=True, text=True, check=True,
         ).stdout.strip()  # fmt: skip
         dirty = subprocess.run(
-            ["git", "status", "--porcelain"], cwd=repo, capture_output=True, text=True, check=True
-        ).stdout.strip()
+            ["git", "status", "--porcelain", "--", ".", ":(exclude)docs/experiment_log.csv"],
+            cwd=repo, capture_output=True, text=True, check=True,
+        ).stdout.strip()  # fmt: skip
         return f"{head}-dirty" if dirty else head
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
