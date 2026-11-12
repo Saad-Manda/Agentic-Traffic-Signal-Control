@@ -55,7 +55,9 @@ def study(args) -> int:
     df["exit_code"] = [codes.get(r) for r in df["run_name"]]
     df.to_csv(out / "trials.csv", index=False)
     sel = spec["selection"]
-    best = select_best(df, sel["metric"], float(sel["tie_tolerance_s"]))
+    best = select_best(
+        df, sel["metric"], float(sel["tie_tolerance_s"]), sel.get("tie_break", ["train.lr"])
+    )
     best_params = {k: getattr(best[k], "item", lambda v=best[k]: v)() for k in spec["space"]}
     (out / "best.json").write_text(
         json.dumps(

@@ -35,11 +35,14 @@ def load_search(path: str | Path) -> dict[str, Any]:
 
 
 def sample_trials(space: Mapping[str, Sequence[Any]], n: int, seed: int) -> list[dict[str, Any]]:
-    """``n`` distinct points of the grid ``space``, drawn uniformly without replacement."""
+    """``n`` distinct points of the grid ``space``, drawn uniformly without replacement;
+    ``n`` = grid size -> the full grid in grid order (no sampling)."""
     keys = list(space)
     grid = list(itertools.product(*(space[k] for k in keys)))
     if n > len(grid):
         raise ValueError(f"{n} trials requested, the space has {len(grid)} points")
+    if n == len(grid):
+        return [dict(zip(keys, point, strict=True)) for point in grid]
     pick = np.random.default_rng(seed).choice(len(grid), size=n, replace=False)
     return [dict(zip(keys, grid[i], strict=True)) for i in pick]
 
@@ -48,13 +51,19 @@ def overrides(params: Mapping[str, Any]) -> list[str]:
     return [f"{k}={v}" for k, v in params.items()]
 
 
-def select_best(trials: pd.DataFrame, metric: str, tie_tolerance: float) -> pd.Series:
-    """Lowest ``metric``; trials within ``tie_tolerance`` of it -> lowest ``train.lr``."""
+def select_best(
+    trials: pd.DataFrame,
+    metric: str,
+    tie_tolerance: float,
+    tie_break: Sequence[str] = ("train.lr",),
+) -> pd.Series:
+    """Lowest ``metric``; trials within ``tie_tolerance`` of it -> smallest ``tie_break``
+    values, compared in order (Phase 5: ``train.lr``; UG-MARL: K, then d — smaller model)."""
     ok = trials.dropna(subset=[metric])
     if ok.empty:
         raise ValueError("no finished trial")
     near = ok[ok[metric] <= ok[metric].min() + tie_tolerance]
-    return near.sort_values(["train.lr", metric], kind="stable").iloc[0]
+    return near.sort_values([*tie_break, metric], kind="stable").iloc[0]
 
 
 def run_parallel(

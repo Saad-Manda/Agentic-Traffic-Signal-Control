@@ -1,0 +1,21 @@
+# Phase 6 training search for UG-MARL (ROADMAP 6.7a; plan phase6-ugmarl D8, decision U9).
+# Written and committed BEFORE the first trial (guidelines G8). Validation flow only.
+# Full 3 x 3 grid of the structural parameters, training seed 0. Fixed, not tuned: lr 1e-4,
+# gamma 0.8, batch 64, eps_decay_frac 0.3 (baseline trial t6, configs/ugmarl.yaml), head
+# hidden 128, mask_prob 0.8, everything else = configs/base.yaml `train:` (100 episodes, val
+# every 5). Disclosed: the learning settings were tuned for DQN / IDQN, not for UG-MARL; UG-MARL
+# gets 9 runs on its own structural parameters vs 8 for each baseline. The winner is copied
+# into configs/ugmarl.yaml and locked whatever it scores (U14).
+study: ugmarl
+seed: 0
+sampler_seed: 2026       # unused: trials = grid size -> the full grid, no sampling
+trials: 9
+
+space:
+  agents.ugmarl.heads: [3, 5, 10]        # K, ensemble size
+  agents.ugmarl.attn_dim: [32, 64, 128]  # d, embedding / attention width
+
+selection:               # fixed before the study
+  metric: best_val_avg_travel_time_s     # ungated greedy policy, clean validation, best checkpoint
+  tie_tolerance_s: 1.0   # within 1 s of the best -> the smaller model
+  tie_break: [agents.ugmarl.heads, agents.ugmarl.attn_dim]   # ascending: smaller K, then smaller d

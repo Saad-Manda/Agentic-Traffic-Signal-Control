@@ -1,0 +1,23 @@
+# Phase 6 gate calibration for UG-MARL (ROADMAP 6.3 / 6.7b; plan phase6-ugmarl D9, U5, U13).
+# Written and committed BEFORE the first calibration run (guidelines G8). Validation flow only;
+# scripts/calibrate_gate.py refuses any other split and never opens test / held-out flows.
+# tau_{p, seed} = p-th percentile of that seed-model's sigma over all decisions of one clean,
+# ungated, greedy validation episode. One p for all seeds.
+study: ugmarl_gate
+seeds: [0, 1, 2, 3, 4]
+percentiles: [80, 90, 95, 99]
+
+conditions:              # observation perturbations of the validation flow (protocol §6)
+  - {}                                   # clean
+  - {robustness.noise_std: 0.1}
+  - {robustness.noise_std: 0.2}
+  - {robustness.dropout_p: 0.1}
+  - {robustness.dropout_p: 0.2}
+# demand surge is NOT used: it changes the flow, not the detectors (untuned test condition, 7.3)
+
+selection:               # fixed before the study
+  metric: avg_travel_time_s   # mean over seeds x conditions, equal weights, lower is better
+  tie_tolerance_s: 1.0        # within 1 s of the best -> the smaller p (more fallback)
+# The ungated policy is a reference row, not a candidate (the gate is part of the method; its
+# cost / benefit is reported by the -gate ablation). If every p is worse than ungated, that is
+# reported as a finding, not tuned away (U14).
