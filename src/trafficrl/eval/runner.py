@@ -7,8 +7,13 @@ seeds and writes, under ``<results_dir>/<run_id>/``:
 * ``metrics.csv``  — one row per seed;
 * ``summary.csv``  — per metric: mean, std, 95 % CI, n, deterministic flag;
 * ``config.yaml``, ``env.json`` (software + hardware), ``data.json`` (flow file, surge hash);
+* ``decisions_s<seed>.csv`` with ``log_decisions=True`` (:mod:`trafficrl.eval.explain`);
 
 and appends one row per seed to ``docs/experiment_log.csv``.
+
+UG-MARL with the gate on needs τ for every seed: ``agents.ugmarl.gate.tau`` (a number) or
+``agents.ugmarl.gate.file`` (``auto`` = ``gate.json`` in the seed's checkpoint run directory,
+or a path with ``{seed}``). A gated run without τ is refused — never silently ungated.
 """
 
 from __future__ import annotations
@@ -23,7 +28,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from trafficrl.agents import make_agent
+from trafficrl.agents import make_agent, model_label
+from trafficrl.agents.ugmarl.gate import gate_file_for, load_gate
 from trafficrl.data.splits import REPO_ROOT
 from trafficrl.envs.traffic_env import FINAL_SPLITS, make_env
 from trafficrl.utils.config import save_config
@@ -34,7 +40,8 @@ from trafficrl.utils.stats import summarise
 PRIMARY_METRIC = "avg_travel_time_s"
 
 
-def run_episode(env, agent, *, explore: bool = False) -> dict[str, Any]:
+def run_episode(env, agent, *, explore: bool = False, recorder=None) -> dict[str, Any]:
+    """Play one episode; ``recorder`` (a :class:`DecisionRecorder`) logs every decision."""
     obs, info = env.reset()
     latency_ms: list[float] = []
     decisions = fallbacks = 0
@@ -43,7 +50,10 @@ def run_episode(env, agent, *, explore: bool = False) -> dict[str, Any]:
         t0 = time.perf_counter()
         actions = agent.act(obs, info, explore=explore)
         latency_ms.append((time.perf_counter() - t0) * 1e3)
-        flags = agent.last_explanations().get("fallback", {})
+        expl = agent.last_explanations()
+        if recorder is not None:
+            recorder.record(info["t"], info, actions, expl)
+        flags = expl.get("fallback", {})
         decisions += len(info["ready"])
         fallbacks += sum(bool(flags.get(iid, False)) for iid in info["ready"])
         obs, _, done, info = env.step(actions)
@@ -62,6 +72,35 @@ def resolve_checkpoint(checkpoint: str | Path | None, seed: int) -> Path | None:
     """``{seed}`` in the path is replaced by the evaluation seed, so each seed loads the model
     trained with that seed (protocol §6: a seed fixes training **and** evaluation)."""
     return None if checkpoint is None else Path(str(checkpoint).replace("{seed}", str(seed)))
+
+
+class GateError(ValueError):
+    """The gate is on but no threshold τ could be found."""
+
+
+def resolve_gate(
+    cfg: Mapping[str, Any], checkpoint: Path | None, seed: int
+) -> tuple[float | None, str]:
+    """``(τ, source)`` for UG-MARL in ``cfg`` and one seed; ``(None, "off")`` without a gate."""
+    p = dict((cfg.get("agents", {}) or {}).get("ugmarl", {}) or {})
+    if not (p.get("use_gate", True) and p.get("use_ensemble", True) and int(p.get("heads", 5)) > 1):
+        return None, "off"
+    gate = dict(p.get("gate") or {})
+    if gate.get("tau") is not None:
+        return float(gate["tau"]), "config"
+    spec = gate.get("file") or "auto"
+    if spec == "auto":
+        if checkpoint is None:
+            raise GateError("gate on with gate.file=auto but no --checkpoint to find gate.json")
+        f = gate_file_for(checkpoint)
+    else:
+        f = Path(str(spec).replace("{seed}", str(seed)))
+    if not f.exists():
+        raise GateError(
+            f"gate on but {f} does not exist: run scripts/calibrate_gate.py, set "
+            "agents.ugmarl.gate.tau, or evaluate −gate with agents.ugmarl.use_gate=false"
+        )
+    return float(load_gate(f)["tau"]), str(f)
 
 
 def condition_label(cfg: Mapping[str, Any]) -> str:
@@ -97,6 +136,7 @@ def evaluate(
     track: str = "full",
     note: str = "",
     log_path: Path = EXPERIMENT_LOG,
+    log_decisions: bool = False,
 ) -> tuple[Path, pd.DataFrame]:
     split = cfg["data"]["split"]
     if split in FINAL_SPLITS and not final:
@@ -104,8 +144,12 @@ def evaluate(
             f"split {split!r} is final-evaluation only: pass final=True (--final) in Phase 7"
         )
     condition = condition_label(cfg)
+    label = model_label(agent_name, cfg)
+    if agent_name == "ugmarl":  # fail before any output if a seed has no τ
+        for seed in seeds:
+            resolve_gate(cfg, resolve_checkpoint(checkpoint, int(seed)), int(seed))
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    run_id = f"{agent_name}_{cfg['data']['dataset']}-{split}_{condition}_{stamp}"
+    run_id = f"{label}_{cfg['data']['dataset']}-{split}_{condition}_{stamp}"
     out = REPO_ROOT / cfg["output"]["results_dir"] / run_id
     out.mkdir(parents=True, exist_ok=True)
     save_config({**cfg, "eval": {**cfg.get("eval", {}), "seeds": list(seeds)}}, out / "config.yaml")
@@ -130,18 +174,30 @@ def evaluate(
         ckpt = resolve_checkpoint(checkpoint, int(seed))
         if ckpt is not None:
             agent.load(ckpt)
-        m = run_episode(env, agent)
+        gate_info: dict[str, Any] = {}
+        if agent_name == "ugmarl":
+            agent.tau, source = resolve_gate(run_cfg, ckpt, int(seed))
+            gate_info = {"tau": agent.tau, "tau_source": source}
+        recorder = None
+        if log_decisions:
+            from trafficrl.eval.explain import DecisionRecorder
+
+            recorder = DecisionRecorder(env)
+        m = run_episode(env, agent, recorder=recorder)
+        if recorder is not None:
+            recorder.save(out / f"decisions_s{seed}.csv")
         runtime = time.perf_counter() - t0
         data_info[int(seed)] = env.data_info
-        rows.append({"seed": int(seed), **m, "runtime_s": round(runtime, 3)})
+        rows.append({"seed": int(seed), **m, **gate_info, "runtime_s": round(runtime, 3)})
         notes = "; ".join(x for x in (condition, f"final={final}" if final else "", note) if x)
         append_experiment_row(
             run_id=f"{run_id}-s{seed}",
             split=split,
             seed=int(seed),
-            model=agent_name,
+            model=label,
             hyperparameters={
                 **hyper,
+                **gate_info,
                 "flow_file": env.data_info["flow_file"],
                 **({"checkpoint": str(ckpt)} if ckpt is not None else {}),
             },

@@ -1,7 +1,8 @@
 """Evaluate one agent on one split over several seeds (ROADMAP 4.6).
 
     python scripts/evaluate.py --config configs/eval_baselines.yaml --agent max_pressure \
-        --split val [--seeds 0 1 2 3 4] [--checkpoint PATH[{seed}]] [--final] [overrides ...]
+        --split val [--seeds 0 1 2 3 4] [--checkpoint PATH[{seed}]] [--log-decisions] \
+        [--final] [overrides ...]
 
 Writes ``results/eval/<run_id>/{metrics,summary}.csv`` (+ config, env.json, data.json) and
 appends one row per seed to ``docs/experiment_log.csv``. ``--split test|heldout`` is refused
@@ -18,7 +19,7 @@ from pathlib import Path
 from trafficrl.agents import AGENTS
 from trafficrl.data.splits import REPO_ROOT, SPLIT_NAMES
 from trafficrl.envs.traffic_env import FINAL_SPLITS
-from trafficrl.eval.runner import evaluate, summary_table
+from trafficrl.eval.runner import GateError, evaluate, summary_table
 from trafficrl.utils.config import load_config
 
 
@@ -36,6 +37,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--track", choices=("full", "light"))
     ap.add_argument("--final", action="store_true", help="allow test / held-out (Phase 7 only)")
     ap.add_argument("--note", default="", help="free text for the experiment log")
+    ap.add_argument(
+        "--log-decisions",
+        action="store_true",
+        help="write decisions_s<seed>.csv (σ, gate, attention per decision; plan phase6 D7)",
+    )
     ap.add_argument("overrides", nargs="*", help="config overrides, e.g. robustness.noise_std=0.1")
     args = ap.parse_args(argv)
 
@@ -57,15 +63,20 @@ def main(argv: list[str] | None = None) -> int:
 
     seeds = args.seeds or cfg.get("eval", {}).get("seeds", [cfg["seed"]])
     track = args.track or cfg.get("eval", {}).get("track", "full")
-    out, metrics = evaluate(
-        cfg,
-        args.agent,
-        seeds,
-        final=args.final,
-        checkpoint=args.checkpoint,
-        track=track,
-        note=args.note,
-    )
+    try:
+        out, metrics = evaluate(
+            cfg,
+            args.agent,
+            seeds,
+            final=args.final,
+            checkpoint=args.checkpoint,
+            track=track,
+            note=args.note,
+            log_decisions=args.log_decisions,
+        )
+    except GateError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
     summ = summary_table(metrics).set_index("metric")
     for name in (
         "avg_travel_time_s",
@@ -73,6 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         "avg_queue_veh",
         "throughput_veh",
         "max_waiting_time_s",
+        "fallback_rate",
         "decision_latency_ms",
     ):
         if name in summ.index:

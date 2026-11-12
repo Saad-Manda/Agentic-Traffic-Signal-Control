@@ -435,7 +435,7 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
 3. [x] `NeighborhoodEncoder` + `UGMARLNet` + tests.
 4. [x] `UGMARLAgent` (μ, σ, gate, flags, explanations, checkpoint), `gate.py`, registry,
    `configs/base.yaml` block, `configs/ugmarl*.yaml` + tests.
-5. [ ] `DecisionRecorder`, `run_episode(recorder=)`, `evaluate.py --log-decisions`, gate-file
+5. [x] `DecisionRecorder`, `run_episode(recorder=)`, `evaluate.py --log-decisions`, gate-file
    resolution + tests.
 6. [ ] Smoke: `train.py --config configs/ugmarl.yaml train.episodes=2 train.val_every=1`
    for full / −attention / −ensemble; evaluate on val with `agents.ugmarl.gate.tau=0.0`
@@ -535,6 +535,10 @@ No row has split `test` or `heldout`.
   enforced where τ is resolved, in `eval.runner.evaluate` (step 5). `model_label()` in
   `trafficrl.agents` gives the variant name for run directories, `summary.json` and the log.
   `configs/eval_ugmarl.yaml` inherits `ugmarl.yaml` so K / d always match the trained runs.
+- **Step 5:** recorder column `queue_sum` → `in_veh_observed` (observed vehicles on the 12
+  incoming lanes): `info` carries observed lane counts, not observed waiting counts, and the
+  recorder must not read ground truth. `metrics.csv` of UG-MARL runs gains `tau` and
+  `tau_source`; `evaluate` checks τ for every seed before writing anything.
 
 ## Worklog
 
