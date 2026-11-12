@@ -242,6 +242,49 @@ Log.
 - [ ] 7.5 Efficiency: inference latency, training time, params, GPU memory
 - [ ] 7.6 Safety & explainability: max wait, % fallback, attention heatmaps, gate-firing analysis
 
+**Phase 7 set-up (fixed 12 Nov, before any test / held-out flow is opened; plan
+`.claude/plans/phase7-final-experiments.md`):**
+
+- **Models as locked in Phase 6** — no retraining, retuning or re-calibration.
+  `models/manifest.json` (SHA-256 of every `best.pt`, `gate.json`, training config) is
+  committed before the runs; `scripts/robustness.py --final` refuses to start if a file differs.
+- **Two studies, every episode run once, seeds 0–4, `--workers 1` on an idle machine (native
+  Ubuntu):**
+  - `configs/final_test.yaml` — Jinan test, 8 models (Fixed-Time, Max-Pressure, DQN, IDQN,
+    UG-MARL, −gate, −attention, −ensemble) × 6 conditions (clean, noise 0.1 / 0.2, dropout
+    10 / 20 %, surge ×1.5) = 240 episodes → 7.1, 7.2, 7.3, 7.5, 7.6;
+  - `configs/final_heldout.yaml` — Hangzhou, 7 models (IDQN is not transferable: one network
+    per Jinan intersection) × 3 flows, clean, τ from Jinan validation = 105 episodes → 7.4.
+  - Commands: `python scripts/robustness.py --spec configs/final_{test,heldout}.yaml --final
+    --workers 1 --results-dir results/final`, then `python scripts/final_tables.py --study all`.
+  - Every final episode writes per-step and per-vehicle logs (UG-MARL variants also
+    per-decision logs), so Phase 8 needs no second run on the test flow.
+- **Readings, written in advance** (computed by `trafficrl.eval.hypotheses`, tested before the
+  runs; test flow, 95 % CI = Student t over 5 seeds):
+  - **H1 (clean):** supported iff the upper end of UG-MARL's travel-time CI is below
+    Max-Pressure's value **and** below the lower end of IDQN's CI.
+  - **H3 (clean):** supported iff the upper end of UG-MARL's CI is below the lower end of
+    −attention's CI.
+  - **H2 (gate vs −gate, same checkpoints; per-seed paired differences with 95 % CI also
+    reported):** (i) mean max per-vehicle wait on the clean flow lower with the gate; (ii)
+    mean max per-vehicle wait at noise 0.2 lower with the gate; (iii) travel-time increase
+    from clean to noise 0.2 smaller with the gate. **Supported** = (i), (ii), (iii);
+    **partly supported** = (ii) and (iii) only; **not supported** = anything else.
+  - **Minimum acceptable outcome:** UG-MARL's mean max wait ≤ Max-Pressure's on the clean
+    flow (the comparison is also listed for every condition).
+  - **DQN** is not part of H1; reported as better / level / worse by CI overlap.
+  - **Robustness summary (descriptive, no threshold):** regret = a model's mean travel time −
+    the lowest mean among the five agents in that condition; reported as each model's largest
+    and mean regret over the six conditions. Claim written from 6.8: *UG-MARL has the
+    smallest worst-case regret; it does not beat Max-Pressure under noise.* If the test table
+    says otherwise, that is what is reported.
+  - **Surge and Hangzhou:** no hypothesis; described as measured.
+  - Nothing is selected from any Phase 7 table.
+- **Optional extension (not started; needs a separate go-ahead and plan):** detector
+  smoothing inside UG-MARL, chosen on validation only, with Max-Pressure + the same smoothing
+  as a control, reported as an extra row labelled "added after the main evaluation". The
+  locked model stays the headline.
+
 ## Phase 8 — Analysis (14–15 Nov) → R6, G11
 
 - [ ] 8.1 Comparison tables + bar/line charts
@@ -419,3 +462,7 @@ Tick all before submission on 17 Nov.
 | 12 Nov | **Phase 6 executed (native Ubuntu; numbers are final-val).** Grid (`configs/search/ugmarl.yaml`, committed first): best 301.08 s (K 10, d 128); K 10 / d 64 and **K 3 / d 128** within the 1 s tolerance → smallest K wins, **locked (U14)** though σ over 3 heads is a noisy estimate. Gate calibration (`configs/search/ugmarl_gate.yaml`): **p\* = 80** (80 and 90 tie within 1 s → smaller p). −attention gets its own τ; its calibration also selected 80 (the plan said "same p as full" — identical here). Calibration episodes use full tracking (plan: light) so max wait is reported. Validation (5 seeds): UG-MARL 302.3 ± 1.1 s, −gate 301.8, −attention 301.9, −ensemble 303.7, DQN 299.8, IDQN 312.7 — On val UG-MARL beats IDQN and Max-Pressure with separated CIs (the H1 pattern) but **not** DQN, and attention shows no gain over −attention (H3 pattern not supported); test decides in Phase 7. H2 is mixed on val: on clean val the gate slightly raises max wait (761 vs 691 s, CIs overlap), under detector noise 0.1 / 0.2 it keeps travel time at 376 / 423 s where the ungated policy degrades to 599 / 909 s (max wait 1238 vs 3307 s at 0.2). **Next step after this result is the user's decision (U14).** Also fixed: training rows were always labelled `dev-WSL`. → worklog/017 |
 | 12 Nov | **After Phase 6 (U14): no retuning to beat DQN; add validation robustness references first (6.8).** UG-MARL is 2.5 s behind DQN on clean val with touching CIs, and H1 names IDQN and Max-Pressure, not DQN; another tuning round aimed at one baseline would break the locked-on-validation rule. The claim to test is two-sided — about equal to the learned baselines on clean data and better under degraded detectors; better than Max-Pressure on clean data — and only the −gate half is measured. 6.8 runs DQN, IDQN, Max-Pressure and Fixed-Time under the gate-calibration perturbations on validation (evaluation only, nothing selected, readings (a) / (b) written before the runs). Phase 7 starts after 6.8. Evaluation protocol unchanged. → worklog/019 |
 | 12 Nov | **6.8 result (validation, evaluation only, nothing selected): the gate makes UG-MARL track the better controller in each condition, but it does not beat Max-Pressure under noise.** Travel time, 5 seeds: DQN 300 → 553 → 855 s, IDQN 313 → 529 → 767 s, −gate 302 → 599 → 909 s, Max-Pressure 326 → 372 → 415 s, UG-MARL 302 → 376 → 423 s (clean → noise 0.1 → 0.2; fallback 21 → 81 → 96 %). Under dropout 10 / 20 % UG-MARL (306 / 311 s) stays with DQN (305 / 309 s) and ahead of Max-Pressure (323 / 322 s). Max wait at noise 0.2: DQN 3407 s, Max-Pressure 1277 s, UG-MARL 1238 s. Mean over the five conditions: UG-MARL 344 s, Max-Pressure 351 s, DQN 464 s, Fixed-Time 435 s (optimistic for UG-MARL: p\* was chosen on this score). Pre-written reading: (a) holds against DQN / IDQN; against Max-Pressure under noise the result is a tie with overlapping CIs (the (b) element), which is the ceiling of a gate that falls back to Max-Pressure. **Not tuned away; whether to go to Phase 7 as locked or make one pre-registered improvement attempt is the user's decision.** `scripts/robustness.py` is reused for 7.3. → worklog/019 |
+| 12 Nov | **After 6.8: Phase 7 runs with the models as locked (user decision).** No improvement attempt before the test flow is opened: the tie with Max-Pressure under noise is the ceiling of a gate that falls back to Max-Pressure (81–96 % fallback there), H1–H3 do not require beating it, and another round of changes would reopen selection 5 days before submission. **"Run the test, then improve if UG-MARL loses" is rejected:** a change chosen because of a test result uses the test flow for selection. A follow-up is possible only as the pre-specified optional extension (detector smoothing; validation-only selection; extra labelled row; locked model stays the headline). → worklog/020 |
+| 12 Nov | **Protocol amendment (before any final run): seeds 0–4 for 7.3 and 7.4** (was 0–2). Five trained seeds exist and an episode takes ~6 s; the 95 % CI uses t = 2.78 instead of 4.30; same seeds as the validation table 6.8; the clean column of 7.3 is then the same runs as 7.1 / 7.2, so every test episode runs exactly once. `docs/evaluation_protocol.md` §6, §9. → worklog/020 |
+| 12 Nov | **Phase 7 readings fixed before the runs** (ROADMAP Phase 7 set-up; `PRD.md` §1c; protocol §9): H1 / H3 by CI rule on the clean test flow; **H2 in three levels** — (i) max wait clean, (ii) max wait at noise 0.2, (iii) travel-time increase clean → noise 0.2, gate vs −gate; supported = all three, partly supported = (ii) + (iii) — because PRD §1c did not say in which condition max wait is compared and validation differs between clean (761 vs 691 s) and noise 0.2 (1238 vs 3307 s). Added descriptive statistic: per-condition **regret** against the best of the five agents (largest and mean over conditions). Verdicts are computed by code written before the test flow is opened. → worklog/020 |
+| 12 Nov | **Phase 7 execution design:** one runner (`scripts/robustness.py`) for 7.1–7.4, two specs (`final_test`, `final_heldout`), each episode run once with `--workers 1` (valid decision latency), all Phase 8 inputs logged in the same pass (per-step, per-vehicle, per-decision), lock manifest `models/manifest.json` verified by `--final`. IDQN is reported as "not transferable" on Hangzhou. No combined perturbations and no perturbed Hangzhou (not in the protocol). The planned `scripts/run_ablation.py` is dropped (ablations are rows of the same grid). SHAP (optional) not done. → worklog/020 |

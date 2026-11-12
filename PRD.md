@@ -32,12 +32,15 @@ predicting a fixed label.
 
 ### 1c. Success criteria
 
-Fixed before experiments; evaluated on test flows, ≥ 3 seeds, mean ± 95% CI.
+Fixed before experiments; evaluated on test flows, ≥ 3 seeds (5 used, seeds 0–4), mean ± 95% CI.
 
 - **H1 supported** if UG-MARL's average travel time is lower than both IDQN's and
   Max-Pressure's, with non-overlapping 95% confidence intervals.
 - **H2 supported** if, versus −gate, the full model has a lower maximum per-vehicle wait **and**
   a smaller travel-time degradation as sensor noise goes from 0 to 0.2.
+  *Reading fixed 12 Nov, before the test runs (`docs/evaluation_protocol.md` §9):* max wait is
+  compared on the clean flow (i) and at noise 0.2 (ii), the degradation is (iii); **supported**
+  = all three, **partly supported** = (ii) and (iii) only, otherwise **not supported**.
 - **H3 supported** if the full model's average travel time is lower than −attention's, with
   non-overlapping 95% CIs.
 - **Minimum acceptable outcome:** UG-MARL is no worse than Max-Pressure on maximum wait (the
