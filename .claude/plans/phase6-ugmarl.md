@@ -442,10 +442,10 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
    (always fires → travel time must equal Max-Pressure's 326.11 s exactly) and with a huge τ
    (must equal the ungated run). Short device benchmark (CPU vs CUDA, K = 10, d = 128, 3
    episodes) → keep or change `train.device`; determinism check on the chosen device.
-7. [ ] **Learning sanity run** (seed 0, K = 5, d = 64, 100 episodes; a dev run, not a trial):
+7. [x] **Learning sanity run** (seed 0, K = 5, d = 64, 100 episodes; a dev run, not a trial):
    val travel time must fall below Fixed-Time (434.84 s) and approach the DQN range; σ must
    be non-zero and not collapse to ~0. If not → debug before tuning; log dead ends.
-8. [ ] **Platform gate (D0)**; write and **commit** `configs/search/ugmarl.yaml` and
+8. [x] **Platform gate (D0)**; write and **commit** `configs/search/ugmarl.yaml` and
    `configs/search/ugmarl_gate.yaml`; `tune.py` changes + tests. If on native Ubuntu: re-run
    the DQN / IDQN 5-seed finals and val evaluation there first.
 9. [ ] Grid study: `tune.py --search configs/search/ugmarl.yaml --agent ugmarl --workers 4`
@@ -544,6 +544,16 @@ No row has split `test` or `heldout`.
   `cpu` (Phase 5 benchmark: CPU 1.1–1.5× faster for these MLPs). CPU determinism checked.
 - **Step 8 — full grid:** `sample_trials` returns the whole grid in grid order when
   `trials` equals the grid size (no sampling); Phase 5's 8-of-36 sampling is unchanged.
+- **Step 8 — platform:** native Ubuntu, 0.1b done; the DQN / IDQN finals and their val
+  evaluation were already re-run natively (worklog/018, bit-identical to WSL), so they were
+  not re-run again. All Phase 6 numbers are native (*final-val*).
+- **Steps 11 / 12 code written early** (while runs trained): `calibrate_gate.py` runs each
+  (condition, p) as one `evaluate.py` process over the 5 seeds into its own results
+  directory, per-seed τ through `gate.file` with `{seed}`; **all calibration episodes use
+  full tracking** (plan: sweep `track=light`) so the table can report max wait. Dry run on
+  the smoke model (1 seed, 2 p, 2 conditions) worked end to end; its outputs were deleted.
+  `sigma_check.py` computes Spearman ρ as the Pearson correlation of ranks (scipy is not a
+  dependency). `val_table.py` gains `--out/--title/--intro` and a fallback-rate column.
 
 ## Worklog
 
