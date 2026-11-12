@@ -437,7 +437,7 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
    `configs/base.yaml` block, `configs/ugmarl*.yaml` + tests.
 5. [x] `DecisionRecorder`, `run_episode(recorder=)`, `evaluate.py --log-decisions`, gate-file
    resolution + tests.
-6. [ ] Smoke: `train.py --config configs/ugmarl.yaml train.episodes=2 train.val_every=1`
+6. [x] Smoke: `train.py --config configs/ugmarl.yaml train.episodes=2 train.val_every=1`
    for full / −attention / −ensemble; evaluate on val with `agents.ugmarl.gate.tau=0.0`
    (always fires → travel time must equal Max-Pressure's 326.11 s exactly) and with a huge τ
    (must equal the ungated run). Short device benchmark (CPU vs CUDA, K = 10, d = 128, 3
@@ -539,6 +539,11 @@ No row has split `test` or `heldout`.
   incoming lanes): `info` carries observed lane counts, not observed waiting counts, and the
   recorder must not read ground truth. `metrics.csv` of UG-MARL runs gains `tau` and
   `tau_source`; `evaluate` checks τ for every seed before writing anything.
+- **Step 6 — no CUDA benchmark:** CUDA is not available on native Ubuntu (NVIDIA driver not
+  loaded, worklog/018), so the CPU-vs-CUDA comparison could not run; `train.device` stays
+  `cpu` (Phase 5 benchmark: CPU 1.1–1.5× faster for these MLPs). CPU determinism checked.
+- **Step 8 — full grid:** `sample_trials` returns the whole grid in grid order when
+  `trials` equals the grid size (no sampling); Phase 5's 8-of-36 sampling is unchanged.
 
 ## Worklog
 
