@@ -1,0 +1,42 @@
+# ROADMAP 7.4 — FINAL zero-shot evaluation on the held-out city, Hangzhou 4x4 (plan
+# phase7-final-experiments). Written and committed BEFORE any Hangzhou flow is simulated.
+# Models trained on the Jinan train flow only; tau from Jinan validation; clean detectors.
+#   python scripts/robustness.py --spec configs/final_heldout.yaml --final --workers 1 \
+#       --results-dir results/final
+# IDQN is absent on purpose: one network per Jinan intersection cannot run on 16 other
+# intersections (reported as "not transferable"). Every episode is run exactly ONCE.
+study: final_heldout
+dataset: hangzhou
+split: heldout                   # refused without --final
+seeds: [0, 1, 2, 3, 4]
+tag: final
+log_trace: true
+table: false
+
+models:
+  fixed_time:    {config: configs/eval_baselines.yaml}
+  max_pressure:  {config: configs/eval_baselines.yaml}
+  dqn:           {config: configs/eval_rl_baselines.yaml}
+  ugmarl:
+    config: configs/eval_ugmarl.yaml
+    log_decisions: true
+  ugmarl-nogate:
+    config: configs/eval_ugmarl.yaml
+    agent: ugmarl
+    train_model: ugmarl
+    log_decisions: true
+    overrides: [agents.ugmarl.use_gate=false]
+  ugmarl-noattn:
+    config: configs/eval_ugmarl.yaml
+    agent: ugmarl
+    log_decisions: true
+    overrides: [agents.ugmarl.use_attention=false]
+  ugmarl-noens:
+    config: configs/eval_ugmarl.yaml
+    agent: ugmarl
+    overrides: [agents.ugmarl.use_ensemble=false]
+
+conditions:                      # the three flow files of data/processed/splits.json, in order
+  - {name: real,      data.flow_index: 0}    # anon_4_4_hangzhou_real.json
+  - {name: real_5734, data.flow_index: 1}    # anon_4_4_hangzhou_real_5734.json
+  - {name: real_5816, data.flow_index: 2}    # anon_4_4_hangzhou_real_5816.json
