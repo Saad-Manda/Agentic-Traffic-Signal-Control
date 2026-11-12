@@ -1,1 +1,6 @@
-"""Proposed UG-MARL: neighbor attention, Q-ensemble, uncertainty gate."""
+"""Proposed UG-MARL: neighbor attention, Q-ensemble, uncertainty gate (plan phase6-ugmarl)."""
+
+from trafficrl.agents.ugmarl.agent import UGMARLAgent, variant_name
+from trafficrl.agents.ugmarl.network import UGMARLNet, expected_params
+
+__all__ = ["UGMARLAgent", "UGMARLNet", "expected_params", "variant_name"]

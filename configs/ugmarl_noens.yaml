@@ -1,0 +1,7 @@
+# UG-MARL −ensemble ablation (ROADMAP 6.5; protocol §9 12 Nov): K = 1, so no σ and no gate;
+# attention kept. Everything else = configs/ugmarl.yaml.
+base: ugmarl.yaml
+
+agents:
+  ugmarl:
+    use_ensemble: false

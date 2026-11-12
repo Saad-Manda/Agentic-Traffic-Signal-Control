@@ -433,7 +433,7 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
 2. [x] Core changes: replay extras, masked loss, mask RNG, relaxed `load` + tests; confirm
    DQN / IDQN regression test and the full existing suite pass.
 3. [x] `NeighborhoodEncoder` + `UGMARLNet` + tests.
-4. [ ] `UGMARLAgent` (μ, σ, gate, flags, explanations, checkpoint), `gate.py`, registry,
+4. [x] `UGMARLAgent` (μ, σ, gate, flags, explanations, checkpoint), `gate.py`, registry,
    `configs/base.yaml` block, `configs/ugmarl*.yaml` + tests.
 5. [ ] `DecisionRecorder`, `run_episode(recorder=)`, `evaluate.py --log-decisions`, gate-file
    resolution + tests.
@@ -530,6 +530,11 @@ No row has split `test` or `heldout`.
   the same SHA-256 of the weights.
 - `QLearner` reads K from `net.heads` (not a separate `heads` param) and gains two hooks,
   `checkpoint_extra()` / `check_checkpoint()`, for the UG-MARL architecture check.
+- **Step 4:** `act` raises nothing when τ is unknown — `tau = None` is the ungated policy
+  (needed by validation inside `train.py`); the "gate requested but no τ → error" rule is
+  enforced where τ is resolved, in `eval.runner.evaluate` (step 5). `model_label()` in
+  `trafficrl.agents` gives the variant name for run directories, `summary.json` and the log.
+  `configs/eval_ugmarl.yaml` inherits `ugmarl.yaml` so K / d always match the trained runs.
 
 ## Worklog
 

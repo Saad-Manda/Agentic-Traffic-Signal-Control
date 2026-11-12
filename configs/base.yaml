@@ -36,9 +36,20 @@ agents:                  # agent parameters, read by trafficrl.agents.make_agent
   max_pressure: {}                  # every Δt, ties → lowest phase id
   dqn: {hidden: [128, 128]}         # shared-parameter DQN (5.2); size fixed, not tuned
   idqn: {hidden: [128, 128]}        # one network per intersection (5.3)
+  ugmarl:                           # proposed (Phase 6; plan phase6-ugmarl D5)
+    use_attention: true             # ablation flag (−attention: no neighbour input)
+    use_ensemble: true              # ablation flag (−ensemble: heads -> 1, no σ, gate off)
+    use_gate: true                  # ablation flag (−gate); the gate acts at evaluation only
+    heads: 5                        # K — tuned (configs/search/ugmarl.yaml)
+    attn_dim: 64                    # d — tuned
+    head_hidden: 128                # fixed, the baselines' hidden width
+    mask_prob: 0.8                  # Bernoulli bootstrap mask — fixed, not tuned
+    gate:
+      tau: null                     # number, or null -> read `file`
+      file: auto                    # auto = gate.json next to the checkpoint (scripts/calibrate_gate.py)
 
 train:                   # scripts/train.py (Phase 5; plan phase5-rl-baselines). UG-MARL reuses it.
-  agent: dqn             # learned agent to train (dqn | idqn)
+  agent: dqn             # learned agent to train (dqn | idqn | ugmarl)
   episodes: 100          # training episodes on the train flow
   val_every: 5           # greedy validation episode every N training episodes (+ the last)
   device: cpu            # step-6 benchmark: CPU 1.1–1.5x faster than CUDA for these MLPs (worklog/016)

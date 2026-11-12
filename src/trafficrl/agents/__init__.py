@@ -10,9 +10,10 @@ from trafficrl.agents.baselines.dqn import DQNAgent
 from trafficrl.agents.baselines.fixed_time import FixedTimeAgent
 from trafficrl.agents.baselines.idqn import IDQNAgent
 from trafficrl.agents.baselines.max_pressure import MaxPressureAgent
+from trafficrl.agents.ugmarl import UGMARLAgent, variant_name
 
-AGENTS = ("fixed_time", "max_pressure", "dqn", "idqn")
-LEARNED_AGENTS = ("dqn", "idqn")
+AGENTS = ("fixed_time", "max_pressure", "dqn", "idqn", "ugmarl")
+LEARNED_AGENTS = ("dqn", "idqn", "ugmarl")
 
 
 def make_agent(name: str, env: Any, cfg: Mapping[str, Any]) -> Agent:
@@ -28,9 +29,17 @@ def make_agent(name: str, env: Any, cfg: Mapping[str, Any]) -> Agent:
         return MaxPressureAgent(env.features, **params)
     if name in LEARNED_AGENTS:
         learn = {**dict(cfg.get("train", {}) or {}), **params}
-        cls = DQNAgent if name == "dqn" else IDQNAgent
+        cls = {"dqn": DQNAgent, "idqn": IDQNAgent, "ugmarl": UGMARLAgent}[name]
         return cls(env, learn, seed=int(cfg.get("seed", 0)))
     raise ValueError(f"unknown agent {name!r}; one of {AGENTS}")
+
+
+def model_label(name: str, cfg: Mapping[str, Any]) -> str:
+    """Name used in run directories and the experiment log: the agent name, or the UG-MARL
+    variant (``ugmarl-noattn`` …) given by the ``agents.ugmarl`` ablation flags."""
+    if name == "ugmarl":
+        return variant_name((cfg.get("agents", {}) or {}).get("ugmarl", {}))
+    return name
 
 
 __all__ = [
@@ -42,5 +51,7 @@ __all__ = [
     "IDQNAgent",
     "MaxPressureAgent",
     "RuleAgent",
+    "UGMARLAgent",
     "make_agent",
+    "model_label",
 ]

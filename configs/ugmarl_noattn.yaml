@@ -1,0 +1,7 @@
+# UG-MARL −attention ablation (ROADMAP 6.5; protocol §9 12 Nov): no neighbour input, K heads
+# and gate kept (own τ from the same percentile p). Everything else = configs/ugmarl.yaml.
+base: ugmarl.yaml
+
+agents:
+  ugmarl:
+    use_attention: false

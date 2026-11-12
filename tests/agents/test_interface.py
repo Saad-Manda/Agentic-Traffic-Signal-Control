@@ -21,7 +21,10 @@ def test_every_agent_implements_the_interface(name, tmp_path):
         agent.observe(info["transitions"])
     if name not in LEARNED_AGENTS:
         assert agent.update() == {}
-    assert agent.last_explanations() == {}
+    if name == "ugmarl":  # explanations of the last greedy decision (plan phase6 D7)
+        assert set(agent.last_explanations()["sigma"]) == set(env.intersection_ids)
+    else:
+        assert agent.last_explanations() == {}
     agent.save(tmp_path / "x")
     agent.load(tmp_path / "x")
 

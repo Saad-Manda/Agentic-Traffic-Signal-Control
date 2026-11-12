@@ -17,7 +17,7 @@ import json
 import sys
 from pathlib import Path
 
-from trafficrl.agents import LEARNED_AGENTS
+from trafficrl.agents import LEARNED_AGENTS, model_label
 from trafficrl.data.splits import REPO_ROOT
 from trafficrl.train.tune import (
     collect,
@@ -78,7 +78,7 @@ def study(args) -> int:
 
 def seeds(args) -> int:
     cfg = load_config(args.config, args.overrides)
-    agent = cfg["train"]["agent"]
+    agent = model_label(cfg["train"]["agent"], cfg)  # UG-MARL ablations get their own names
     out = TUNE_DIR / f"{agent}_{args.tag}_seeds"
     runs, jobs = {}, []
     for s in args.seeds:

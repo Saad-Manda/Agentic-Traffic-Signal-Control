@@ -1,0 +1,25 @@
+# UG-MARL training, full model (ROADMAP 6.1-6.3; plan phase6-ugmarl D5, D8).
+# Learning settings inherited from the baselines' tuning winner t6 (lr / gamma / batch /
+# eps-decay; tuned for DQN / IDQN, not for UG-MARL — disclosed). K and d: placeholders until
+# the grid study (configs/search/ugmarl.yaml) selects them; then locked whatever they score.
+base: base.yaml
+seed: 0
+
+data:
+  dataset: jinan
+  split: train           # training flow; checkpoints are selected on val (ungated) in train.py
+
+train:
+  agent: ugmarl
+  lr: 1.0e-4             # inherited (study rl_baselines, trial t6)
+  gamma: 0.8             # inherited
+  batch_size: 64         # inherited
+  eps_decay_frac: 0.3    # inherited
+
+agents:
+  ugmarl:
+    heads: 5             # K — to be set by the grid study
+    attn_dim: 64         # d — to be set by the grid study
+
+output:
+  results_dir: results/train

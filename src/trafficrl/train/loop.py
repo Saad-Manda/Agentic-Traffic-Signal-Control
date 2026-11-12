@@ -27,7 +27,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from trafficrl.agents import LEARNED_AGENTS, make_agent
+from trafficrl.agents import LEARNED_AGENTS, make_agent, model_label
 from trafficrl.agents.core import LinearSchedule, n_params
 from trafficrl.data.splits import REPO_ROOT
 from trafficrl.envs.traffic_env import make_env
@@ -102,8 +102,9 @@ def train(
             "checkpoints are selected on 'val', test / held-out are never used here"
         )
     seed = int(cfg["seed"])
+    label = model_label(agent_name, cfg)  # UG-MARL: variant name (ugmarl-noattn, …)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    run_name = run_name or f"{agent_name}_s{seed}_{stamp}"
+    run_name = run_name or f"{label}_s{seed}_{stamp}"
     out = REPO_ROOT / cfg["output"]["results_dir"] / run_name
     (out / "checkpoints").mkdir(parents=True, exist_ok=True)
     save_config(cfg, out / "config.yaml")
@@ -158,6 +159,7 @@ def train(
     summary = {
         "run_name": run_name,
         "agent": agent_name,
+        "model": label,
         "seed": seed,
         "episodes": episodes,
         "best_val_avg_travel_time_s": best[0],
@@ -185,7 +187,7 @@ def train(
         run_id=run_name,
         split=TRAIN_SPLIT,
         seed=seed,
-        model=agent_name,
+        model=label,
         hyperparameters=hyper,
         metric_name=f"{PRIMARY_METRIC} (val, best checkpoint)",
         metric_value=best[0],
