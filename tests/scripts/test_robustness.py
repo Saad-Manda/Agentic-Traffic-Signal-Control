@@ -1,6 +1,7 @@
 """scripts/robustness.py: job construction and guards (plan val-robustness-references)."""
 
 import importlib.util
+import json
 import subprocess
 import sys
 
@@ -117,3 +118,63 @@ def test_finished_job_is_found_and_table_only_needs_all_runs(rb, tmp_path):
     assert rb.finished_run(job) == run_dir
     r = run(spec, tmp_path, "--table-only")
     assert r.returncode == 1 and "max_pressure__noise0.1" in r.stderr
+
+
+def test_named_conditions_and_logging_flags(rb, tmp_path):
+    spec = {
+        **SPEC,
+        "log_trace": True,
+        "models": {
+            "max_pressure": SPEC["models"]["max_pressure"],
+            "ugmarl": {"config": "configs/eval_ugmarl.yaml", "log_decisions": True},
+        },
+        "conditions": [{"name": "real", "data.flow_index": 0}, {"name": "b", "data.flow_index": 1}],
+    }
+    jobs = {(m, c): (d, a) for m, c, d, a in rb.build_jobs(spec, tmp_path, tmp_path / "tr", True)}
+    assert [c for _, c in jobs] == ["real", "b", "real", "b"]
+    d, mp = jobs[("max_pressure", "b")]
+    assert d.name == "max_pressure__b" and "data.flow_index=1" in mp
+    assert not any(a.startswith("name=") for a in mp)
+    assert "--log-trace" in mp and "--log-decisions" not in mp
+    assert "--log-decisions" in jobs[("ugmarl", "real")][1]
+    assert rb.training_runs(spec) == ["ugmarl_final_s0", "ugmarl_final_s1"]
+    assert rb.training_runs(SPEC) == [
+        "dqn_final_s0", "dqn_final_s1", "ugmarl_final_s0", "ugmarl_final_s1"
+    ]  # fmt: skip
+
+
+def _train_runs(tmp_path):
+    from trafficrl.eval.lock import build_manifest
+
+    train = tmp_path / "train"
+    for s in (0, 1):
+        d = train / f"dqn_final_s{s}" / "checkpoints"
+        d.mkdir(parents=True)
+        (d / "best.pt").write_bytes(b"w%d" % s)
+        (d.parent / "config.yaml").write_text("seed: 0\n")
+    return train, build_manifest(train, ["dqn"], [0, 1])
+
+
+def test_final_needs_matching_manifest(tmp_path):
+    train, manifest = _train_runs(tmp_path)
+    spec = write_spec(tmp_path, split="test", models={"dqn": SPEC["models"]["dqn"]})
+    mf = tmp_path / "manifest.json"
+    r = run(spec, tmp_path, "--final", "--manifest", str(mf))
+    assert r.returncode == 2 and "lock manifest" in r.stderr  # no manifest
+    mf.write_text(json.dumps(manifest))
+    (train / "dqn_final_s1" / "checkpoints" / "best.pt").write_bytes(b"changed")
+    r = run(spec, tmp_path, "--final", "--manifest", str(mf))
+    assert r.returncode == 2 and "dqn_final_s1/checkpoints/best.pt: changed" in r.stderr
+    mf.write_text(json.dumps({**manifest, "runs": {}}))  # run not covered by the lock
+    r = run(spec, tmp_path, "--final", "--manifest", str(mf))
+    assert r.returncode == 2 and "not in the lock manifest" in r.stderr
+
+
+def test_unfinished_final_job_stops(tmp_path):
+    train, manifest = _train_runs(tmp_path)
+    spec = write_spec(tmp_path, split="test", models={"dqn": SPEC["models"]["dqn"]})
+    mf = tmp_path / "manifest.json"
+    mf.write_text(json.dumps(manifest))
+    (tmp_path / "r" / "t" / "eval" / "dqn__clean" / "dqn_jinan-test_clean_x").mkdir(parents=True)
+    r = run(spec, tmp_path, "--final", "--manifest", str(mf))
+    assert r.returncode == 2 and "unfinished final runs ['dqn__clean']" in r.stderr

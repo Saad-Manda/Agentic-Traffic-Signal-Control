@@ -1,7 +1,9 @@
-"""Model × condition evaluation table (ROADMAP 6.8 on validation; 7.3 on test with --final).
+"""Model × condition evaluation runs + table (ROADMAP 6.8 on validation; Phase 7 with --final).
 
     python scripts/robustness.py --spec configs/robustness_val.yaml [--workers 5] \
         [--out docs/results/val_robustness] [--table-only] [--final]
+    python scripts/robustness.py --spec configs/final_test.yaml --final --workers 1 \
+        --results-dir results/final          # Phase 7: every test episode, once
 
 The spec lists models, seeds and observation / demand conditions. Each (model, condition) is
 one ``scripts/evaluate.py`` process over all seeds, written to
@@ -10,12 +12,20 @@ Learned models load ``results/train/<train_model>_<tag>_s{seed}/checkpoints/best
 UG-MARL reads τ from the ``gate.json`` next to each checkpoint. A finished job is skipped on a
 re-run. The table (``<out>.{csv,md}``) is built from the finished runs.
 
-**Nothing is selected here.** ``split: test | heldout`` is refused unless ``--final``.
+Spec extras (Phase 7): a condition may carry ``name`` and any config override (e.g.
+``data.flow_index`` for the three Hangzhou flows); a model may set ``log_decisions: true``;
+``log_trace: true`` logs every step and vehicle; ``table: false`` skips the Markdown table
+(Phase 7 tables come from ``scripts/final_tables.py``).
+
+**Nothing is selected here.** ``split: test | heldout`` is refused unless ``--final``; with
+``--final`` the lock manifest ``models/manifest.json`` must match the checkpoints, and a job
+that was started but not finished stops the script (``--rerun-failed`` after logging why).
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -24,10 +34,11 @@ import pandas as pd
 from trafficrl.agents import LEARNED_AGENTS
 from trafficrl.data.splits import REPO_ROOT
 from trafficrl.envs.traffic_env import FINAL_SPLITS
-from trafficrl.eval.report import condition_table, fmt
-from trafficrl.eval.runner import condition_label
+from trafficrl.eval.lock import uncovered, verify_manifest
+from trafficrl.eval.report import condition_name as cond_name
+from trafficrl.eval.report import condition_table, finished_run, fmt
 from trafficrl.train.tune import run_parallel
-from trafficrl.utils.config import apply_overrides, read_yaml
+from trafficrl.utils.config import read_yaml
 from trafficrl.utils.plotting import CONTROLLER_LABEL
 
 EVAL_SCRIPT = REPO_ROOT / "scripts" / "evaluate.py"
@@ -35,12 +46,11 @@ RESULTS = REPO_ROOT / "results" / "robustness"
 DOCS = REPO_ROOT / "docs" / "results"
 
 
+MANIFEST = REPO_ROOT / "models" / "manifest.json"
+
+
 def cond_overrides(cond: dict) -> list[str]:
-    return [f"{k}={v}" for k, v in cond.items()]
-
-
-def cond_name(cond: dict) -> str:
-    return condition_label(apply_overrides({"robustness": {}}, cond_overrides(cond)))
+    return [f"{k}={v}" for k, v in cond.items() if k != "name"]
 
 
 def checkpoint_template(model: str, m: dict, tag: str, train_dir: Path) -> str | None:
@@ -50,9 +60,20 @@ def checkpoint_template(model: str, m: dict, tag: str, train_dir: Path) -> str |
     return str(train_dir / f"{m.get('train_model', model)}_{tag}_s{{seed}}/checkpoints/best.pt")
 
 
-def finished_run(job_dir: Path) -> Path | None:
-    runs = sorted(p for p in job_dir.glob("*") if (p / "metrics.csv").exists())
-    return runs[-1] if runs else None
+def unfinished_runs(job_dir: Path) -> list[Path]:
+    """Run directories that were started but have no ``metrics.csv`` (crash / interrupt)."""
+    return sorted(p for p in job_dir.glob("*") if p.is_dir() and not (p / "metrics.csv").exists())
+
+
+def training_runs(spec: dict) -> list[str]:
+    """Names of the training runs (``<train_model>_<tag>_s<seed>``) the spec evaluates."""
+    names = []
+    for model, m in spec["models"].items():
+        m = m or {}
+        if m.get("agent", model) in LEARNED_AGENTS:
+            tm, tag = m.get("train_model", model), spec.get("tag", "final")
+            names += [f"{tm}_{tag}_s{int(s)}" for s in spec["seeds"]]
+    return list(dict.fromkeys(names))
 
 
 def build_jobs(spec: dict, study_dir: Path, train_dir: Path, final: bool):
@@ -76,6 +97,10 @@ def build_jobs(spec: dict, study_dir: Path, train_dir: Path, final: bool):
                 argv += ["--checkpoint", ckpt]
             if final:
                 argv.append("--final")
+            if m.get("log_decisions"):
+                argv.append("--log-decisions")
+            if spec.get("log_trace"):
+                argv.append("--log-trace")
             argv += [*m.get("overrides", []), *cond_overrides(cond)]
             argv.append(f"output.results_dir={job_dir}")
             jobs.append((model, name, job_dir, argv))
@@ -191,6 +216,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--train-dir", type=Path, default=REPO_ROOT / "results" / "train")
     ap.add_argument("--table-only", action="store_true", help="run nothing, rebuild the table")
     ap.add_argument("--final", action="store_true", help="allow test / held-out (Phase 7 only)")
+    ap.add_argument("--manifest", type=Path, default=MANIFEST, help="lock file checked by --final")
+    ap.add_argument(
+        "--rerun-failed",
+        action="store_true",
+        help="--final only: re-run jobs that were started but not finished (log the reason "
+        "in the ROADMAP Decision Log first)",
+    )
     args = ap.parse_args(argv)
 
     spec = read_yaml(args.spec)
@@ -204,8 +236,34 @@ def main(argv: list[str] | None = None) -> int:
     if missing:
         print("error: missing " + ", ".join(missing), file=sys.stderr)
         return 2
+    if args.final and not args.table_only:
+        if not args.manifest.is_file():
+            print(
+                f"error: --final needs the lock manifest {args.manifest} "
+                "(python scripts/lock_models.py --write, then commit it)",
+                file=sys.stderr,
+            )
+            return 2
+        manifest = json.loads(args.manifest.read_text())
+        problems = verify_manifest(manifest, args.train_dir) + [
+            f"{n}: not in the lock manifest" for n in uncovered(manifest, training_runs(spec))
+        ]
+        if problems:
+            print("error: lock manifest check failed:\n  " + "\n  ".join(problems),
+                  file=sys.stderr)  # fmt: skip
+            return 2
     study_dir = args.results_dir / spec["study"]
     jobs = build_jobs(spec, study_dir, args.train_dir, args.final)
+    if args.final and not args.table_only and not args.rerun_failed:
+        broken = [f"{m}__{c}" for m, c, d, _ in jobs
+                  if finished_run(d) is None and unfinished_runs(d)]  # fmt: skip
+        if broken:
+            print(
+                f"error: unfinished final runs {broken}: a final episode is run once. Find the "
+                "cause, add a Decision Log row, then pass --rerun-failed",
+                file=sys.stderr,
+            )
+            return 2
 
     if not args.table_only:
         todo = [(f"{m}__{c}", a) for m, c, d, a in jobs if finished_run(d) is None]
@@ -221,6 +279,9 @@ def main(argv: list[str] | None = None) -> int:
     if absent:
         print(f"error: no finished run for {absent}", file=sys.stderr)
         return 1
+    if not spec.get("table", True):
+        print(f"all {len(runs)} jobs finished; table: false (use scripts/final_tables.py)")
+        return 0
     table = condition_table(runs)
     out = Path(args.out) if args.out else DOCS / spec["study"]
     out.parent.mkdir(parents=True, exist_ok=True)

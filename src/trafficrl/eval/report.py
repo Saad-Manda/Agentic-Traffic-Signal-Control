@@ -12,6 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from trafficrl.utils.config import apply_overrides
 from trafficrl.utils.stats import summarise, t975
 
 
@@ -101,3 +102,50 @@ def condition_table(runs: Mapping[tuple[str, str], Path]) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
+
+# --- model × condition studies (scripts/robustness.py, scripts/final_tables.py) -------------
+
+
+def condition_name(cond: Mapping) -> str:
+    """Explicit ``name``, else the label of the ``robustness.*`` keys (``clean``, ``noise0.1``)."""
+    from trafficrl.eval.runner import condition_label
+
+    if cond.get("name"):
+        return str(cond["name"])
+    overrides = [f"{k}={v}" for k, v in cond.items() if k != "name"]
+    return condition_label(apply_overrides({"robustness": {}}, overrides))
+
+
+def finished_run(job_dir: Path) -> Path | None:
+    """Latest run directory under ``job_dir`` that holds a ``metrics.csv``."""
+    runs = sorted(p for p in Path(job_dir).glob("*") if (p / "metrics.csv").exists())
+    return runs[-1] if runs else None
+
+
+def study_runs(spec: Mapping, study_dir: Path) -> dict[tuple[str, str], Path | None]:
+    """``{(model, condition): run directory or None}`` in the spec's table order."""
+    return {
+        (model, condition_name(dict(c or {}))): finished_run(
+            Path(study_dir) / "eval" / f"{model}__{condition_name(dict(c or {}))}"
+        )
+        for model in spec["models"]
+        for c in spec["conditions"]
+    }
+
+
+def load_study(spec: Mapping, study_dir: Path) -> pd.DataFrame:
+    """Per-seed metrics of every finished job: ``model, condition, run_dir, seed, <metrics>``."""
+    frames, absent = [], []
+    for (model, cond), run in study_runs(spec, study_dir).items():
+        if run is None:
+            absent.append(f"{model}__{cond}")
+            continue
+        m = pd.read_csv(run / "metrics.csv")
+        m.insert(0, "run_dir", str(run))
+        m.insert(0, "condition", cond)
+        m.insert(0, "model", model)
+        frames.append(m)
+    if absent:
+        raise FileNotFoundError(f"no finished run for {absent} in {study_dir}")
+    return pd.concat(frames, ignore_index=True)
