@@ -242,9 +242,9 @@ CityFlow, the perturbation and the surge RNG; seed s loads the checkpoint traine
 
 1. [x] **Record decisions:** ROADMAP Phase 7 block (studies, readings, commands) and Decision
    Log rows; protocol §6 / §9; PRD §1c. Commit.
-2. [ ] **Code + tests** (changes 1–5). `pytest` and `ruff check src tests scripts` pass.
-3. [ ] **Specs:** `configs/final_test.yaml`, `configs/final_heldout.yaml`. Commit.
-4. [ ] **Smoke on validation** — a copy of the test spec with `split: val`, study
+2. [x] **Code + tests** (changes 1–5). `pytest` and `ruff check src tests scripts` pass.
+3. [x] **Specs:** `configs/final_test.yaml`, `configs/final_heldout.yaml`. Commit.
+4. [x] **Smoke on validation** — a copy of the test spec with `split: val`, study
    `smoke_final`, run with `--workers 1`, logging on:
    - clean and perturbed columns equal `docs/results/val_robustness.md` and
      `val_phase6.md` for all 8 models (logging and code changes leave results unchanged);
@@ -252,7 +252,15 @@ CityFlow, the perturbation and the surge RNG; seed s loads the checkpoint traine
      scratch directory, not to `docs/results/`);
    - surge ×1.5 runs to the end for every model (first time surge is used with learned agents).
    A mismatch is investigated before going on.
-5. [ ] **Lock:** `python scripts/lock_models.py --write`; check τ and validation scores in the
+   *Result (12 Nov):* 48 jobs, 240 validation episodes. All 30 cells shared with
+   `val_robustness.csv` and the 8 clean rows of `val_phase6.csv` reproduce with difference 0
+   (travel time, std, max wait, fallback rate). Surge ×1.5 ran for every model. Smoke
+   verdicts on validation: H1 supported, H3 not supported, H2 partly supported, minimum
+   outcome met. *Deviations:* run with `--workers 5` (latency is not needed for the smoke);
+   the surge condition was thereby seen on validation for the first time — nothing is
+   selected from it. Also changed: `runlog.git_commit` ignores the experiment log itself when
+   deciding `-dirty` (otherwise every row after the first of a study is marked dirty).
+5. [x] **Lock:** `python scripts/lock_models.py --write`; check τ and validation scores in the
    manifest against `gate_calibration.md` / `val_phase6.md`; commit code, specs and manifest.
    Working tree clean (the experiment log must show a commit hash without `-dirty`).
 6. [ ] **Final test study** (idle machine, mains power):

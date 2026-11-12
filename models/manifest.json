@@ -1,0 +1,327 @@
+{
+  "_comment": "Models locked on validation before the final evaluation (ROADMAP Phase 7). Written by scripts/lock_models.py --write; verified by scripts/robustness.py --final. Paths are relative to results/train/.",
+  "locked_at": "2026-11-12T23:09:31+05:30",
+  "git_commit": "92d080f",
+  "tag": "final",
+  "models": [
+    "dqn",
+    "idqn",
+    "ugmarl",
+    "ugmarl-noattn",
+    "ugmarl-noens"
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "runs": {
+    "dqn_final_s0": {
+      "model": "dqn",
+      "seed": 0,
+      "files": {
+        "checkpoints/best.pt": "fa16e9fbf172f59c3ebbb19ff6935b9cea1f032a46c15d2213653271213b864c",
+        "config.yaml": "475dd7f08f5a60e1ef2303ca901a820a9dd19ce01089e0a630590b752c66ef09"
+      },
+      "best_val_avg_travel_time_s": 298.8598,
+      "best_episode": 100,
+      "params": 23304
+    },
+    "dqn_final_s1": {
+      "model": "dqn",
+      "seed": 1,
+      "files": {
+        "checkpoints/best.pt": "3802b8e3df76e1a4f0ed87e0f98454e4e8299cf05ef177cd9fcccd7316504ff9",
+        "config.yaml": "d2590d2bd07cf773de72355eae8288662d8338e07efb1d966a898bbb582dc0aa"
+      },
+      "best_val_avg_travel_time_s": 299.4257,
+      "best_episode": 95,
+      "params": 23304
+    },
+    "dqn_final_s2": {
+      "model": "dqn",
+      "seed": 2,
+      "files": {
+        "checkpoints/best.pt": "ede9c0893f29bce5abacc704636e621702d3a5ab10b78a8685d996bbfd88c058",
+        "config.yaml": "7a26fd46fd087bdb0f550bf8af2a6d8423af521c8be98dd42e51eb804ab24250"
+      },
+      "best_val_avg_travel_time_s": 299.5081,
+      "best_episode": 95,
+      "params": 23304
+    },
+    "dqn_final_s3": {
+      "model": "dqn",
+      "seed": 3,
+      "files": {
+        "checkpoints/best.pt": "f17b4a4cf7e984a57caeaf600d5adde1ee330dcbf0460f7c5eaed343f6e2551d",
+        "config.yaml": "d92be1f88a74d32e3ae495a6a4b3c174a9d11a5f19d405883ad4de19aca34e9a"
+      },
+      "best_val_avg_travel_time_s": 301.584,
+      "best_episode": 100,
+      "params": 23304
+    },
+    "dqn_final_s4": {
+      "model": "dqn",
+      "seed": 4,
+      "files": {
+        "checkpoints/best.pt": "78c99726727c8bf7947f3a83960b1a2a0292be45e6617efff6e0aeca782a9569",
+        "config.yaml": "42c5049625b57d9530e62fada4243b05ef5ee96790d777dddff98be419cc409b"
+      },
+      "best_val_avg_travel_time_s": 299.457,
+      "best_episode": 95,
+      "params": 23304
+    },
+    "idqn_final_s0": {
+      "model": "idqn",
+      "seed": 0,
+      "files": {
+        "checkpoints/best.pt": "f2883b5e247335d8b64d3979632244739e5f06bc4746a80874cf1c384dc78a8c",
+        "config.yaml": "1be3668ed5643c184b297a2a7e8bd056e95d361606efb8e0b7e496604a08e38d"
+      },
+      "best_val_avg_travel_time_s": 310.4215,
+      "best_episode": 85,
+      "params": 279648
+    },
+    "idqn_final_s1": {
+      "model": "idqn",
+      "seed": 1,
+      "files": {
+        "checkpoints/best.pt": "fca269b85ef5710d41479a515e14836d773532dcc2355063e94c40054ed97795",
+        "config.yaml": "46e80eab3e9f155642ce6011f0a352c4d9381e898e9aa3f2327a818cd5771fa1"
+      },
+      "best_val_avg_travel_time_s": 313.0053,
+      "best_episode": 70,
+      "params": 279648
+    },
+    "idqn_final_s2": {
+      "model": "idqn",
+      "seed": 2,
+      "files": {
+        "checkpoints/best.pt": "ec1ed09797aa0cfaffa49204a7a1b0a929b5217793f0198a8076247163cdd3bc",
+        "config.yaml": "8c7dab8d171f61b4a1964fa187c9f8a449d6cf4518b1aec5f105156b86fdea1c"
+      },
+      "best_val_avg_travel_time_s": 314.8131,
+      "best_episode": 100,
+      "params": 279648
+    },
+    "idqn_final_s3": {
+      "model": "idqn",
+      "seed": 3,
+      "files": {
+        "checkpoints/best.pt": "36630d0790493119f8be751229b5016c283143ea472a1e24fa4c8250c7c9e5cc",
+        "config.yaml": "238ef33df7ded471ed909df3c08d04673e46a3e370ddfbed4cc326df02526530"
+      },
+      "best_val_avg_travel_time_s": 315.3743,
+      "best_episode": 80,
+      "params": 279648
+    },
+    "idqn_final_s4": {
+      "model": "idqn",
+      "seed": 4,
+      "files": {
+        "checkpoints/best.pt": "34a26166aa22565e2ff99d4b5519faf57726a0ab34b49c0d91e2682b2e083762",
+        "config.yaml": "1d29c0189ac3cbfc08bad7cbd49cce1029e53ae6b3fc3cce3f8b523b49ba7e40"
+      },
+      "best_val_avg_travel_time_s": 310.022,
+      "best_episode": 90,
+      "params": 279648
+    },
+    "ugmarl_final_s0": {
+      "model": "ugmarl",
+      "seed": 0,
+      "files": {
+        "checkpoints/best.pt": "78217c153bd2be9614ab56301e26fdf17abdc2e128f2ee1eb2b995429e80dffc",
+        "config.yaml": "d484255b8a2a2980a917f54e354fe74a6054eaf6db564f742da9f7e838c12d95",
+        "gate.json": "14d773ef3e53ca0b51e608e711991249abb2196cac0679d578c01cb05a39aefc"
+      },
+      "tau": 0.006186725478619337,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 301.9045,
+      "best_episode": 85,
+      "params": 157720
+    },
+    "ugmarl_final_s1": {
+      "model": "ugmarl",
+      "seed": 1,
+      "files": {
+        "checkpoints/best.pt": "72dcb401a4487a9253b836c85a4628b877e16f10679ed753cc9b4d5786abab52",
+        "config.yaml": "ab511d95252b1f9ed517072b3b1a073185e91b09bf0485459e0261851a1b2339",
+        "gate.json": "b002b28e797a8637c87af262c5623f3b94863abfd348aac33251e118ccefa5b4"
+      },
+      "tau": 0.006556337140500546,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 303.0373,
+      "best_episode": 75,
+      "params": 157720
+    },
+    "ugmarl_final_s2": {
+      "model": "ugmarl",
+      "seed": 2,
+      "files": {
+        "checkpoints/best.pt": "2e0d4a2d630d63606b813cca07db89ed610b6e24d0b45d945dfb2b059ee1c84b",
+        "config.yaml": "92741a95addd24775bae58c51d445019c20fbd3c35c9a85acdece3f8c726db09",
+        "gate.json": "8d5cdeaaa5a978defd5c06328e4f6b9ce6f50dd7931b66f91828280d9e96caee"
+      },
+      "tau": 0.0071312361396849155,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 301.9668,
+      "best_episode": 95,
+      "params": 157720
+    },
+    "ugmarl_final_s3": {
+      "model": "ugmarl",
+      "seed": 3,
+      "files": {
+        "checkpoints/best.pt": "318a4af890540c6eac0f6d9060380cbc519a366f9fd4e3c96cbd049b2accdb3a",
+        "config.yaml": "4fbaac2a8e9dad42eaa1d641a7f87cddd271867be4b1460fd2e17a977fe321c9",
+        "gate.json": "8022ca412d235f669845d309a85311c6347e89d79d06cbb9468ecfcc6279b4e3"
+      },
+      "tau": 0.0055169819854199885,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 301.175,
+      "best_episode": 70,
+      "params": 157720
+    },
+    "ugmarl_final_s4": {
+      "model": "ugmarl",
+      "seed": 4,
+      "files": {
+        "checkpoints/best.pt": "34e4611c1215beb853ef9806151b23380735fe518343496f9a3a401f57e8baba",
+        "config.yaml": "31b059cb57baa90e79b383492ca02ea9e86d5256ef14ba03f1face1d6df8d376",
+        "gate.json": "da76b721718598773f581d54bbdd25a7b2660175e0b3a8d82b1101de9f4da02c"
+      },
+      "tau": 0.005658638663589954,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 300.9546,
+      "best_episode": 95,
+      "params": 157720
+    },
+    "ugmarl-noattn_final_s0": {
+      "model": "ugmarl-noattn",
+      "seed": 0,
+      "files": {
+        "checkpoints/best.pt": "f4c38e08d7b13988bd7fb852b8b666c66101c2418fc088874054dd01505ce34e",
+        "config.yaml": "35f5c0c45a4152f858471914804c2d137a9c91e4cc15eee097476ef93d74eb4c",
+        "gate.json": "4602b77dd8a26eaf3951e9aebebf5ea01478d8896fbb2e1ff18dd4b5f827daca"
+      },
+      "tau": 0.005336236115545035,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 300.4628,
+      "best_episode": 90,
+      "params": 59032
+    },
+    "ugmarl-noattn_final_s1": {
+      "model": "ugmarl-noattn",
+      "seed": 1,
+      "files": {
+        "checkpoints/best.pt": "2efc5124b3a9c44b277c357950e60955fc406ba98e8312be7795e65761a216e9",
+        "config.yaml": "02e35519787d70dc6b1655a7dd9721fd266174c7eccf43b6e6f2e6d1ea7a7d16",
+        "gate.json": "01af94a7f12ab0a1d39db56b0bb57bbff4f43e5d64885b31a24a02d88d13917e"
+      },
+      "tau": 0.006539914850145579,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 299.9434,
+      "best_episode": 90,
+      "params": 59032
+    },
+    "ugmarl-noattn_final_s2": {
+      "model": "ugmarl-noattn",
+      "seed": 2,
+      "files": {
+        "checkpoints/best.pt": "8cf177c7602be412f3085d7dffae58f4fb16fbedf2b00ba79bae27b166ba6db5",
+        "config.yaml": "9330395f4acb5a0e65147b1b5a39be1bec02c25f78fc66fe89290c7e74a1ff24",
+        "gate.json": "a3970213048c3d8e65b3a94ae6c8295bbb3f9172c6c881512c8b5b65b3236a9c"
+      },
+      "tau": 0.005512800719588998,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 299.7326,
+      "best_episode": 80,
+      "params": 59032
+    },
+    "ugmarl-noattn_final_s3": {
+      "model": "ugmarl-noattn",
+      "seed": 3,
+      "files": {
+        "checkpoints/best.pt": "bbb7d15d592ca506cb2c8e2a3222700f095391a5334bc949a5ba223cbe202667",
+        "config.yaml": "b7d9354b1d1bba2f60c96bba47e20b1268a2ddd43d1e577352413aae27d5c6f5",
+        "gate.json": "c7d0d1e61c9c1d1b53ace8c7ae2e097d57eaef5ee1cf323318c2d67a60d2ed24"
+      },
+      "tau": 0.005485507752746344,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 299.0763,
+      "best_episode": 95,
+      "params": 59032
+    },
+    "ugmarl-noattn_final_s4": {
+      "model": "ugmarl-noattn",
+      "seed": 4,
+      "files": {
+        "checkpoints/best.pt": "7bb23b0e01ffcb093d7518e4208bff3a05035bc9ba5e1b7a2fc5f49644d78447",
+        "config.yaml": "7378469f14d75768b5e3e5c0ed533f31930e129bc1aea06a53d76b61bbcd49a0",
+        "gate.json": "85e2884a127aaaaeefba1874d1a17036e5c3cf947548f48121032c58e93876e5"
+      },
+      "tau": 0.005977966263890267,
+      "p": 80.0,
+      "best_val_avg_travel_time_s": 299.7748,
+      "best_episode": 95,
+      "params": 59032
+    },
+    "ugmarl-noens_final_s0": {
+      "model": "ugmarl-noens",
+      "seed": 0,
+      "files": {
+        "checkpoints/best.pt": "a4a1ffdb1f0be06ff11374d3c4d1554e6178d9e7cff743b04bb2790add105834",
+        "config.yaml": "48613282add2c0b197d113010e913571168b3d04767b2bf61a92199170657c73"
+      },
+      "best_val_avg_travel_time_s": 301.6852,
+      "best_episode": 100,
+      "params": 89864
+    },
+    "ugmarl-noens_final_s1": {
+      "model": "ugmarl-noens",
+      "seed": 1,
+      "files": {
+        "checkpoints/best.pt": "dd615658fb1b600d9d92b6f86502c10ccded9e3129b911b3c58b5445298d645a",
+        "config.yaml": "34df538598107668bb48b7607dfb26c2df41765146c335d81efea32a9cc02a7e"
+      },
+      "best_val_avg_travel_time_s": 305.7054,
+      "best_episode": 90,
+      "params": 89864
+    },
+    "ugmarl-noens_final_s2": {
+      "model": "ugmarl-noens",
+      "seed": 2,
+      "files": {
+        "checkpoints/best.pt": "0bf79c69c5cbe7f931ef1d795be35bac6ce4e8111b29f938e9bb2d8e4e1d9d33",
+        "config.yaml": "50a193ba71a5dd522067a691438b2044b39c0dbd613437178d1a334fed84997d"
+      },
+      "best_val_avg_travel_time_s": 302.1478,
+      "best_episode": 90,
+      "params": 89864
+    },
+    "ugmarl-noens_final_s3": {
+      "model": "ugmarl-noens",
+      "seed": 3,
+      "files": {
+        "checkpoints/best.pt": "0b00bf9e6a6e28cee360a14a5b1a39f08738b8ee63c62674c10213789189545e",
+        "config.yaml": "98f532004d2894d8c9634bdfb4eb1b098360fc50b5084bcc6b3d7de83d505a05"
+      },
+      "best_val_avg_travel_time_s": 304.005,
+      "best_episode": 100,
+      "params": 89864
+    },
+    "ugmarl-noens_final_s4": {
+      "model": "ugmarl-noens",
+      "seed": 4,
+      "files": {
+        "checkpoints/best.pt": "53ee4ee378d79ebb6596abcaa40c8ab14dbb6e0cd4f8a2ae8ac6c1bbc4047d05",
+        "config.yaml": "4b3af9d3cf4a4a797c9549e1e1a294bece409ee4fe49cf051725c227c6937b84"
+      },
+      "best_val_avg_travel_time_s": 304.8983,
+      "best_episode": 100,
+      "params": 89864
+    }
+  }
+}
