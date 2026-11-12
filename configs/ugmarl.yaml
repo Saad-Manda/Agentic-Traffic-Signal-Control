@@ -1,7 +1,10 @@
 # UG-MARL training, full model (ROADMAP 6.1-6.3; plan phase6-ugmarl D5, D8).
 # Learning settings inherited from the baselines' tuning winner t6 (lr / gamma / batch /
-# eps-decay; tuned for DQN / IDQN, not for UG-MARL — disclosed). K and d: placeholders until
-# the grid study (configs/search/ugmarl.yaml) selects them; then locked whatever they score.
+# eps-decay; tuned for DQN / IDQN, not for UG-MARL — disclosed). K and d selected by the grid
+# study (configs/search/ugmarl.yaml, 9 trials, seed 0, validation; selection rule in that
+# file): best 301.08 s (K 10, d 128); 301.52 (K 10, d 64) and 301.90 s (K 3, d 128) are within
+# 1 s -> smallest K wins: trial t2 (ugmarl_ugmarl_t2_s0), K = 3, d = 128. LOCKED (U14).
+# See worklog/017.
 base: base.yaml
 seed: 0
 
@@ -18,8 +21,8 @@ train:
 
 agents:
   ugmarl:
-    heads: 5             # K — to be set by the grid study
-    attn_dim: 64         # d — to be set by the grid study
+    heads: 3             # K — selected (grid trial t2)
+    attn_dim: 128        # d — selected
 
 output:
   results_dir: results/train

@@ -448,7 +448,7 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
 8. [x] **Platform gate (D0)**; write and **commit** `configs/search/ugmarl.yaml` and
    `configs/search/ugmarl_gate.yaml`; `tune.py` changes + tests. If on native Ubuntu: re-run
    the DQN / IDQN 5-seed finals and val evaluation there first.
-9. [ ] Grid study: `tune.py --search configs/search/ugmarl.yaml --agent ugmarl --workers 4`
+9. [x] Grid study: `tune.py --search configs/search/ugmarl.yaml --agent ugmarl --workers 4`
    → apply the selection rule → copy the winner into `configs/ugmarl*.yaml`, commit.
 10. [ ] Final runs, seeds 0–4: full, −attention, −ensemble (`tune.py --config … --seeds 0 1 2 3 4`),
     15 runs, ≤ 5 workers (RAM ≈ 1 GB per process).
