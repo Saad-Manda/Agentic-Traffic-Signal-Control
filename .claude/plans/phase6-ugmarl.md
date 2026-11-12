@@ -432,7 +432,7 @@ tuned `heads` / `attn_dim`. Seeds: training seed fixes init, exploration (`+20 0
    (11 Nov) — continue that worklog entry, do not create a new one.
 2. [x] Core changes: replay extras, masked loss, mask RNG, relaxed `load` + tests; confirm
    DQN / IDQN regression test and the full existing suite pass.
-3. [ ] `NeighborhoodEncoder` + `UGMARLNet` + tests.
+3. [x] `NeighborhoodEncoder` + `UGMARLNet` + tests.
 4. [ ] `UGMARLAgent` (μ, σ, gate, flags, explanations, checkpoint), `gate.py`, registry,
    `configs/base.yaml` block, `configs/ugmarl*.yaml` + tests.
 5. [ ] `DecisionRecorder`, `run_episode(recorder=)`, `evaluate.py --log-decisions`, gate-file
