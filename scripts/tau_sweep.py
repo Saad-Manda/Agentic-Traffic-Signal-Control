@@ -118,7 +118,8 @@ def build_table(spec: dict, new_rows: pd.DataFrame) -> pd.DataFrame:
     mp = mp.assign(p="max_pressure", source=spec["existing"]["max_pressure"])
     mp["fallback_rate_mean"] = 1.0  # τ = 0: every decision is the fallback
     cols = list(cal.columns)
-    return pd.concat([mp[cols], new_rows[cols], cal], ignore_index=True)
+    ungated = cal["p"].astype(str) == "ungated"  # order: τ = 0 … rising p … τ = ∞
+    return pd.concat([mp[cols], new_rows[cols], cal[~ungated], cal[ungated]], ignore_index=True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -127,6 +128,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--config", type=Path, default=REPO_ROOT / "configs" / "eval_ugmarl.yaml")
     ap.add_argument("--tag", default="final")
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--tables-only", action="store_true",
+                    help="rebuild the table from the finished runs (no simulation)")  # fmt: skip
     args = ap.parse_args(argv)
 
     spec = read_yaml(args.search)
@@ -149,8 +152,11 @@ def main(argv: list[str] | None = None) -> int:
                     f"gate.json holds {locked!r} — not the calibration's σ sample"
                 )
         out = OUT_ROOT / spec["study"]
-        if out.exists():
-            raise SweepError(f"{out} exists (the sweep runs once)")
+        if out.exists() != args.tables_only:
+            raise SweepError(
+                f"{out} does not exist: run the sweep first" if args.tables_only
+                else f"{out} exists (the sweep runs once; --tables-only rebuilds the table)"
+            )  # fmt: skip
         taus = thresholds(sigma, seeds, ps)
         files = {p: tau_file(out, p) for p in ps}
     except SweepError as e:
@@ -158,11 +164,14 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(f"check passed: p = {cp:g} reproduces τ of every gate.json")
 
-    for s in seeds:
-        for p in ps:
-            save_gate(Path(str(files[p]).replace("{seed}", str(s))), {"p": p, "tau": taus[s][p]})
     jobs = []
-    for p in ps:
+    if not args.tables_only:
+        for s in seeds:
+            for p in ps:
+                save_gate(
+                    Path(str(files[p]).replace("{seed}", str(s))), {"p": p, "tau": taus[s][p]}
+                )
+    for p in ps if not args.tables_only else []:
         for c in conds:
             name = f"p{p:g}_{condition_name(c)}"
             note = f"{spec['study']}: p={p:g}, {condition_name(c)}"
