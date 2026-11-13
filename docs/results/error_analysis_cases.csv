@@ -1,0 +1,4 @@
+case,iid,window,diff_wait_veh_s,gate_changed_decisions
+win,intersection_1_2,8,-780.0,
+loss,intersection_1_1,2,1325.0,
+gate,intersection_1_3,0,,6

@@ -222,7 +222,7 @@ def fig_wait_tail(
         ax.set_xlabel("Waiting time inside the network, x (s)")
         ax.set_title(cond(cn), fontsize=10)
     np.atleast_1d(axes)[0].set_ylabel("Share of vehicles waiting longer than x")
-    np.atleast_1d(axes)[-1].legend(fontsize=8)
+    np.atleast_1d(axes)[0].legend(fontsize=8, loc="upper right")
     fig.suptitle("Tail of the per-vehicle waiting time, Jinan test flow", fontweight="bold")
     fig.tight_layout()
     return finish(
@@ -716,10 +716,16 @@ def fig_tau_sensitivity(table: pd.DataFrame, p_star: float, out=None) -> plt.Fig
     score = t.groupby("p", sort=False)["avg_travel_time_mean"].mean()
     xs = [xpos[float(p)] if str(p).replace(".", "").isdigit() else xpos[p] for p in score.index]
     o = np.argsort(xs)
-    ax3.plot(np.asarray(xs)[o], score.to_numpy()[o], color=INK, marker="o")
-    for x, v in zip(np.asarray(xs)[o], score.to_numpy()[o], strict=True):
+    sx, sy = np.asarray(xs)[o], score.to_numpy()[o]
+    gated = sx != xpos["ungated"]  # the ungated score is far off the scale of the others
+    ax3.plot(sx[gated], sy[gated], color=INK, marker="o")
+    for x, v in zip(sx[gated], sy[gated], strict=True):
         ax3.annotate(f"{v:.1f}", (x, v), xytext=(0, 7), textcoords="offset points",
                      ha="center", fontsize=8)  # fmt: skip
+    if (~gated).any():
+        ax3.annotate(f"{sy[~gated][0]:.1f} ↑\n(off scale)", (xpos["ungated"], sy[gated].max()),
+                     ha="center", va="bottom", fontsize=8, color=INK_SECONDARY)  # fmt: skip
+    ax3.set_ylim(sy[gated].min() - 2, sy[gated].max() + 4)
     for ax in (ax1, ax2, ax3):
         ax.axvline(xpos[float(p_star)], color=VIOLET, linestyle=":", linewidth=1.4)
         ax.set_xticks(range(len(ticks)), ticks, fontsize=8)
@@ -731,7 +737,6 @@ def fig_tau_sensitivity(table: pd.DataFrame, p_star: float, out=None) -> plt.Fig
     ax2.set_ylabel("Share of decisions handed to Max-Pressure")
     ax2.set_title("(b) Fallback rate", fontsize=10)
     ax3.set_ylabel("Mean over the five conditions (s)")
-    ax3.set_yscale("log")
     ax3.set_title("(c) Calibration score", fontsize=10)
     fig.suptitle("Sensitivity to the gate threshold on the validation flow "
                  f"(dotted: p* = {p_star:g})", fontweight="bold")  # fmt: skip
@@ -752,7 +757,8 @@ def fig_faithfulness(per_seed: pd.DataFrame, out=None) -> plt.Figure:
     """``per_seed``: rows ``seed, perturbation, slot`` (hi / lo / self) with
     ``abs_dmu``, ``flip`` (docs/results/attention_faithfulness.csv)."""
     apply_style()
-    perts = list(dict.fromkeys(per_seed["perturbation"]))
+    found = set(per_seed["perturbation"])
+    perts = [p for p in ("replacement", "knock-out") if p in found]
     fig, axes = plt.subplots(len(perts), 2, figsize=(10.5, 3.8 * len(perts)), squeeze=False)
     names = {"hi": "highest-α\nneighbour", "lo": "lowest-α\nneighbour", "self": "own\nobservation"}
     vals = []

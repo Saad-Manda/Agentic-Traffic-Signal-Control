@@ -628,3 +628,300 @@ def seed_spread(study: Study, models: Sequence[str], condition: str, metric: str
             }
         )
     return pd.DataFrame(rows)
+
+
+# --- notebook-level helpers (notebooks/02_analysis.ipynb calls these; no logic lives there) --
+
+
+class Context:
+    """Everything the Phase 8 notebook reads: config, the two finished studies, flow files."""
+
+    def __init__(self, config_path: str | Path, root: str | Path | None = None) -> None:
+        from trafficrl.data.splits import REPO_ROOT, flow_files
+        from trafficrl.utils.config import read_yaml
+
+        self.root = Path(root) if root is not None else REPO_ROOT
+        self.cfg = read_yaml(self.root / config_path)
+        final = self.root / self.cfg["final_dir"]
+        self.studies: dict[str, Study] = {}
+        self.flows: dict[str, dict[str, list[dict]]] = {}
+        for name, s in self.cfg["studies"].items():
+            spec = read_yaml(self.root / s["spec"])
+            self.studies[name] = Study(spec, final / spec["study"])
+            # read-only route join (Decision Log 13 Nov): flow files of the study's own split
+            _, files = flow_files(spec["dataset"], spec["split"])
+            conds = self.studies[name].conditions
+            if len(files) == 1:
+                self.flows[name] = {c: load_flow(files[0]) for c in conds if "surge" not in c}
+            else:
+                self.flows[name] = {c: load_flow(f) for c, f in zip(conds, files, strict=True)}
+        self.test, self.heldout = self.studies["test"], self.studies["heldout"]
+        self.figures = self.root / self.cfg["out_figures"]
+        self.tables = self.root / self.cfg["out_tables"]
+
+    def table(self, key: str) -> pd.DataFrame | None:
+        """A CSV written by a Phase 8 script (``tau_sensitivity``, ``faithfulness``), or None
+        if that script has not been run yet."""
+        f = self.root / self.cfg[key]
+        return pd.read_csv(f) if f.exists() else None
+
+
+def reproduction_check(check: pd.DataFrame, tol: float = 1e-3) -> pd.DataFrame:
+    """Largest absolute difference between the logs and ``metrics.csv`` per model × condition;
+    raises if travel time or queue recomputed from the logs is off by more than ``tol``."""
+    c = check.copy()
+    c["travel_diff"] = (c["travel_logs"] - c["travel_metric"]).abs()
+    c["queue_diff"] = (c["queue_logs"] - c["queue_metric"]).abs()
+    worst = c.groupby(["model", "condition"], sort=False)[["travel_diff", "queue_diff"]].max()
+    if (worst > tol).any().any():
+        raise AssertionError(
+            f"logs do not reproduce metrics.csv:\n{worst[(worst > tol).any(axis=1)]}"
+        )
+    return worst.reset_index()
+
+
+def comparisons(
+    frames: Mapping[str, pd.DataFrame],
+    table: str,
+    keys: Sequence[str],
+    value: str,
+    model: str,
+    baselines: Sequence[str],
+    conditions: Sequence[str],
+) -> dict[tuple[str, str], pd.DataFrame]:
+    """``{(baseline, condition): model − baseline}`` for one breakdown table."""
+    return {
+        (b, c): comparison(frames, table, keys, value, model, b, c)
+        for c in conditions
+        for b in baselines
+    }
+
+
+def comparison_overview(comps: Mapping[tuple[str, str], pd.DataFrame], key: str) -> pd.DataFrame:
+    """One row per (baseline, condition): how many groups differ clearly and in which
+    direction, and the smallest / largest mean difference."""
+    rows = []
+    for (b, c), d in comps.items():
+        rows.append(
+            {
+                "baseline": b,
+                "condition": c,
+                "groups": len(d),
+                "clearly_lower": int((d["clear"] & (d["mean"] < 0)).sum()),
+                "clearly_higher": int((d["clear"] & (d["mean"] > 0)).sum()),
+                "level": int((~d["clear"]).sum()),
+                "min_diff": float(d["mean"].min()),
+                "at_min": d.loc[d["mean"].idxmin(), key],
+                "max_diff": float(d["mean"].max()),
+                "at_max": d.loc[d["mean"].idxmax(), key],
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def stack_comparisons(comps: Mapping[tuple[str, str], pd.DataFrame]) -> pd.DataFrame:
+    return pd.concat(list(comps.values()), ignore_index=True)
+
+
+def entry_table(frames: Mapping[str, pd.DataFrame]) -> pd.DataFrame:
+    """Mean over seeds per model × condition: vehicles that never entered, vehicles blocked
+    outside the network for more than a minute, mean and longest time blocked."""
+    cols = ["never_entered", "blocked_over_60s", "entry_delay_mean_s", "entry_delay_max_s"]
+    return frames["entry"].groupby(["model", "condition"], sort=False)[cols].mean().reset_index()
+
+
+def gate_effect_table(
+    study: Study, model: str, conditions: Sequence[str], horizon_s: int = 60, window: int = 600
+) -> pd.DataFrame:
+    """Per condition, over seeds: change in waiting vehicles in the ``horizon_s`` seconds after
+    a decision where the gate changed the action vs after one where it stayed quiet (same
+    intersection and time window), and their paired difference with 95 % CI. Association."""
+    rows = []
+    for c in conditions:
+        per = []
+        for s in study.seeds:
+            d = after_decision_queue(
+                study.log(model, c, "decisions", s), study.log(model, c, "trace", s), horizon_s
+            )
+            per.append(gate_effect(d, window).iloc[0])
+        per = pd.DataFrame(per)
+        diff = summarise((per["delta_changed"] - per["delta_quiet"]).tolist())
+        rows.append(
+            {
+                "condition": c,
+                "decisions_changed": per["decisions_changed"].mean(),
+                "waiting_now_changed": per["waiting_now_changed"].mean(),
+                "waiting_now_quiet": per["waiting_now_quiet"].mean(),
+                "delta_changed": per["delta_changed"].mean(),
+                "delta_quiet": per["delta_quiet"].mean(),
+                "diff_mean": diff["mean"],
+                "diff_ci95_low": diff["ci95_low"],
+                "diff_ci95_high": diff["ci95_high"],
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def fallback_by_window(
+    study: Study, model: str, conditions: Sequence[str], window: int = 600
+) -> pd.DataFrame:
+    """Fallback rate per time window (rows) and condition (columns), seeds pooled."""
+    out = {}
+    for c in conditions:
+        d = pd.concat([study.log(model, c, "decisions", s) for s in study.seeds])
+        out[c] = d.groupby(d["t"] // window)["fallback"].mean()
+    t = pd.DataFrame(out)
+    t.index = [f"{int(w) * window // 60}–{(int(w) + 1) * window // 60} min" for w in t.index]
+    return t
+
+
+def inside_windows(
+    study: Study, models: Sequence[str], condition: str, window: int = 600
+) -> pd.DataFrame:
+    """Per model and entry window, mean over seeds, from the per-vehicle logs alone (time
+    inside the network; used for the surge flow, which has no route join)."""
+    frames = [
+        study.each_seed(m, condition, "vehicles", lambda v: window_table(vehicle_times(v), window))
+        for m in models
+    ]
+    t = pd.concat(frames)
+    cols = ["vehicles", "travel_s", "wait_s", "completed"]
+    return t.groupby(["model", "start_min"], sort=False)[cols].mean().reset_index()
+
+
+def worst_vehicle(study: Study, models: Sequence[str], condition: str) -> pd.DataFrame:
+    """The vehicle with the longest wait in every model × seed: when it entered, whether it
+    left, its wait."""
+    rows = []
+    for m in models:
+        for s in study.seeds:
+            v = study.log(m, condition, "vehicles", s)
+            r = v.loc[v["wait_s"].idxmax()]
+            rows.append(
+                {
+                    "model": m,
+                    "seed": s,
+                    "enter_min": r["enter_t"] / 60,
+                    "left": bool(pd.notna(r["leave_t"])),
+                    "wait_s": float(r["wait_s"]),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def approach_overview(study: Study, models: Sequence[str], condition: str) -> pd.DataFrame:
+    """Per model, mean over seeds: share of the waiting-vehicle-seconds on each approach and
+    the longest uninterrupted queue on any approach of any intersection (starvation proxy)."""
+    rows = []
+    for m in models:
+        a = study.each_seed(m, condition, "trace", approach_table)
+        tot = a.groupby(["seed", "approach"])["wait_veh_s"].sum().unstack()
+        share = tot.div(tot.sum(axis=1), axis=0).mean()
+        longest = a.groupby("seed")["longest_queue_s"].max()
+        rows.append(
+            {
+                "model": m,
+                **{f"share_{k}": float(share[k]) for k in APPROACHES},
+                "longest_queue_s": float(longest.mean()),
+                "longest_queue_s_max": float(longest.max()),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def heldout_overview(study: Study, model: str, others: Sequence[str]) -> pd.DataFrame:
+    """Per held-out flow: the gated model's fallback rate (overall, lowest and highest
+    intersection), median σ / τ, and mean travel time / max wait of the model and ``others``."""
+    rows = []
+    for f in study.conditions:
+        d = pd.concat([study.log(model, f, "decisions", s) for s in study.seeds])
+        per = d.groupby("iid")["fallback"].mean()
+        row = {
+            "flow": f,
+            "fallback": float(d["fallback"].mean()),
+            "fallback_min_iid": float(per.min()),
+            "fallback_max_iid": float(per.max()),
+            "sigma_over_tau_median": float((d["sigma"] / d["tau"]).median()),
+        }
+        for m in [model, *others]:
+            row[f"travel_{m}"] = study.stats(m, f, "avg_travel_time_s")["mean"]
+            row[f"max_wait_{m}"] = study.stats(m, f, "max_waiting_time_s")["mean"]
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def model_order(study: Study, models: Sequence[str], conditions: Sequence[str]) -> pd.DataFrame:
+    """Models ordered by mean travel time (best first) in each condition."""
+    out = {}
+    for c in conditions:
+        means = {m: study.stats(m, c, "avg_travel_time_s")["mean"] for m in models}
+        out[c] = sorted(means, key=means.get)
+    return pd.DataFrame(out, index=range(1, len(models) + 1)).rename_axis("rank")
+
+
+def select_cases(study: Study, model: str, baseline: str, condition: str, width: int):
+    """Seed (median clean travel time of ``model``) and the three cases of :func:`pick_cases`."""
+    seed = median_seed(
+        dict(zip(study.seeds, study.values(model, condition, "avg_travel_time_s"), strict=True))
+    )
+    cases = pick_cases(
+        unit_table(study.log(model, condition, "trace", seed), width),
+        unit_table(study.log(baseline, condition, "trace", seed), width),
+        study.log(model, condition, "decisions", seed),
+        width,
+    )
+    return seed, cases
+
+
+def case_inputs(study: Study, models: Sequence[str], condition: str, seed: int, unit, width: int):
+    """Series of every model for one case and the proposed model's decisions (first model)."""
+    series = {
+        m: case_series(study.log(m, condition, "trace", seed), unit["iid"], unit["window"], width)
+        for m in models
+    }
+    return series, study.log(models[0], condition, "decisions", seed)
+
+
+def _md(df: pd.DataFrame, digits: int = 1) -> list[str]:
+    def cell(v) -> str:
+        if isinstance(v, (bool, np.bool_)):
+            return "yes" if v else "no"
+        if isinstance(v, (float, np.floating)):
+            return "—" if np.isnan(v) else f"{v:.{digits}f}"
+        return str(v)
+
+    head = "| " + " | ".join(map(str, df.columns)) + " |"
+    lines = [head, "|" + "---|" * len(df.columns)]
+    lines += ["| " + " | ".join(cell(v) for v in r) + " |" for r in df.itertuples(index=False)]
+    return lines
+
+
+def write_error_report(path: str | Path, sections: Sequence[tuple[str, str, pd.DataFrame]],
+                       intro: str) -> Path:  # fmt: skip
+    """Write ``docs/results/error_analysis.md`` and one CSV per section next to it.
+    ``sections``: (slug, heading + note, frame)."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = ["# Error analysis — Jinan test flow and Hangzhou (ROADMAP 8.4)", "", intro, ""]
+    for slug, heading, frame in sections:
+        frame.to_csv(path.with_name(f"{path.stem}_{slug}.csv"), index=False)
+        title, _, note = heading.partition("\n")
+        lines += [f"## {title}", ""]
+        if note:
+            lines += [note, ""]
+        lines += [*_md(frame), "", f"CSV: `{path.stem}_{slug}.csv`", ""]
+    path.write_text("\n".join(lines))
+    return path
+
+
+def show(df: pd.DataFrame, caption: str):
+    """A table for the notebook: caption on top, numbers printed compactly (``%g``)."""
+
+    def cell(v) -> str:
+        if isinstance(v, (bool, np.bool_)):
+            return "yes" if v else "no"
+        if isinstance(v, (float, np.floating)):
+            return "—" if np.isnan(v) else f"{v:g}"
+        return str(v)
+
+    return df.style.format(cell).set_caption(caption)

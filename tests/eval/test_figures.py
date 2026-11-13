@@ -153,3 +153,39 @@ def test_grid_position_from_the_intersection_id():
     assert F.grid_xy("intersection_4_3") == (4, 3)
     with pytest.raises(ValueError):
         F.grid_xy("node7")
+
+
+def test_notebook_helpers_on_the_fake_study(study, tmp_path):
+    fr = A.breakdowns(study, FLOW, ["ugmarl", "dqn", "max_pressure"], ["clean", "noise0.2"], 300)
+    chk = fr["check"]
+    same = chk.assign(travel_metric=chk["travel_logs"], queue_metric=chk["queue_logs"])
+    assert len(A.reproduction_check(same))
+    with pytest.raises(AssertionError, match="do not reproduce"):
+        A.reproduction_check(fr["check"].assign(travel_metric=0.0))
+    comps = A.comparisons(fr, "intersections", ["iid"], "wait_veh_s", "ugmarl",
+                          ["dqn", "max_pressure"], ["clean", "noise0.2"])  # fmt: skip
+    assert set(comps) == {(b, c) for b in ("dqn", "max_pressure") for c in ("clean", "noise0.2")}
+    over = A.comparison_overview(comps, "iid")
+    assert (over["clearly_lower"] + over["clearly_higher"] + over["level"] == 4).all()
+    assert len(A.stack_comparisons(comps)) == 16
+    assert set(A.entry_table(fr)["never_entered"]) == {0.0}
+    gate = A.gate_effect_table(study, "ugmarl", ["clean"], 60, 300)
+    assert {"delta_changed", "delta_quiet", "diff_ci95_low"} <= set(gate.columns)
+    fb = A.fallback_by_window(study, "ugmarl", ["clean", "noise0.2"], 300)
+    assert list(fb.index) == ["0–5 min", "5–10 min"] and fb.to_numpy().max() <= 1
+    sw = A.inside_windows(study, ["ugmarl", "dqn"], "surge1.5", 300)
+    assert set(sw["model"]) == {"ugmarl", "dqn"}
+    assert len(A.worst_vehicle(study, ["dqn"], "clean")) == len(SEEDS)
+    ap = A.approach_overview(study, ["ugmarl"], "clean").iloc[0]
+    assert ap[[f"share_{k}" for k in A.APPROACHES]].sum() == pytest.approx(1.0)
+    ho = A.heldout_overview(study, "ugmarl", ["dqn"])
+    assert list(ho["flow"]) == NAMES and "travel_dqn" in ho
+    order = A.model_order(study, ["dqn", "fixed_time"], ["clean"])
+    assert list(order["clean"]) == ["fixed_time", "dqn"]
+    seed, cases = A.select_cases(study, "ugmarl", "dqn", "clean", 300)
+    series, dec = A.case_inputs(study, ["ugmarl", "dqn"], "clean", seed, cases["win"], 300)
+    assert seed in SEEDS and set(series) == {"ugmarl", "dqn"} and len(dec)
+    out = A.write_error_report(tmp_path / "ea.md", [("gate", "Gate\nnote", gate)], "intro")
+    text = out.read_text()
+    assert "## Gate" in text and "note" in text and (tmp_path / "ea_gate.csv").exists()
+    assert "caption" in A.show(gate, "caption").to_html()
