@@ -1,0 +1,24 @@
+# Phase 8 reader analysis (ROADMAP 8.1–8.4; plan .claude/plans/phase8-analysis.md).
+# Read by notebooks/02_analysis.ipynb. Nothing is simulated here, so there is no seed: the
+# seeds are those of the finished studies. Test / held-out data are read from the saved logs
+# of the Phase 7 pass (results/final) and, for the route join only, from the flow files.
+final_dir: results/final
+studies:
+  test:    {spec: configs/final_test.yaml}
+  heldout: {spec: configs/final_heldout.yaml}
+
+agents: [fixed_time, max_pressure, dqn, idqn, ugmarl]            # the five compared agents
+ablations: [ugmarl, ugmarl-nogate, ugmarl-noattn, ugmarl-noens]
+proposed: ugmarl
+baselines: [dqn, max_pressure]        # error analysis: both baselines ... (Decision Log 13 Nov)
+compare_conditions: [clean, noise0.2] # ... in both conditions
+paired: ugmarl-nogate                 # same checkpoints as `proposed`, gate off
+
+window_s: 600                         # travel-time breakdown by scheduled start time
+case_window_s: 300                    # unit of the case rule: intersection x 5 minutes
+gate_horizon_s: 60                    # queue after a decision (gate-effect table)
+
+out_figures: docs/figures/results
+out_tables: docs/results
+tau_sensitivity: docs/results/tau_sensitivity.csv              # scripts/tau_sweep.py
+faithfulness: docs/results/attention_faithfulness.csv          # scripts/attention_faithfulness.py

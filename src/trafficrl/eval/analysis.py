@@ -470,3 +470,161 @@ def case_series(trace: pd.DataFrame, iid: str, window: int, width: int) -> pd.Da
         g[f"wait_{name}"] = g[cols].sum(axis=1)
     g["waiting"] = g[q].sum(axis=1)
     return g[["t", "phase", "in_yellow", "ready", "waiting", *(f"wait_{a}" for a in APPROACHES)]]
+
+
+# --- study context and the 8.4 breakdowns ---------------------------------------------------
+
+
+class Study:
+    """Per-seed metrics and lazily read logs of one finished model × condition study."""
+
+    def __init__(self, spec: Mapping, study_dir: str | Path) -> None:
+        from trafficrl.eval.report import load_study
+
+        self.spec, self.dir = dict(spec), Path(study_dir)
+        self.metrics = load_study(self.spec, self.dir)
+        self.seeds = [int(s) for s in self.spec["seeds"]]
+        self.models = list(self.spec["models"])
+        self.conditions = list(dict.fromkeys(self.metrics["condition"]))
+        self._logs: dict[tuple, pd.DataFrame] = {}
+
+    def run(self, model: str, condition: str) -> Path:
+        return job_run(self.dir, model, condition)
+
+    def log(self, model: str, condition: str, kind: str, seed: int) -> pd.DataFrame:
+        key = (model, condition, kind, seed)
+        if key not in self._logs:
+            self._logs[key] = read_log(self.run(model, condition), kind, seed)
+        return self._logs[key]
+
+    def values(self, model: str, condition: str, metric: str) -> list[float]:
+        m = self.metrics
+        sel = m[(m["model"] == model) & (m["condition"] == condition)].sort_values("seed")
+        return sel[metric].astype(float).tolist()
+
+    def stats(self, model: str, condition: str, metric: str) -> dict:
+        return summarise(self.values(model, condition, metric))
+
+    def each_seed(self, model: str, condition: str, kind: str, fn) -> pd.DataFrame:
+        frames = []
+        for s in self.seeds:
+            out = fn(self.log(model, condition, kind, s)).copy()
+            out.insert(0, "seed", s)
+            out.insert(0, "condition", condition)
+            out.insert(0, "model", model)
+            frames.append(out)
+        return pd.concat(frames, ignore_index=True)
+
+
+def breakdowns(
+    study: Study,
+    flow: Sequence[Mapping],
+    models: Sequence[str],
+    conditions: Sequence[str],
+    window_s: int = 600,
+) -> dict[str, pd.DataFrame]:
+    """Per-seed breakdown frames for ``models`` × ``conditions`` of one study (same flow
+    file): ``intersections``, ``approaches``, ``windows``, ``length`` / ``turn`` (route
+    groups), ``entry`` (vehicles blocked outside the network) and ``check`` (travel time and
+    queue recomputed from the logs next to the values in ``metrics.csv``)."""
+    out: dict[str, list] = {
+        k: [] for k in ("intersections", "approaches", "windows", "length", "turn", "entry")
+    }
+    check = []
+    for m in models:
+        for c in conditions:
+            out["intersections"].append(study.each_seed(m, c, "trace", intersection_table))
+            out["approaches"].append(study.each_seed(m, c, "trace", approach_table))
+
+            def tr(v):
+                return trips(v, flow)
+
+            out["windows"].append(
+                study.each_seed(m, c, "vehicles", lambda v: window_table(tr(v), window_s))
+            )
+            out["length"].append(
+                study.each_seed(m, c, "vehicles", lambda v: route_table(tr(v), "length_group"))
+            )
+            out["turn"].append(
+                study.each_seed(m, c, "vehicles", lambda v: route_table(tr(v), "turn_group"))
+            )
+            out["entry"].append(study.each_seed(m, c, "vehicles", lambda v: entry_summary(tr(v))))
+            for s, att, q in zip(
+                study.seeds,
+                study.values(m, c, "avg_travel_time_s"),
+                study.values(m, c, "avg_queue_veh"),
+                strict=True,
+            ):
+                check.append(
+                    {
+                        "model": m,
+                        "condition": c,
+                        "seed": s,
+                        "travel_metric": att,
+                        "travel_logs": float(tr(study.log(m, c, "vehicles", s))["travel_s"].mean()),
+                        "queue_metric": q,
+                        "queue_logs": network_queue(study.log(m, c, "trace", s)),
+                    }
+                )
+    frames = {k: pd.concat(v, ignore_index=True) for k, v in out.items()}
+    frames["check"] = pd.DataFrame(check)
+    return frames
+
+
+def comparison(
+    frames: Mapping[str, pd.DataFrame],
+    table: str,
+    keys: Sequence[str],
+    value: str,
+    model: str,
+    baseline: str,
+    condition: str,
+) -> pd.DataFrame:
+    """``model − baseline`` for one breakdown table and condition (see :func:`seed_difference`)."""
+    f = frames[table]
+    f = f[f["condition"] == condition]
+    d = seed_difference(f[f["model"] == model], f[f["model"] == baseline], keys, value)
+    d.insert(0, "condition", condition)
+    d.insert(0, "baseline", baseline)
+    d.insert(0, "model", model)
+    return d
+
+
+def stability_table(study: Study, models: Sequence[str], conditions: Sequence[str]) -> pd.DataFrame:
+    """Per model × condition, mean over seeds: decisions, phase changes and flip-flops per
+    episode, and their shares of all decisions (from the traces)."""
+    rows = []
+    for m in models:
+        for c in conditions:
+            t = study.each_seed(m, c, "trace", intersection_table)
+            per = t.groupby("seed")[["decisions", "phase_changes", "flip_flops"]].sum()
+            rows.append(
+                {
+                    "model": m,
+                    "condition": c,
+                    "decisions": per["decisions"].mean(),
+                    "phase_changes": per["phase_changes"].mean(),
+                    "flip_flops": per["flip_flops"].mean(),
+                    "change_share": (per["phase_changes"] / per["decisions"]).mean(),
+                    "flip_flop_share": (per["flip_flops"] / per["decisions"]).mean(),
+                    "flip_flop_share_std": (per["flip_flops"] / per["decisions"]).std(ddof=1),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def seed_spread(study: Study, models: Sequence[str], condition: str, metric: str) -> pd.DataFrame:
+    """Per model: every seed's value plus min, max and range over seeds."""
+    rows = []
+    for m in models:
+        v = study.values(m, condition, metric)
+        rows.append(
+            {
+                "model": m,
+                **{f"s{s}": x for s, x in zip(study.seeds, v, strict=True)},
+                "min": min(v),
+                "max": max(v),
+                "range": max(v) - min(v),
+            }
+        )
+    return pd.DataFrame(rows)
