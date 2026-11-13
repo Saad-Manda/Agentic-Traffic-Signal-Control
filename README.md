@@ -239,7 +239,37 @@ average travel time on the clean test flow: Fixed-Time 462.2 s, Max-Pressure 320
 DQN 292.2 ± 0.6 s, IDQN 307.9 ± 1.4 s, UG-MARL 295.4 ± 1.1 s. Hypothesis verdicts printed by
 `final_tables.py`: H1 supported, H2 supported, H3 not supported. Results: worklog/020.
 
-### 11. Tests and lint
+### 11. Analysis: figures, error analysis, sensitivity (ROADMAP Phase 8)
+
+No test or held-out episode is run here: everything on those flows is read from the logs of
+step 10 (`results/final/`). The two scripts run on the **validation** flow only and select
+nothing (`gate.json` and p\* = 80 stay as locked).
+
+```bash
+# sensitivity to the gate threshold: p = 50, 60, 70 on validation (75 episodes, ~25 min with 5 workers)
+python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml --workers 5
+#   -> docs/results/tau_sensitivity.{csv,md};  --tables-only rebuilds the table without running
+# attention faithfulness check: 5 validation episodes + offline slot perturbation (~1 min)
+python scripts/attention_faithfulness.py --tag final
+#   -> docs/results/attention_faithfulness.{csv,md}
+python scripts/lock_models.py --verify     # nothing locked has changed
+# reader notebook (no simulation, ~2 min): 18 figures + error-analysis tables + readings
+jupyter nbconvert --to notebook --execute --inplace notebooks/02_analysis.ipynb
+#   -> docs/figures/results/*.{png,pdf,md}, docs/results/error_analysis.md (+ 13 CSVs)
+```
+
+The notebook holds no logic: every number and figure is a tested function in
+`trafficrl.eval.analysis` / `figures` / `faithfulness` (settings: `configs/analysis.yaml`). Its
+first section recomputes travel time and queue of all 305 final episodes from the logs and
+stops if any differs from `metrics.csv` by more than 0.001. Both scripts refuse to run twice
+(`results/analysis/<study>` exists) and refuse any split other than `val`.
+
+Expected output: reproduction check passes with a largest difference of 0.00005 s; τ sweep
+scores 343.2 / 343.8 / 342.3 s for p = 50 / 60 / 70 (343.7 s at the locked p\* = 80);
+faithfulness, replacement: |Δμ| 0.0061 (highest-α neighbour) vs 0.0022 (lowest-α) vs 0.0415
+(own observation). Written interpretation: `docs/analysis.md`. Results: worklog/022.
+
+### 12. Tests and lint
 
 ```bash
 pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones
@@ -256,6 +286,8 @@ src/trafficrl/    data/ (splits, roadnet, audit, trace, eda), envs/ (traffic_env
 scripts/          entry points (dataset_stats, bench_cityflow, audit_data, collect_traces,
                   evaluate; train to come)
 tests/            pytest suite mirroring src/
-notebooks/        EDA only (train split): 01_eda_train.ipynb
-docs/             dataset_card.md, data_audit.md, experiment_log.csv, figures/, literature/
+notebooks/        01_eda_train.ipynb (EDA, train split only); 02_analysis.ipynb (Phase 8 reader:
+                  calls tested functions in src/, simulates nothing)
+docs/             dataset_card.md, data_audit.md, experiment_log.csv, figures/, literature/,
+                  results/ (tables), analysis.md (interpretation of the results)
 ```

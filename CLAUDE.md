@@ -100,20 +100,30 @@ python scripts/final_tables.py --study all                  # pure reader -> doc
 ```
 Ablations are rows of the same studies (no `run_ablation.py`).
 
+```bash
+# Phase 8 (analysis, DONE 13 Nov): validation-only studies + reader notebook; no test episode is run
+python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml --workers 5   # runs once; --tables-only rebuilds
+python scripts/attention_faithfulness.py --tag final                                    # runs once
+jupyter nbconvert --to notebook --execute --inplace notebooks/02_analysis.ipynb         # repeatable, ~2 min
+```
+
 ## Project Structure (planned)
 
 ```
 configs/            # YAML experiment configs (one per run; include seed)
 data/raw/           # original public datasets (untouched, gitignored if large)
 data/processed/     # preprocessed flows / splits
-notebooks/          # EDA only (train split); results figures come from scripts/
+notebooks/          # 01_eda_train (EDA, train split only); 02_analysis (Phase 8 reader: figures,
+                    #   error analysis — calls functions in src/, never simulates)
 src/trafficrl/
   data/             # splits, roadnet model, audit checks, EDA traces + aggregations (train only)
   envs/             # traffic_env.py (TrafficEnv, make_env), features.py, metrics.py,
                     #   perturb.py (noise / dropout / surge), engine.py
   eval/             # runner.py: run_episode, evaluate, resolve_gate (shared by every agent);
                     #   explain.py (DecisionRecorder, StepRecorder); report.py; lock.py (manifest);
-                    #   hypotheses.py (H1–H3 verdict rules, regret — fixed before the test runs)
+                    #   hypotheses.py (H1–H3 verdict rules, regret — fixed before the test runs);
+                    #   analysis.py (Phase 8 breakdowns on the saved logs, Study / Context),
+                    #   figures.py (one function per Phase 8 figure), faithfulness.py (attention check)
   train/            # loop.py (train, train_episode), tune.py (random search, parallel runs)
   agents/
     core/           # QLearner (Double DQN, SMDP target), replay, networks (K-head axis), encoders
@@ -124,13 +134,15 @@ src/trafficrl/
 scripts/            # train.py, tune.py, evaluate.py, val_table.py, plot_training.py,
                     #   calibrate_gate.py, sigma_check.py, robustness.py (model × condition runs:
                     #   val 6.8, final test / held-out with --final), lock_models.py (manifest),
-                    #   final_tables.py (Phase 7 tables + hypothesis verdicts)
+                    #   final_tables.py (Phase 7 tables + hypothesis verdicts),
+                    #   tau_sweep.py, attention_faithfulness.py (Phase 8, validation only)
 tests/
 results/            # metrics CSVs, plots, checkpoints (gitignored)
 models/             # manifest.json: SHA-256 lock of the final checkpoints / gate.json (checkpoints
                     #   themselves stay in results/train/, gitignored)
 docs/               # dataset_card.md, data_audit.md (generated), evaluation_protocol.md,
                     #   methodology.md (UG-MARL equations, stability argument), results/,
+                    #   analysis.md (Phase 8 interpretation), figures/results/ (Phase 8 figures),
                     #   experiment_log.csv (tracked; mentor-facing), figures/{audit,eda}/
 report/             # LaTeX report sources (12–15 pages, one PDF; references.bib)
 poster/             # poster PPTX built on `updated poster sample.pptx` (+ PDF export)
@@ -157,9 +169,11 @@ All **frozen 10 Nov** in `docs/evaluation_protocol.md` (changes need a dated Dec
 
 ## Code Patterns / Conventions
 
-- Core logic in `src/trafficrl/` as importable modules; notebooks only for EDA — notebooks
-  import from `src/`, never the reverse. Every results table and figure is produced by a
-  command in `scripts/` (listed in the README) — no hidden manual steps.
+- Core logic in `src/trafficrl/` as importable modules; notebooks import from `src/`, never
+  the reverse, and hold **no logic** (no `def` / `class`; `tests/test_notebooks.py`). Two
+  notebooks: train-split EDA, and the Phase 8 reader `02_analysis.ipynb` (allowed 13 Nov,
+  Decision Log) which only calls tested functions and never simulates. Every results table
+  and figure is produced by a command listed in the README — no hidden manual steps.
 - Every agent (baseline or proposed) implements the same interface (see
   `.claude/reference/api.md`) so evaluation code is shared.
 - **Reproducibility**: every run is driven by a config file and a fixed seed; seed Python,
@@ -233,6 +247,15 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
   (clean max-wait part inside seed noise), H3 not supported; UG-MARL is 3.2 s behind DQN on
   clean test and has the smallest worst-case regret (6.8 s). **Do not re-run `--final`, retrain
   or re-calibrate**; `scripts/final_tables.py` may be re-run freely. Seeds are 0–4 for 7.1–7.4.
+- **Phase 8 is done (13 Nov):** `docs/analysis.md` (interpretation), `notebooks/02_analysis.ipynb`,
+  `docs/figures/results/`, `docs/results/{error_analysis,tau_sensitivity,attention_faithfulness}.md`.
+  Findings to keep straight in the report: the 3.2 s deficit to DQN is spread over all
+  intersections and is not caused by the gate; ungated policies leave 11–14 % of vehicles
+  outside the network at noise 0.2 and **the wait metrics count waiting inside the network
+  only**; the gate raises max wait under the demand surge (2162 vs 1430 s); p = 70 would have
+  scored 1.5 s better than p\* = 80 on validation (**not changed**); attention weights rank
+  neighbour influence but it is ~1/7 of the own observation. Per-vehicle travel time must be
+  computed with `analysis.trips` (scheduled start from the flow file), not from `enter_t`.
 - Solo project: when time is short, follow ROADMAP "scope controls" — never cut the main
   comparison, ablation, report, poster, or demo.
 - Ablations: −gate (same checkpoints, `agents.ugmarl.use_gate=false`), −attention

@@ -1,6 +1,6 @@
 # Plan — Phase 8 analysis (ROADMAP 8.1–8.4)
 
-Status: **planned 13 Nov 2026, not started.** Tick steps `[x]` during execution and note
+Status: **executed 13 Nov 2026** — results in `docs/analysis.md`, worklog/022. Tick steps `[x]` during execution and note
 deviations under each step.
 
 ## Goal
@@ -320,31 +320,52 @@ suggests a better setting is reported, not applied (A9).
 
 ## Steps and verification
 
-1. [ ] **Record decisions:** ROADMAP Decision Log rows for A1–A3, A12 and the two readings; commit
+1. [x] **Record decisions:** ROADMAP Decision Log rows for A1–A3, A12 and the two readings; commit
    this plan.
-2. [ ] **`eval/analysis.py` + tests.** `pytest tests/eval/test_analysis.py`; then on the real
+2. [x] **`eval/analysis.py` + tests.** `pytest tests/eval/test_analysis.py`; then on the real
    logs: `vehicle_times` reproduces `avg_travel_time_s` and `intersection_table` reproduces
    `avg_queue_veh` for all 48 test jobs (printed check, tolerance 0.01).
-3. [ ] **`eval/figures.py` + tests; notebook §0–§3** (R1–R9). Check: values printed in each
+   *Result / deviation:* the first check failed for congested episodes (up to 130 s off):
+   the per-vehicle log only sees vehicles inside the network, while the simulator's average
+   counts every scheduled vehicle from its scheduled start, including vehicles blocked outside
+   or never entering. Travel time is therefore computed by `analysis.trips` from the flow
+   file's start times (the route join A3 became necessary, not optional). With it all 200
+   non-surge test episodes and all 105 held-out episodes reproduce to 0.00005 s. The surge
+   flow is generated at run time, so it has no join; its breakdown uses time inside the
+   network and says so.
+3. [x] **`eval/figures.py` + tests; notebook §0–§3** (R1–R9). Check: values printed in each
    `.md` equal `docs/results/test_*.csv`; every figure has axis labels, units, caption and
    interpretation.
-4. [ ] **Notebook §4–§6** (error analysis, cases, unstable decisions) and a full run:
+4. [x] **Notebook §4–§6** (error analysis, cases, unstable decisions) and a full run:
    `jupyter nbconvert --to notebook --execute --inplace notebooks/02_analysis.ipynb`. Check:
    per-window and per-route means recombine (vehicle-weighted) to the table values of
    `test_main.md`; §7 / §8 show the "run the script first" message at this point.
-5. [ ] **τ sweep:** commit `configs/search/tau_sensitivity.yaml`; p = 80 check against
+5. [x] **τ sweep:** commit `configs/search/tau_sensitivity.yaml`; p = 80 check against
    `gate.json`; `python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml
    --workers 5` (75 validation episodes, ≈ 10 min); `python scripts/lock_models.py --verify`.
-6. [ ] **Faithfulness:** `python scripts/attention_faithfulness.py --tag final` (5 validation
+   *Result:* scores 343.23 / 343.84 / 342.27 s (p = 50 / 60 / 70) vs 343.73 s at p\* = 80 →
+   "insensitive" and "lower end binding" (p = 70, −1.46 s). Lock verifies. *Deviations:* took
+   ≈ 30 min (full tracking, machine shared with the analysis); 19 rows are marked
+   `57dd6ea-dirty` and 46 carry `4ab9ac9`, because unrelated new files were written and then
+   committed while the sweep ran (the code under run did not change); `--tables-only` added
+   afterwards to fix the row order of the table (values identical).
+6. [x] **Faithfulness:** `python scripts/attention_faithfulness.py --tag final` (5 validation
    episodes + forward passes). Check: episode travel times equal `val_phase6.csv`.
-7. [ ] **Notebook §7–§9**, re-executed end to end with the sweep and faithfulness outputs;
+   *Result:* all five episodes reproduce; replacement: consistent with the weights (0.0061 vs
+   0.0022, paired CI [0.0011, 0.0066]; own observation 0.0415); knock-out: not consistent.
+7. [x] **Notebook §7–§9**, re-executed end to end with the sweep and faithfulness outputs;
    **`docs/analysis.md`** written from the outputs; read against the pre-written readings.
-8. [ ] **Close:** `pytest`, `ruff check src tests scripts`; gap table A8; ROADMAP ticks and
+8. [x] **Close:** `pytest`, `ruff check src tests scripts`; gap table A8; ROADMAP ticks and
    Decision Log result row; README / CLAUDE.md; worklog/022; commits per
    `.claude/commands/commit.md` (no Claude co-author).
 
 Time: steps 1–4 on 13–14 Nov, steps 5–7 on 14 Nov, step 8 by 15 Nov morning; Phase 9 writing
 starts in parallel from step 3.
+
+*Other deviations:* no on-disk cache (the notebook runs in ≈ 2 min); `scripts/analysis_figures.py`
+and `scripts/error_analysis.py` were never written (replaced by the notebook, A12); nothing
+from the cut order was dropped; helper `Context` / `show` / overview functions were added to
+`eval/analysis.py` so the notebook needs no lambda or loop logic of its own.
 
 **Cut order if late (A4), first to last:** route groups (A3) → Hangzhou per-intersection
 breakdown → the "gate fired" case (the win / loss cases stay) → knock-out variant of the

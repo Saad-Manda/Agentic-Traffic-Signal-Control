@@ -30,7 +30,7 @@ Legend: ✔ yes · ◐ partial / implicit · ✗ no · — not applicable.
 | Com-MP (Zhu & Tan 2026) | RL inside MP | ◐ via MP | ✗ | ✗ | ✔ MP always selects phase | ✔ claimed strong stability | ◐ | ◐ heterogeneity |
 | LLMLight (Lai 2025) | LLM agent | ✗/◐ | ✗ (not calibrated) | ✗ | ✗ | ✗ | ✔ natural-language | ◐ |
 | Hoel et al. 2020 *(driving, not TSC)* | Single-agent RL | — | ✔ ensemble + priors | ✔ threshold | ✔ fallback action | ✗ | ◐ | ✔ OOD |
-| **UG-MARL (ours)** | **MARL** | **✔ neighbour attention** | **✔ Q-ensemble σ(s)** | **✔ gate** | **✔ MP fallback** | **◐ MP stability if the gate always fires; mixed policy: sketch only (`methodology.md` §6)** | **✔ gate log, σ, attention weights (faithfulness check: Phase 8)** | **✔ noise, dropout, surge, held-out city** |
+| **UG-MARL (ours)** | **MARL** | **✔ neighbour attention** | **✔ Q-ensemble σ(s)** | **✔ gate** | **✔ MP fallback** | **◐ MP stability if the gate always fires; mixed policy: sketch only (`methodology.md` §6)** | **✔ gate log, σ, attention weights (faithfulness check done: weights rank neighbour influence, which is small)** | **✔ noise, dropout, surge, held-out city** |
 
 *Rows are post-2015 papers, except the two background baselines we implement. Entries are from each paper's main method as summarised in files 01–05. Check every ✔/◐ against
 the PDF before the final report (ROADMAP 2.6, at the start of Phase 9). The UG-MARL row describes
@@ -87,9 +87,9 @@ Status column added 13 Nov (after Phase 7). Dropped items are limitations to sta
 | A3 | Use randomized prior functions in the Q-ensemble | `architecture.md` | 04 §2.3: σ must grow off-distribution | **Dropped.** Bernoulli(0.8) bootstrap masks instead (Phase 6 plan: one fewer component). σ still rises 4–11× under noise on val (`sigma_validity.csv`) |
 | A4 | Double DQN in **all** learners; shared parameters in IDQN and UG-MARL | `architecture.md` | Fair comparison (02 A3, B2) | **Done, with one deliberate exception.** Double DQN in every learner. DQN and UG-MARL share parameters. IDQN keeps independent nets because it is the PS16 independent-learner baseline |
 | A5 | Consider Advanced-MP as an extra conventional baseline | ROADMAP Phase 4 | Credibility of H1 (03 §4.6) | **Dropped.** Only Fixed-Time and Max-Pressure are implemented; a limitation for the report |
-| A6 | Add a τ sweep / risk–coverage plot and σ-AUROC diagnostic to the evaluation protocol | `docs/evaluation_protocol.md` (3.5) | 04 §3–4 | **Partly.** τ-percentile sweep on val (`gate_calibration.md`) and σ check by Spearman ρ (`sigma_validity*.csv`); no risk–coverage plot or AUROC |
+| A6 | Add a τ sweep / risk–coverage plot and σ-AUROC diagnostic to the evaluation protocol | `docs/evaluation_protocol.md` (3.5) | 04 §3–4 | **Partly.** τ-percentile sweep on val (`gate_calibration.md`, extended to p = 50–70 in Phase 8: `tau_sensitivity.md`) and σ check by Spearman ρ (`sigma_validity*.csv`); no risk–coverage plot or AUROC |
 | A7 | Explicitly report gate-firing rates under shift (noise, held-out city) | protocol | Ovadia: ensembles can be confidently wrong under shift | **Done.** `test_robustness.md`, `test_safety_explain.md`, `heldout_generalisation.md` (fallback-rate sections) |
-| A8 | Attention faithfulness check (perturb high-α vs low-α neighbour) | Phase 8 | 05 B | **Open → Phase 8** (ROADMAP 8.2): perturb the high-α vs low-α neighbour on validation flows (no new test runs) |
+| A8 | Attention faithfulness check (perturb high-α vs low-α neighbour) | Phase 8 | 05 B | **Done (13 Nov).** Validation, offline slot replacement (`docs/results/attention_faithfulness.md`): replacing the highest-α neighbour changes mean Q by 0.0061 vs 0.0022 for the lowest-α one (paired 95 % CI [0.0011, 0.0066]) — consistent with the weights; the own observation gives 0.0415, so neighbour influence is small. Knock-out variant: no reliable ranking |
 | A9 | Datasets: Jinan/Hangzhou/New York come from the CoLight release, so comparable numbers exist | ROADMAP Phase 1 | 03 §4.3 | **Done.** Both from the CoLight repo (`04440b7`); see Decision Log 10 Nov |
 
 ## 5. Search method (for the report's reproducibility)
