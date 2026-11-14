@@ -1,0 +1,43 @@
+% Algorithm 1 (ROADMAP 9.6). Checked line by line against the code: checks/algorithm_check.md
+\begin{algorithm}[t]
+\caption{\ugmarl{} training, tuning and evaluation}
+\label{alg:ugmarl}
+\footnotesize
+\begin{algorithmic}[1]
+\Require road network $G$; flows $F_{\mathrm{train}}, F_{\mathrm{val}}, F_{\mathrm{test}}$
+(Jinan) and $F_{\mathrm{held}}$ (Hangzhou); grid $H$ of $(K,d_e)$; percentiles $P$; seeds $S$
+\Ensure weights $\theta_s$ and threshold $\tau_s$ for every $s\in S$; test and held-out
+metrics as mean $\pm$ std and 95\,\% CI
+\State Assign whole flow files to train, validation and test; leave $F_{\mathrm{held}}$
+unopened; lane capacities $c_l$ from road lengths (nothing is fitted)
+\Procedure{Train}{$K, d_e, s$} \Comment{gate off}
+  \State initialise $\theta$ with seed $s$; $\bar\theta\gets\theta$; replay $\mathcal D\gets\emptyset$ (100\,000 transitions); $best\gets\infty$
+  \For{episode $e=1,\dots,100$ on $F_{\mathrm{train}}$}
+    \State $\varepsilon\gets$ linear from 1.0 to 0.05 over the first 30 episodes
+    \For{each step, each ready intersection $i$}
+      \State $z_i\gets$ attention over $s_i$ and neighbours (\cref{eq:attention}); $\mu\gets$ mean of $Q_1,\dots,Q_K$
+      \State $a_i\gets$ random phase with probability $\varepsilon$, else $\argmax_a\mu(s_i,a)$
+      \State store $(s,a,r,s',d)$ with mask $m_k\sim\mathrm{Bernoulli}(0.8)$ in $\mathcal D$
+      \State every 4 transitions (after the first 2000): one gradient step on \cref{eq:loss}
+      \State every 1000 gradient steps: $\bar\theta\gets\theta$
+    \EndFor
+    \If{$e \bmod 5=0$}
+      \State run one greedy episode on $F_{\mathrm{val}}$; if its travel time $<best$, save $\theta$ and update $best$
+    \EndIf
+  \EndFor
+  \State \Return the saved $\theta$
+\EndProcedure
+\State \textbf{for} $(K,d_e)\in H$: \Call{Train}{$K,d_e,0$};\quad
+$(K^\star,d_e^\star)\gets$ smallest $K$, then smallest $d_e$, within 1\,s of the best validation travel time
+\State \textbf{for} $s\in S$: $\theta_s\gets$ \Call{Train}{$K^\star,d_e^\star,s$}
+\State \textbf{for} $s\in S$: record $\sigma$ of every decision of one clean, ungated episode on
+$F_{\mathrm{val}}$; $\tau_s(p)\gets$ $p$-th percentile, $p\in P$
+\State $p^\star\gets$ smallest $p\in P$ within 1\,s of the lowest mean travel time of the gated
+policy over $S$ and five conditions of $F_{\mathrm{val}}$ (clean, noise 0.1, 0.2, dropout 10, 20\,\%);\quad $\tau_s\gets\tau_s(p^\star)$
+\State Lock $(\theta_s,\tau_s)$ with a hash manifest
+\For{$s\in S$, each condition of $F_{\mathrm{test}}$ and each flow of $F_{\mathrm{held}}$} \Comment{each episode once}
+  \State at every ready intersection apply $a_i\gets a_i^{\mathrm{MP}}$ if $\sigma(s_i)>\tau_s$, else $a^\star(s_i)$ (\cref{eq:gate})
+\EndFor
+\State Report mean $\pm$ std and 95\,\% CI (Student $t$) over $S$
+\end{algorithmic}
+\end{algorithm}

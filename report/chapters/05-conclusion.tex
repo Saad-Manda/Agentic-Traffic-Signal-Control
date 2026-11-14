@@ -1,0 +1,71 @@
+\chapter{Conclusion and Future Scope}
+\label{ch:conclusion}
+
+\section{Key Findings}
+
+This project compared conventional, single-agent and multi-agent signal controllers on real
+traffic flows and built \ugmarl{}, a multi-agent controller that estimates its own uncertainty and
+lets Max-Pressure make the decision whenever that uncertainty is high.
+\begin{itemize}
+\item \textbf{H1, performance: supported.} On the test flow \ugmarl{} averages
+\res{tt}{ugmarl}{clean}\,s of travel time, clearly below Max-Pressure
+(\res{tt}{max_pressure}{clean}\,s) and IDQN (\res{tt}{idqn}{clean}\,s), and
+\res{regret}{ugmarl}{clean}\,s behind the single shared DQN.
+\item \textbf{H2, safety: supported}, with one of its three parts undecided. At detector
+noise 0.2 the gate holds travel time at \res{tt}{ugmarl}{noise0.2}\,s, where the same model
+without it reaches \res{tt}{ugmarl-nogate}{noise0.2}\,s, and keeps the maximum wait at
+\res{maxw}{ugmarl}{noise0.2} instead of \res{maxw}{ugmarl-nogate}{noise0.2}\,s. On clean data
+the gate makes no measurable difference.
+\item \textbf{H3, coordination: not supported.} Neighbour attention did not reduce travel
+time, and the model without it does as well with 63\,\% fewer parameters.
+\item \textbf{Reliability across conditions.} Each baseline has a condition where it does
+badly: the learned ones under detector noise, Max-Pressure on clean data and in the surge.
+The largest regret of \ugmarl{} over the six conditions is \res{regret}{ugmarl}{worst}\,s,
+against \res{regret}{max_pressure}{worst}--\res{regret}{dqn}{worst}\,s for the baselines, and
+on an unseen city it performs at the level of DQN.
+\item \textbf{What the uncertainty measures.} $\sigma$ rises for inputs that look unlike the
+training data. This is why the gate helps under detector noise. It is also why the gate fires
+during a demand surge, where it makes the longest wait worse.
+\end{itemize}
+
+\section{Limitations}
+
+\textbf{Evidence.} The study rests on five seeds and one test flow per city. The confidence
+intervals capture the randomness of training and say nothing about how demand varies from day
+to day. Differences of a few seconds, such as the gap to DQN or the threshold sweep, are close
+to what the study can resolve. Because the validation flow was used again and again to pick
+checkpoints, the architecture and the threshold, the validation numbers are optimistic. The
+cause of the gap to DQN has not been isolated.
+
+\textbf{Method.} Three heads on a shared encoder produce the uncertainty estimate. The signal is
+coarse: it cannot tell faulty detectors from heavy demand, and it barely correlates with the
+learning error. The gated policy comes with no stability guarantee, and the fallback puts no
+bound on how long one vehicle waits. Vehicles that never get into the network are missing from
+the waiting-time metrics. Only Gaussian noise and randomly lost readings were tested, not
+detectors that are stuck, biased or delayed.
+
+\textbf{Scope.} Both cities are regular grids with a single vehicle class and no pedestrians,
+buses or incidents, and both are simulated in CityFlow. With a 15\,s decision interval, the
+absolute numbers cannot be compared with studies that use 10\,s. Only two rule baselines
+were run.
+
+\textbf{Ethics and deployment.} The data comes without a stated licence, so it is used only for
+coursework and is not redistributed. The trips are anonymous and carry no identifiers, so no
+personal data is processed. Fairness between road users was examined through waiting per
+approach. The learned controllers share waiting evenly across the four approaches (22--29\,\%
+each), and the longest unbroken queue on one approach lasts 849\,s under \ugmarl{} against
+1275\,s under Max-Pressure. Individual vehicles can still wait a very long time when demand is
+heavy. The controller has only been run in simulation and has no safety certification, and the
+gap between the simulator and real roads is unknown. Putting it on a real road would need fixed
+limits on red time, pedestrian phases and supervision by traffic engineers.
+
+\section{Future Research Directions}
+
+The results suggest four next steps. (1) A fallback with a hard cap on the red time of each
+movement would bound the worst case of a single vehicle by design. (2) The gate needs a signal
+that tells unreliable inputs apart from heavy but correctly measured demand, for instance by
+adding a queue-based trigger or randomised prior functions to the ensemble. (3) Filtering the detector
+readings before they reach the fallback, since without filtering none of the controllers here
+beats Max-Pressure under noise. (4) Tuning the learning settings of \ugmarl{} on their own and
+running more seeds, to find out whether the gap to DQN comes from the architecture. Tests on
+irregular networks and with realistic detector faults would show how far these findings hold.

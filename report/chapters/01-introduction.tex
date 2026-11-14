@@ -1,0 +1,100 @@
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Background and Motivation}
+
+An agentic AI system observes its environment, decides and acts towards a goal with little
+human help. Traffic signal control fits that description closely. Every few seconds each
+intersection has to choose which movements get green, using only its own detector readings,
+and what one intersection does changes the traffic arriving at its neighbours. Most signals
+on real roads still run fixed timing plans or simple actuated rules.
+
+Adaptive controllers come in two families. Rule-based control such as Max-Pressure
+\citep{varaiya2013max} needs no training and keeps queues bounded under stated assumptions,
+but it never learns from experience. Reinforcement learning (RL) makes each intersection an
+agent that learns in simulation, and on the standard benchmarks it gives lower travel times
+\citep{wei2019presslight,wei2019colight}. Learned controllers also have the weaknesses that
+the problem statement lists for agentic systems. Their decisions become unreliable when the
+inputs drift away from the training data, they give no warning when that happens, nothing
+bounds their worst case, and their decisions are hard to explain. Benchmark studies add that
+reported gains are fragile and that a well-tuned independent DQN often matches newer methods
+\citep{ault2021reinforcement}. This project combines the two families: the learned
+multi-agent controller acts where it is reliable, the rule takes over where it is not, and
+the learned controller's own uncertainty decides which one acts.
+
+\section{Problem Statement}
+
+Problem Statement 16 asks for a study of the limits of conventional, single-agent and
+multi-agent agentic frameworks on a real-world application, and for an improved system with
+mathematical justification and experimental validation. Here the problem is:
+\emph{given} the queue lengths, vehicle counts and current signal phase at every
+intersection of a real road network (Jinan, $3\times4$; held-out city Hangzhou,
+$4\times4$), \emph{choose} the next signal phase of each intersection every
+$\dt$ seconds over a one-hour episode, \emph{under} minimum-green and yellow-transition
+constraints and with possibly noisy or missing detector readings, \emph{so that} the
+average travel time is lower than that of the baselines and the longest wait of a vehicle
+stays bounded. Each action changes the inputs that follow, so this is sequential
+decision-making rather than prediction of a fixed label.
+
+\section{Objectives}
+
+\begin{enumerate}
+\item Compare conventional (Fixed-Time, Max-Pressure), single-agent RL (a shared DQN) and
+multi-agent RL (independent DQN, IDQN) controllers on identical flows and expose their limits.
+\item Design \ugmarl{}, with neighbour attention, an ensemble estimate of epistemic
+uncertainty and a fallback to Max-Pressure triggered by that uncertainty, and state it
+mathematically.
+\item Test three hypotheses whose decision rules were fixed before the experiments:
+\begin{itemize}
+\item \textbf{H1 (performance):} \ugmarl{} has a lower average travel time than IDQN and
+Max-Pressure on the test flow, with non-overlapping 95\,\% confidence intervals.
+\item \textbf{H2 (safety):} the gate lowers the worst case (maximum per-vehicle wait, loss
+of performance under detector noise) compared with the same model without the gate.
+\item \textbf{H3 (coordination):} neighbour attention lowers the average travel time
+compared with the same model without attention.
+\end{itemize}
+\item Measure robustness (detector noise, dropout, demand surge), transfer to an unseen
+city, cost and explainability. The minimum acceptable outcome is a maximum wait no worse
+than that of Max-Pressure, and negative results are reported as they came out.
+\end{enumerate}
+
+\section{Scope of the Work}
+
+The work covers two grid networks with real demand, simulated in CityFlow
+\citep{zhang2019cityflow} over one-hour episodes. It includes a data audit, an evaluation
+protocol frozen before training, four baselines, the proposed model with three ablations,
+robustness and cross-city tests, and an error analysis. Real deployment, pedestrians, public
+transport, irregular networks and agents built on language models are out of scope.
+
+\section{Contributions}
+
+Each contribution below changes something in an existing method or practice.
+\begin{enumerate}
+\item \textbf{Ensemble disagreement chooses the action.} Earlier ensemble Q-learners for
+signals use the heads to explore during training \citep{tan2020multiagent}. \ugmarl{} keeps
+the heads at execution time and uses their disagreement $\sigma$ to decide, at every
+intersection and every decision, whether the learned phase or the Max-Pressure phase is
+applied (\cref{sec:arch}).
+\item \textbf{The learned policy leads and Max-Pressure is the fallback.} Com-MP
+\citep{zhu2026commp} lets Max-Pressure choose the phase and uses RL to adapt it. \ugmarl{}
+reverses the roles: the learned policy chooses, so it keeps its advantage on clean data
+(25\,s ahead of Max-Pressure), and Max-Pressure returns when the inputs look unfamiliar
+(\res{fb}{ugmarl}{noise0.2}\,\% of decisions at noise 0.2).
+\item \textbf{Uncertainty fallback moved from one vehicle to a network of agents.} Hoel et
+al.\ \citep{hoel2020tactical} switch a single automated vehicle to a safe action when an
+ensemble disagrees. Here the same pattern runs independently at each of 12 or 16
+intersections, and the fallback has a queue-stability result whose limits are stated
+(\cref{sec:arch}).
+\item \textbf{Evaluation beyond clean benchmarks.} Published controllers are usually scored
+with perfect detectors on the demand they were trained for. All controllers here are run
+under one frozen protocol with detector noise, dropout, a demand surge and an unseen city,
+and the results are read with rules written before the test flow was opened. The learned
+baselines beat Max-Pressure by 13--29\,s on clean data and lose to it by 345--415\,s under
+noise; \ugmarl{} has the smallest worst-case regret (\res{regret}{ugmarl}{worst}\,s,
+\cref{sec:comparison}).
+\item \textbf{Attention weights checked before being used as explanations.} CoLight
+\citep{wei2019colight} presents its attention weights as an explanation. Here the weights are
+logged with $\sigma$ and the gate outcome for every decision and then tested: they rank
+neighbour influence correctly, but neighbours carry only about a seventh of the influence of
+the intersection's own observation (\cref{sec:discussion}).
+\end{enumerate}

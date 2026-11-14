@@ -1,0 +1,138 @@
+% UG-MARL project report (ROADMAP 9.1). Build from report/:  latexmk -pdf main.tex
+% Tables and \res{..}{..}{..} numbers are generated: python scripts/report_tables.py
+\documentclass[10pt,a4paper,oneside]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[font=small,labelfont=bf,skip=4pt]{caption}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[titles]{tocloft}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink,noabbrev,capitalise]{cleveref}
+
+\graphicspath{{figures/}{../docs/figures/results/}{../docs/figures/eda/}}
+
+% compact, numbered chapters that run on without a page break
+\titleclass{\chapter}{straight}
+\titleformat{\chapter}[hang]{\normalfont\Large\bfseries}{\thechapter}{0.8em}{}
+\titlespacing*{\chapter}{0pt}{12pt plus 4pt minus 2pt}{6pt}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.7em}{}
+\titlespacing*{\section}{0pt}{7pt plus 2pt minus 2pt}{2pt}
+\titleformat{\subsection}[runin]{\normalfont\normalsize\bfseries}{\thesubsection}{0.6em}{}[.]
+\titlespacing*{\subsection}{0pt}{5pt plus 1pt}{0.5em}
+\setlist{nosep,leftmargin=1.4em}
+\linespread{0.97}
+\setlength{\parskip}{2.5pt plus 1pt}
+\setlength{\parindent}{0pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovedisplayskip}{5pt plus 1pt minus 2pt}
+\setlength{\belowdisplayskip}{5pt plus 1pt minus 2pt}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.85}
+\makeatletter\setlength{\@fptop}{0pt}\makeatother % float pages start at the top
+\renewcommand{\bibname}{References}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+% contents, list of figures and list of tables on one page
+\setcounter{tocdepth}{1}
+\setlength{\cftbeforechapskip}{3pt}
+\setlength{\cftbeforetoctitleskip}{0pt}
+\setlength{\cftbeforeloftitleskip}{10pt}
+\setlength{\cftbeforelottitleskip}{10pt}
+\setlength{\cftaftertoctitleskip}{4pt}
+\setlength{\cftafterloftitleskip}{4pt}
+\setlength{\cftafterlottitleskip}{4pt}
+\renewcommand{\cfttoctitlefont}{\Large\bfseries}
+\renewcommand{\cftloftitlefont}{\large\bfseries}
+\renewcommand{\cftlottitlefont}{\large\bfseries}
+\renewcommand{\cftchapfont}{\bfseries\small}
+\renewcommand{\cftchappagefont}{\bfseries\small}
+\renewcommand{\cftsecfont}{\small}
+\renewcommand{\cftsecpagefont}{\small}
+\renewcommand{\cftfigfont}{\small}
+\renewcommand{\cftfigpagefont}{\small}
+\renewcommand{\cfttabfont}{\small}
+\renewcommand{\cfttabpagefont}{\small}
+\setlength{\cftbeforesecskip}{0pt}
+\setlength{\cftbeforefigskip}{0pt}
+\setlength{\cftbeforetabskip}{0pt}
+
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
+\algrenewcommand\algorithmiccomment[1]{\hfill{\footnotesize\textit{#1}}}
+\crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{equation}{Eq.}{Eqs.}
+\crefname{chapter}{Chapter}{Chapters}
+
+\newcommand{\ugmarl}{UG-MARL}
+\newcommand{\dt}{\Delta t}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\input{generated/numbers}
+
+\begin{document}
+
+% ---------------- title block (no separate title page) ----------------
+\begin{center}
+{\small Machine Learning Project Report \quad$\cdot$\quad Problem Statement 16: Agentic Artificial Intelligence\par}
+\vspace{6pt}
+{\LARGE\bfseries Uncertainty-Gated Multi-Agent Reinforcement Learning\\[2pt]
+for Adaptive Traffic Signal Control\par}
+\vspace{8pt}
+{\large Manda Saad\par}
+\vspace{2pt}
+{\small Roll No.\ 2401AI28 \quad$\cdot$\quad manda\_2401ai28@iitp.ac.in\par}
+{\small Computer Science and Engineering, Indian Institute of Technology Patna \quad$\cdot$\quad November 2026\par}
+\end{center}
+\vspace{4pt}
+\hrule
+\vspace{6pt}
+
+\input{chapters/00-abstract}
+
+% contents and lists follow the abstract directly; chapters run on without page breaks
+\begingroup
+\let\clearpage\relax
+\let\cleardoublepage\relax
+\tableofcontents
+\vspace{8pt}
+\listoffigures
+\vspace{8pt}
+\listoftables
+\endgroup
+\vspace{6pt}
+\hrule
+
+\input{chapters/01-introduction}
+\input{chapters/02-literature}
+\input{chapters/03-methodology}
+\input{chapters/04-results}
+\input{chapters/05-conclusion}
+
+\phantomsection
+\addcontentsline{toc}{chapter}{References}
+\begingroup
+\footnotesize
+\setlength{\bibsep}{0.5pt plus 0.3pt}
+\bibliographystyle{IEEEtranN}
+\bibliography{references}
+\endgroup
+    
+\end{document}

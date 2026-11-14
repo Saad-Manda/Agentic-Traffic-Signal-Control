@@ -346,7 +346,14 @@ Format changed 12 Nov (Decision Log): **poster replaces the 10 slides; report is
 in the structure of `updated Sections of a Machine Learning Project Report.pdf`. Claude drafts
 the report and poster; the student reviews and edits before submission.
 
-- [ ] 9.1 **Report — LaTeX in `report/`, one PDF, 12–15 pages including all sections.** Each
+- [ ] 9.1 **Report — LaTeX in `report/`, one PDF, 12–15 pages including all sections.**
+      **Draft complete 14 Nov** (`report/report.pdf`, 15 pages, `scripts/check_report.py` ok;
+      worklog/024). **Revised 15 Nov** (worklog/025): one-paragraph abstract, contributions as
+      changes over existing work, 10 references, gaps as prose, humanized impersonal text, no
+      title page or chapter page breaks, now 12 pages. Open before ticking: student review,
+      bibliography entries marked `check`. Deviations from the list below: 10 pt / 2 cm margins and **no
+      appendix** (page limit; settings are in §3.6 and Algorithm 1), one EDA figure, four tables
+      and two figures in Ch 4 (efficiency numbers in the text). Each
       chapter starts on a new page as a numbered chapter; every figure, table, equation and
       algorithm is numbered and referenced in the text; proper citations (`references.bib`),
       no plagiarism. Rough page budget: preliminaries ~3, Ch 1 ~1.5, Ch 2 ~1.5, Ch 3 ~3.5,
@@ -394,19 +401,19 @@ the report and poster; the student reviews and edits before submission.
 - [ ] 9.4 README: dataset access (download commands, license), install, **exact train/evaluate
       commands for every table and figure**, and **expected outputs** (numbers ± tolerance, file
       paths). No hidden manual steps.
-- [ ] 9.5 **Architecture diagram** (guidelines p.22): data-flow order — raw flows → split →
+- [x] 9.5 **Architecture diagram** (guidelines p.22): data-flow order — raw flows → split →
       normalisation (*fit on train only*) → CityFlow env → attention encoder → Q-ensemble → gate
       (σ > τ ? Max-Pressure : argmax μ) → phase action → metrics; **separate training path**
       (replay, ensemble updates, τ chosen on validation) from **inference path**; caption. Used
       in report §3 (proposed model architecture) and as poster Figure 1.
-- [ ] 9.6 **Algorithm pseudocode** (guidelines p.23): "Algorithm 1: UG-MARL training, tuning and
+- [x] 9.6 **Algorithm pseudocode** (guidelines p.23): "Algorithm 1: UG-MARL training, tuning and
       evaluation" — Input (roadnet, train/val/test flows, search space H), Output (trained
       ensemble Q*, τ*, test metrics), numbered steps. **Checked line by line against the final
       code before submission.**
 - [ ] 9.7 **Fresh-clone reproduction test:** clone into a new directory, follow only the README,
       regenerate the main comparison table (7.1) and one figure; results within seed variance of
       the reported ones. Log the outcome in the worklog.
-- [ ] 9.8 **Ethics & limitations write-up** (report Ch 5, limitations):
+- [x] 9.8 **Ethics & limitations write-up** (report Ch 5, limitations):
       - dataset licenses / terms of use
       - privacy (anonymised trajectories, no personal data)
       - fairness (can minor approaches be starved? max wait per approach)
@@ -452,7 +459,7 @@ Tick all before submission on 17 Nov.
 - [x] Results and failures interpreted → 8.3, 8.4
 - [ ] Seeds, versions and commands recorded → 5.4, 9.4
 - [ ] Code, report and poster organized → 9.1, 9.2, 9.7
-- [ ] Limitations and references included → 9.1, 9.8
+- [x] Limitations and references included → 9.1, 9.8
 
 ## Solo-project scope controls
 
@@ -510,3 +517,5 @@ Tick all before submission on 17 Nov.
 | 13 Nov | **Phase 8 readings fixed before the new validation runs.** *τ sweep* (score = mean travel time over seeds × the five validation conditions): every p in 50–90 within 5 s of p\* = 80 → "insensitive"; some p < 80 better than p\* by more than the 1 s tie tolerance → reported as "the calibration grid's lower end was binding", p\* stays 80 and the test flow is not re-run; lower p worse → reported as the clean-data cost of more fallback. *Attention faithfulness* (validation, offline: one neighbour's observation replaced by the same slot's observation from another decision of that intersection): "consistent with the weights" iff the per-seed paired difference in mean \|Δμ\| (highest-α − lowest-α neighbour) is > 0 with a 95 % CI excluding 0; otherwise "the weights do not rank the neighbours' influence on Q" and the attention maps carry that caveat. Representative cases are picked by rule (largest / smallest waiting-vehicle-seconds difference to DQN per intersection × 5-minute window on the median seed; most gate-changed decisions). → worklog/022 |
 | 13 Nov | **Phase 8 executed (no test / held-out episode run; 75 + 5 new validation episodes, evaluation only; `lock_models.py --verify` passes).** All 305 final episodes are reproduced from the saved logs (largest difference 0.00005 s) once travel time is counted from the scheduled start in the flow file — **the per-vehicle logs alone miss vehicles blocked outside the network**, and the waiting-time metrics (incl. max wait) count waiting inside the network only. **Findings:** (1) the 3.2 s deficit to DQN on clean data is spread over all 12 intersections (clear at 4), all windows and all route lengths, is not caused by the gate (gate on vs off level) and is shared by all four UG-MARL variants → attributed to the network family / inherited hyperparameters, not isolated further. (2) Against Max-Pressure on clean data UG-MARL has 17–40 % less waiting at every intersection. (3) At noise 0.2 the ungated learned policies leave 584–795 of 5494 vehicles outside the network (UG-MARL and Max-Pressure: 0), so their reported max wait understates the worst case; UG-MARL is level with Max-Pressure at 11 of 12 intersections. (4) **The gate costs waiting time under the demand surge** (fallback 38 → 68 % over the hour, max wait 2162 vs 1430 s without the gate) and on the most congested Hangzhou flow (max wait ≈ Max-Pressure's). (5) **τ sweep:** p = 50 / 60 / 70 score 343.2 / 343.8 / 342.3 s vs 343.7 s at p\* = 80 → insensitive within 5 s, and by the pre-fixed rule the grid's lower end was binding (p = 70 is 1.5 s better); **p\* stays 80, test not re-run.** (6) **Attention faithfulness:** consistent with the weights under replacement (\|Δμ\| 0.0061 vs 0.0022, paired CI [0.0011, 0.0066]) but the own observation gives 0.0415; knock-out variant not consistent. (7) Flip-flop rate 21.5 % (DQN 20.2 %, Max-Pressure 20.3 %). **Deviations from the plan:** no on-disk cache (not needed, the notebook runs in 2 min); surge has no route join (its flow is generated), so its breakdown uses time inside the network; of the 75 sweep rows 10 carry commit `57dd6ea`, 19 `57dd6ea-dirty` and 46 the next commit `4ab9ac9`, because unrelated new files were created and committed while the sweep ran — the code under run was `57dd6ea` throughout. Nothing was selected or changed. → `docs/analysis.md`, worklog/022 |
 | 14 Nov | **Gap table finalised (2.6).** Every row checked against abstract / arXiv HTML; corrections: RELight ensemble votes at execution (still no uncertainty use), Nguyen 2025 claim narrowed to independent/decentralised RL, CoLight dataset sizes as counts, FRAP invariance = symmetries. UG-MARL safety cell ✔ → ◐ (surge max wait). Novelty search re-run: nothing uses execution-time uncertainty to defer to MP; BCT-APLight and T2-BAS-DQN added as rows. **Decision: the report quotes no external ATT numbers as comparable** (same dataset names, different flows/settings: MP on Jinan 361 s vs 246–274 s across papers). Rejected: copying tables from papers. → worklog/023 |
+| 14 Nov | **Report drafted (9.1, with 9.5, 9.6, 9.8); plan `.claude/plans/phase9-report.md`.** (1) **Authorship (user decision):** Claude writes the whole report, the student reviews and edits — decided after the clause "no plagiarism and AI contents" in the format document was pointed out and a scaffold-only alternative was offered; the risk is the student's. (2) **Build:** TeX Live + `latexmk`; tables and every result number in the text (`\res{…}` macros) are generated from `docs/results/*.csv` by `scripts/report_tables.py`, checked by `scripts/check_report.py` and tests; `final_tables.py` additionally writes `heldout_generalisation_all.csv` (the "All flows" column as data; no other output changed). (3) **Page limit:** 15 pages exactly — 10 pt, 2 cm margins, **appendix dropped** (settings moved into §3.6 / Algorithm 1), main-comparison figure dropped (duplicates Table 4.1), efficiency reported in the text. (4) **External numbers not quoted** (as decided 14 Nov, worklog/023): the Nguyen 2025 percentages were removed from the draft after checking the verification log. (5) Correction found while writing: −attention has 63 % fewer parameters, not 61 %. Nothing was simulated; no model, table value or verdict changed. → worklog/024 |
+| 15 Nov | **Report revised (9.1); plan `.claude/plans/report-revision.md`.** User decisions: (1) one-paragraph abstract with 4 headline numbers; (2) contributions stated as changes over existing work (Tan 2020, Com-MP, Hoel 2020, clean benchmarks, CoLight attention); (3) references cut from 38 to **10** ("as few as possible"; Double DQN, IDQN, Fixed-Time, deep ensembles, Jain & Wallace named without citation), gap table replaced by prose; (4) humanizer pass on all prose, figures/tables/equations/algorithm unchanged; (5) **impersonal voice** (no "we"/"I", solo project); (6) no title page, chapters without page breaks: 15 → 12 pages (the minimum). worklog/025. |

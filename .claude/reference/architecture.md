@@ -109,7 +109,8 @@ separately from the **inference path**, and add a caption.
 
 ## Algorithm 1 — draft (guidelines format, ROADMAP 9.6)
 
-Must be re-checked line by line against the final code before submission.
+**Superseded 14 Nov:** the final version is `report/figures/algorithm.tex`, checked line by
+line against the code in `report/checks/algorithm_check.md`. The draft below is kept for history.
 
 **Algorithm 1: UG-MARL training, tuning and evaluation**
 **Input:** roadnet G; flows F_train, F_val, F_test (primary city), F_heldout; search space H;

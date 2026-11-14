@@ -269,7 +269,28 @@ scores 343.2 / 343.8 / 342.3 s for p = 50 / 60 / 70 (343.7 s at the locked p\* =
 faithfulness, replacement: |Δμ| 0.0061 (highest-α neighbour) vs 0.0022 (lowest-α) vs 0.0415
 (own observation). Written interpretation: `docs/analysis.md`. Results: worklog/022.
 
-### 12. Tests and lint
+### 12. Report (ROADMAP 9.1)
+
+The report is LaTeX in `report/`; nothing is simulated to build it.
+
+```bash
+sudo apt install -y latexmk texlive-latex-recommended texlive-latex-extra \
+    texlive-science texlive-pictures texlive-publishers texlive-bibtex-extra poppler-utils
+python scripts/final_tables.py --study all   # docs/results/*.csv (incl. heldout_generalisation_all.csv)
+python scripts/report_tables.py              # report/tables/*.tex, report/generated/numbers.tex
+cd report
+latexmk -pdf -outdir=build figures/architecture.tex && cp build/architecture.pdf figures/ \
+    && pdftoppm -r 300 -png -singlefile build/architecture.pdf figures/architecture   # Figure 3.2
+latexmk -pdf main.tex && cp build/main.pdf report.pdf
+cd .. && python scripts/check_report.py      # pages 12-15, references, citations, leftovers
+```
+
+Every table and every result number in the text (`\res{metric}{model}{condition}`) is
+generated from `docs/results/*.csv`; the result figures are the PDFs of step 11. Expected
+output: `pages: 12`, `report check: ok`. `report/checks/claims.md` lists the source of every
+claim, `report/checks/algorithm_check.md` the check of Algorithm 1 against the code.
+
+### 13. Tests and lint
 
 ```bash
 pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones
@@ -290,4 +311,6 @@ notebooks/        01_eda_train.ipynb (EDA, train split only); 02_analysis.ipynb 
                   calls tested functions in src/, simulates nothing)
 docs/             dataset_card.md, data_audit.md, experiment_log.csv, figures/, literature/,
                   results/ (tables), analysis.md (interpretation of the results)
+report/           LaTeX report: main.tex, chapters/, figures/ (architecture diagram, Algorithm 1),
+                  tables/ + generated/ (written by scripts/report_tables.py), checks/, report.pdf
 ```

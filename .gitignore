@@ -11,3 +11,18 @@ __pycache__/
 data/raw/
 *.log
 *.egg-info/
+
+# LaTeX build output (report/report.pdf is the tracked deliverable)
+/report/build/
+/report/main.aux
+/report/main.bbl
+/report/main.blg
+/report/main.fdb_latexmk
+/report/main.fls
+/report/main.lof
+/report/main.log
+/report/main.lot
+/report/main.out
+/report/main.pdf
+/report/main.synctex.gz
+/report/main.toc
