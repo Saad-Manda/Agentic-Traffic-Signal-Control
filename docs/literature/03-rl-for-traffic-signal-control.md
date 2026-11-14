@@ -90,7 +90,7 @@ DOI 10.1145/3357384.3357900, arXiv 1905.04722.
 
 - **Method.** Embeds each movement's demand, builds phase representations, and scores **pairwise
   phase competition** (which phase should win given the conflicts). The design is invariant to
-  flipping and rotating the intersection.
+  symmetric cases (flipping and rotating the traffic flow; verified 14 Nov).
 - **Result (from the abstract).** Better than prior RL on all-phase selection, faster convergence,
   and better generalisation across intersection structures and flows.
 - **Lesson.** Building symmetry into the architecture gives sample efficiency. MPLight builds on FRAP.
@@ -124,7 +124,7 @@ DOI 10.1145/3292500.3330949. Code: github.com/wingsweihua/presslight.
   "do MP better", including multi-step lookahead MP lacks.
 - **Results.** Arterial and grid networks (synthetic + real, including Jinan). The authors report
   emergent **green-wave**-like coordination without explicit communication, and wins over MP and earlier RL
-  *(numbers unverified)*.
+  (abstract-level, 14 Nov; numbers not quoted, see 06 §1c).
 - **Limitations → our gap.** Coordination is only implicit (through the reward). No uncertainty: when
   the learned policy is worse than MP in some state, nothing detects it.
 - **Why it matters for UG-MARL.** It is our reward choice and the theoretical bridge to the
@@ -139,10 +139,9 @@ DOI 10.1145/3292500.3330949. Code: github.com/wingsweihua/presslight.
 - **Key arguments.** (i) *Index-free*: neighbour influence is a learned, state-dependent weighted
   average, so order and count do not matter. (ii) Attention weights vary over time (for example by
   rush-hour direction), which fixed offsets or spatial discounts cannot capture.
-- **Data.** **Jinan (3×4 = 12 intersections), Hangzhou (4×4 = 16), New York (16×3 = 48 and
-  28×7 = 196)**. These released datasets are the ones our project plans to use (ROADMAP Phase 1).
+- **Data.** **Jinan (12 intersections), Hangzhou (16), New York (196)** (counts as given in the paper). These released datasets are the ones our project plans to use (ROADMAP Phase 1).
 - **Results.** Best ATT across these datasets vs. Fixed-Time, MaxPressure, IntelliLight,
-  PressLight, GCN-based baselines and others *(numbers unverified; copy from Table in PDF when writing the report)*.
+  PressLight, GCN-based baselines and others (Table 2; numbers not quoted in the report because flow files differ across papers, 06 §1c).
 - **Limitations → our gap.** No uncertainty estimate, no fallback, no robustness testing under
   sensor noise. Attention weights are presented as interpretation, but they are not validated as faithful.
 - **Why it matters.** **UG-MARL's encoder is essentially CoLight's.** Our contribution is what

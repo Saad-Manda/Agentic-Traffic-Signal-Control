@@ -25,24 +25,79 @@ Legend: ✔ yes · ◐ partial / implicit · ✗ no · — not applicable.
 | AttendLight (Oroojlooy 2020) | RL | ✗ | ✗ | ✗ | ✗ | ✗ | ◐ attention | ✔ generalisation |
 | Advanced-XLight (Zhang 2022) | MARL | ✔ (Adv-CoLight) | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
 | MA Bootstrapped DQN (Tan 2020) | MARL | ◐ shared params | ✔ bootstrap heads | ✗ (exploration only) | ✗ | ✗ | ✗ | ◐ |
-| RELight (Qi 2022) | RL ensemble | ◐ | ◐ ensemble | ✗ (learning quality) | ✗ | ✗ | ✗ | ✗ |
-| SafeLight (Du 2023) | RL | ◐ | ✗ | ✗ | ✔ collision safety model | ✗ | ✗ | ◐ |
+| RELight (Qi 2022) | RL ensemble | ◐ | ◐ ensemble | ✗ (members vote on the action; disagreement not used as uncertainty) | ✗ | ✗ | ✗ | ✗ |
+| BCT-APLight (Duan 2024, preprint) | MARL | ◐ attention-weighted pressure | ◐ Bayesian "critique" of policy credibility | ✗ (policy is fine-tuned, no hand-over) | ✗ | ✗ | ✗ | ✗ |
+| SafeLight (Du 2023) | RL | ◐ | ✗ | ✗ | ✔ collision safety model (action filter) | ✗ | ✗ | ◐ |
+| T2-BAS-DQN (Bi 2026) | MARL (regional) | ◐ coordination pressure | ◐ Type-2 fuzzy correction (not epistemic) | ✗ (always-on correction) | ✗ (MP only a baseline) | ✗ | ◐ fuzzy rules | ✗ |
 | Com-MP (Zhu & Tan 2026) | RL inside MP | ◐ via MP | ✗ | ✗ | ✔ MP always selects phase | ✔ claimed strong stability | ◐ | ◐ heterogeneity |
 | LLMLight (Lai 2025) | LLM agent | ✗/◐ | ✗ (not calibrated) | ✗ | ✗ | ✗ | ✔ natural-language | ◐ |
-| Hoel et al. 2020 *(driving, not TSC)* | Single-agent RL | — | ✔ ensemble + priors | ✔ threshold | ✔ fallback action | ✗ | ◐ | ✔ OOD |
-| **UG-MARL (ours)** | **MARL** | **✔ neighbour attention** | **✔ Q-ensemble σ(s)** | **✔ gate** | **✔ MP fallback** | **◐ MP stability if the gate always fires; mixed policy: sketch only (`methodology.md` §6)** | **✔ gate log, σ, attention weights (faithfulness check done: weights rank neighbour influence, which is small)** | **✔ noise, dropout, surge, held-out city** |
+| Hoel et al. 2020 *(driving, not TSC)* | Single-agent RL | — | ✔ ensemble + priors | ✔ threshold† | ✔ fallback action† | ✗ | ◐ | ✔ OOD |
+| **UG-MARL (ours)** | **MARL** | **✔ neighbour attention** | **✔ Q-ensemble σ(s)** | **✔ gate** | **◐ MP fallback (bounded worst-case regret on test, but raises max wait under the demand surge)** | **◐ MP stability if the gate always fires; mixed policy: sketch only (`methodology.md` §6)** | **✔ gate log, σ, attention weights (faithfulness check done: weights rank neighbour influence, which is small)** | **✔ noise, dropout, surge, held-out city** |
 
-*Rows are post-2015 papers, except the two background baselines we implement. Entries are from each paper's main method as summarised in files 01–05. Check every ✔/◐ against
-the PDF before the final report (ROADMAP 2.6, at the start of Phase 9). The UG-MARL row describes
-the system as built (13 Nov): the gate is σ > τ only — the queue / Lyapunov trigger (A2) was not
-added — so the guarantee stays ◐.*
+*Rows are post-2015 papers, except the two background baselines we implement. Checked 14 Nov
+against each paper's abstract and, where reachable, its arXiv HTML full text (log in §1c). † =
+confirmed at abstract level only ("uncertainty is used to choose safe actions in unknown
+situations"); the threshold mechanism is from the full text, not re-read. The UG-MARL row
+describes the system as built and evaluated: the gate is σ > τ only — the queue / Lyapunov
+trigger (A2) was not added — so the guarantee stays ◐; safety is ◐ because the gate raised
+max wait under the demand surge (2162 vs 1430 s, `docs/analysis.md`).*
+
+### 1b. Condensed table for the report (Ch 2)
+
+The full table does not fit an A4 column. The report uses these 12 rows × 6 columns (full table →
+appendix). Every row has a `report/references.bib` key.
+
+| Method | Coord. | Uncertainty estimate | Used at execution | Fallback / guarantee | Explain. |
+|---|---|---|---|---|---|
+| Max-Pressure `varaiya2013max` | ◐ | ✗ | — | ✔ queue stability (model) | ✔ rule |
+| Advanced-MP `zhang2022expression` | ◐ | ✗ | — | ◐ | ✔ rule |
+| IntelliLight `wei2018intellilight` | ✗ | ✗ | ✗ | ✗ | ◐ case studies |
+| MA2C `chu2020multi` | ✔ fingerprints | ✗ | ✗ | ✗ | ✗ |
+| PressLight `wei2019presslight` | ◐ pressure reward | ✗ | ✗ | ◐ MP-motivated reward | ✗ |
+| CoLight `wei2019colight` | ✔ attention | ✗ | ✗ | ✗ | ◐ attention |
+| MPLight `chen2020toward` | ◐ pressure | ✗ | ✗ | ✗ | ✗ |
+| MA Bootstrapped DQN `tan2020multiagent` | ◐ | ✔ heads | ✗ exploration | ✗ | ✗ |
+| SafeLight `du2023safelight` | ◐ | ✗ | ✗ | ✔ safety action filter | ✗ |
+| Com-MP `zhu2026commp` | ◐ via MP | ✗ | ✗ | ✔ MP always selects; stability claimed | ◐ |
+| Hoel 2020 *(driving)* `hoel2020tactical` | — | ✔ ensemble + priors | ✔ | ✔ safe action | ◐ |
+| **UG-MARL (ours)** | **✔ attention** | **✔ Q-ensemble σ** | **✔ gate** | **◐ MP fallback; sketch only** | **✔ σ, gate log, attention** |
+
+### 1c. Verification log (14 Nov)
+
+Sources: arXiv abstract pages (+ arXiv HTML where available); ACM DL returned 403, so the two KDD
+papers were checked via the authors' hosted PDF listing / search abstracts only.
+
+| Row | Result | Change made |
+|---|---|---|
+| Advanced-MP / Advanced-XLight (2112.10107) | Rule-based, running + queued vehicles, efficient pressure: confirmed | — |
+| DQN-TSC (1611.01142) | Isolated intersection, deep Q-learning + replay: confirmed | — |
+| IntelliLight (KDD 2018) | Full text not reachable (ACM 403); metadata only | kept, flagged |
+| FRAP (1905.04722) | Single intersection, phase competition: confirmed; invariance is to *symmetries* (flip/rotation), generalisation to road structures/flows | wording in 03 |
+| MA2C (1903.04527) | Neighbour policy fingerprints + spatial discount α: confirmed | — |
+| PressLight (KDD 2019) | Pressure reward from MP theory, beats MP and learning methods: confirmed at abstract level | — |
+| CoLight (1905.05717) | Attention incl. self, shared params, Q-learning, reward = −queue: confirmed. Paper gives intersection *counts* (Jinan 12, Hangzhou 16, NY 196), not grid shapes | dataset line in 03 |
+| MPLight (AAAI 2020) | Pressure, parameter sharing, 2510-light Manhattan: confirmed (no arXiv copy) | — |
+| AttendLight (2010.05772) | Universal single-intersection model via attention: confirmed | — |
+| MA Bootstrapped DQN (CCTA 2020) | Bootstrap ensemble for exploration, conditional parameter sharing, 5×5 grid: confirmed (abstract) | — |
+| RELight (2203.05961) | **Corrected:** the ensemble also votes on the action at execution; still no uncertainty use or fallback | cell text |
+| SafeLight (2211.10871) | Safety standards as enforcement, multi-objective loss + reward shaping; strongest variant filters actions: confirmed | "(action filter)" |
+| Com-MP (2610.31037) | MP phase selection retained; strong queue stability claimed; heterogeneity: confirmed | — |
+| LLMLight (2312.16044) | LLM agent, human-like reasoning: confirmed; absence of uncertainty/fallback from method description | — |
+| Hoel 2020 (2004.10439) | Ensemble + RPF, safe actions when uncertain, OOD: confirmed; threshold detail abstract-silent | † |
+| Nguyen 2025 (2506.13836) | **Corrected:** degradation is shown for *independent value-based and decentralised pressure-based RL*; hierarchical methods are more stable; MP not named in the abstract | §2 paragraph reworded |
+
+**External performance numbers.** Published ATT values for the same "Jinan"/"Hangzhou" names
+disagree across papers (e.g. MP on Jinan: 361 s in CoLight Table 2 vs 246–274 s in Advanced-MP
+Table 2) because flow files and simulation settings differ. **Decision: the report quotes no
+external numbers as comparable to ours**; it cites only qualitative claims. This closes the
+*(unverified)* numbers in 01 and 03.
 
 ## 2. The gap in one paragraph (draft for the report)
 
 > RL controllers for traffic signals (PressLight, CoLight, MPLight) outperform Max-Pressure on
 > average but provide no indication of when their decisions are unreliable, and recent evidence
-> shows they degrade sharply under distribution shift, where Max-Pressure does not
-> (Nguyen et al. 2025). Max-Pressure, conversely, is provably queue-stable under
+> shows that independent and decentralised RL controllers degrade sharply under incident-driven
+> distribution shift (Nguyen et al. 2025). Max-Pressure, conversely, is provably queue-stable under
 > standard assumptions but cannot learn. Ensembles have been used in RL-based signal control only
 > to improve exploration or training stability (Tan et al. 2020; Qi et al. 2022), and
 > uncertainty-triggered fallback controllers have been studied in robotics and autonomous
@@ -61,7 +116,8 @@ added — so the guarantee stays ◐.*
    uncertainty/state decision logic, with the stability argument made explicit and its
    assumptions stated.
 3. An evaluation that isolates each part: −gate / −attention / −ensemble ablations, a
-   validation sweep of the τ percentile (p ∈ {80, 90, 95, 99}, `docs/results/gate_calibration.md`),
+   validation sweep of the τ percentile (p ∈ {80, 90, 95, 99}, `docs/results/gate_calibration.md`;
+   extended to p ∈ {50, 60, 70} in Phase 8, `docs/results/tau_sensitivity.md`),
    and a σ validity check (σ under shift, Spearman ρ between σ and |TD error|,
    `docs/results/sigma_validity.csv`). No risk–coverage curve or AUROC (A6).
 
@@ -73,8 +129,10 @@ added — so the guarantee stays ◐.*
 - **Com-MP (Oct 2026)** is recent and close in spirit: RL + MP with a stability guarantee. The
   difference is mechanism. Com-MP learns *inside* MP (MP always picks the phase). UG-MARL lets RL pick and
   defers to MP *when uncertain*. Cite it as concurrent work and contrast in one sentence.
-- Our search was not exhaustive (§5). Use the phrasing "to our knowledge", and re-run the search before
-  the final report (16 Nov).
+- Our search was not exhaustive (§5). Use the phrasing "to our knowledge". Re-run 14 Nov: no
+  paper found that uses ensemble uncertainty at execution to hand control to MP. Closest new
+  hits: BCT-APLight (Bayesian critique, then fine-tunes the policy) and T2-BAS-DQN (always-on
+  fuzzy correction, MP only a baseline); both added to the table.
 
 ## 4. Action items this review creates for the project
 
@@ -104,6 +162,12 @@ Status column added 13 Nov (after Phase 7). Dropped items are limitations to sta
 - **Inclusion:** (i) foundational methods we implement or build on, (ii) the CityFlow/Jinan/
   Hangzhou lineage (comparability), (iii) any TSC paper combining RL with uncertainty, ensembles,
   safety or MP, and (iv) uncertainty-triggered fallback in other domains.
-- **Verification level:** bibliographic metadata verified online for papers marked ✓. Summaries
-  come from the abstracts and prior knowledge. Numbers marked *(unverified)* must be checked against the PDFs
-  before they enter the report.
+- **Re-run 14 Nov 2026** (same queries plus "epistemic uncertainty gate switch to rule-based
+  controller 2026", "ensemble disagreement max pressure fallback"). New papers screened:
+  UCATSC (arXiv 2602.07784; belief-state constraints, single intersection, no hand-over),
+  DR-MARL with CB-WCE (2607.09899; training-time adversarial demand only), BCT-APLight
+  (2412.16225), Kwesiga et al. (2603.15283; single intersection, robustness to demand), T2-BAS-DQN
+  (Bi et al. 2026, CMC). None uses execution-time uncertainty to defer to Max-Pressure.
+- **Verification level (14 Nov):** every gap-table row checked against its abstract / arXiv HTML
+  (§1c). External numbers are not quoted as comparable (§1c), so no *(unverified)* number enters
+  the report.

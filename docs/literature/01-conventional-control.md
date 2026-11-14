@@ -40,7 +40,7 @@ LibSignal ✓ (`mei2024libsignal`) has reference implementations of FixedTime, S
   uses an "efficient pressure" (in − out averaged per movement) to decide whether to keep or switch
   the phase.
 - **Result (authors' claim).** Advanced-MP, with no learning, is competitive with many RL methods on the
-  CityFlow datasets *(numbers unverified)*.
+  CityFlow datasets (arXiv 2112.10107 Table 2; not quoted in the report, see 06 §1c).
 - **What we learn → risk to H1.** If our MP baseline is the plain version, reviewers may call
   it weak. Consider adding Advanced-MP as a stronger conventional baseline (cheap: it is a rule).
 
