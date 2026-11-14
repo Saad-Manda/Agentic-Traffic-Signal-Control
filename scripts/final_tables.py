@@ -582,8 +582,19 @@ def heldout_table(held, hspec, args, test: pd.DataFrame | None) -> None:
         rank_t = sorted(both, key=lambda m: np.mean(vals(test, m, "clean", ATT)))
         rows.append(["Jinan test (clean)", " < ".join(label(m) for m in rank_t)])
     lines += md_table(["Data", "Order"], rows)
-    st = stats_frame(held, [ATT, WAIT, MAXW, "throughput_veh", "fallback_rate"])
+    metrics = [ATT, WAIT, MAXW, "throughput_veh", "fallback_rate"]
+    st = stats_frame(held, metrics)
     write(args.out_dir, "heldout_generalisation", lines, st)
+    # the "All flows" column as data (read by scripts/report_tables.py); same columns as `st`
+    rows = []
+    for m in models:
+        n = held[held["model"] == m]["seed"].nunique()
+        row = {"model": m, "condition": "all", "n_seeds": n}
+        for metric in metrics:
+            s = overall(m, metric)
+            row.update({f"{metric}_{k}": s[k] for k in ("mean", "std", "ci95_low", "ci95_high")})
+        rows.append(row)
+    pd.DataFrame(rows).to_csv(args.out_dir / "heldout_generalisation_all.csv", index=False)
 
 
 def main(argv: list[str] | None = None) -> int:
