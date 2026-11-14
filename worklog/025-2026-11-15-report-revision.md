@@ -80,7 +80,7 @@ the cost is a slightly thinner viva defence.
 | `worklog/025-2026-11-15-report-revision.md`, `worklog/README.md` | created / modified | This entry and its index row | Work log rule |
 
 ## Commits
-Not committed yet.
+`cdf1a4c` docs(report): add 12-page project report (draft 14 Nov, revised 15 Nov); tooling in `dd049a9`.
 
 ## Next
 - User review of the rewritten text, especially the contributions and the gap prose.
