@@ -59,7 +59,7 @@ pytest                                   # run tests
 ruff check src tests scripts             # lint
 jupyter lab                              # EDA / plots in notebooks/
 
-# Phase 3 (data): done; audit in docs/data_audit.md, EDA outputs saved in notebooks/01_eda_train.ipynb
+# Data audit + EDA: notebooks/00_data_audit.ipynb (-> docs/data_audit.json, figures/audit), notebooks/01_eda_train.ipynb
 # (audit / trace-collection scripts removed 15 Nov; library code stays in trafficrl.data)
 
 # Phase 4 (env + rule baselines): any agent × seeds × split -> results/eval/<run>/ + log rows
@@ -112,7 +112,7 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/04_gate_attention.
 configs/            # YAML experiment configs (one per run; include seed)
 data/raw/           # original public datasets (untouched, gitignored if large)
 data/processed/     # preprocessed flows / splits
-notebooks/          # 01_eda_train (EDA, train only; own rule rollouts), 02_results (learning curves,
+notebooks/          # 00_data_audit (structural checks, all files), 01_eda_train (EDA, train only; own rule rollouts), 02_results (learning curves,
                     #   val / test / held-out tables + verdicts -> docs/results/*.csv), 03_error_analysis
                     #   (figures + error analysis, reader), 04_gate_attention (σ check + attention, val)
 src/trafficrl/
@@ -197,7 +197,7 @@ All **frozen 10 Nov** in `docs/evaluation_protocol.md` (changes need a dated Dec
 
 ## Testing
 
-`pytest` under `tests/`: only `tests/data/test_splits.py` (split structure, leakage, pinned
+`pytest` under `tests/`: only `tests/test_splits.py` (split structure, leakage, pinned
 hashes). All other tests were removed 15 Nov (user decision; they are on `archive/full-dev`).
 
 ## Key Files
