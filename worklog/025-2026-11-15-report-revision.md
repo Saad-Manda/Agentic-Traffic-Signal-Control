@@ -92,6 +92,7 @@ The report is still 12 pages and `check_report` is ok. Further files: `report/re
 
 ## Commits
 `cdf1a4c` docs(report): add 12-page project report (draft 14 Nov, revised 15 Nov); tooling in `dd049a9`.
+`558febe` docs(report): verify all 10 references, mark report reviewed (follow-up).
 
 ## Next
 - The user may still edit the text later. Rebuild and re-run `scripts/check_report.py` after any edit, since the report is at the 12-page minimum.
