@@ -70,8 +70,8 @@ attention weight ≠ influence) are made without a citation.
 
 ## To verify by the author before submission
 
-- Bibliography entries whose metadata is still marked `check` in `references.bib` (field
-  `annote`, not printed): `mnih2015human`, `zhang2019cityflow`, `hoel2020tactical`, and the
-  page / author details of `varaiya2013max`, `wei2019colight`, `tan2020multiagent`.
+- Bibliography: all 10 entries verified against Crossref on 15 Nov 2026 (DOI, pages, full
+  author lists; Tan 2020 gained a third author, Jie Wang; Hoel 2020 pages are 1563–1569, not
+  the arXiv 1292–1298).
 - The course rule "no AI contents" (format document): the text was drafted by Claude at the
   author's decision; the author reviews, edits and is responsible for it.

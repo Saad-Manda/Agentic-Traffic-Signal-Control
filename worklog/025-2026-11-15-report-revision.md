@@ -1,5 +1,5 @@
 # 025 — Report revision: one-paragraph abstract, contributions as changes, 10 references, prose gaps, humanized text, no blank space
-**Date:** 2026-11-15   **Tag:** report, decision   **ROADMAP:** 9.1   **Status:** done (user review open)
+**Date:** 2026-11-15   **Tag:** report, decision   **ROADMAP:** 9.1   **Status:** done (reviewed by the user 15 Nov; 9.1 ticked)
 
 ## What
 Revised the 15-page draft report (worklog 024) on the student's requests. The abstract is now
@@ -62,6 +62,17 @@ the cost is a slightly thinner viva defence.
 - The ~4-line gap on page 7 seen after the first pass disappeared after the full Ch 3–5
   rewrite, because the text reflowed. No page has blank space except the end of References.
 
+**Follow-up (15 Nov): references verified, 9.1 deviations updated.** Each DOI was looked up
+in the Crossref API, the official DOI registry. All 10 entries match, with two corrections:
+Tan 2020 has a third author (Jie Wang), and Hoel 2020 is pp. 1563–1569 in the IEEE proceedings,
+not the 1292–1298 the arXiv record gives. DOIs and page ranges were added where they were
+missing (Mnih, CityFlow, CoLight, Tan, Hoel), CityFlow got its full author list, and every
+`annote` now says "verified". The ROADMAP 9.1 deviations line now lists the layout and content
+changes (no title page, chapters without page breaks, gaps as prose, 10 references, 12 pages).
+The report is still 12 pages and `check_report` is ok. Further files: `report/references.bib`,
+`report/report.pdf`, `report/checks/claims.md` (bibliography item), `ROADMAP.md` (9.1 text),
+`CLAUDE.md` (open items).
+
 ## Files changed
 | File | Action | What changed | Why |
 |------|--------|--------------|-----|
@@ -83,6 +94,5 @@ the cost is a slightly thinner viva defence.
 `cdf1a4c` docs(report): add 12-page project report (draft 14 Nov, revised 15 Nov); tooling in `dd049a9`.
 
 ## Next
-- User review of the rewritten text, especially the contributions and the gap prose.
-- Verify the 6 bibliography entries still marked `check`.
+- The user may still edit the text later. Rebuild and re-run `scripts/check_report.py` after any edit, since the report is at the 12-page minimum.
 - The poster (9.2) should use the same contribution wording.

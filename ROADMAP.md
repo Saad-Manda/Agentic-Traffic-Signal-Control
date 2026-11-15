@@ -346,15 +346,21 @@ Format changed 12 Nov (Decision Log): **poster replaces the 10 slides; report is
 in the structure of `updated Sections of a Machine Learning Project Report.pdf`. Claude drafts
 the report and poster; the student reviews and edits before submission.
 
-- [ ] 9.1 **Report — LaTeX in `report/`, one PDF, 12–15 pages including all sections.**
+- [x] 9.1 **Report — LaTeX in `report/`, one PDF, 12–15 pages including all sections.**
       **Draft complete 14 Nov** (`report/report.pdf`, 15 pages, `scripts/check_report.py` ok;
       worklog/024). **Revised 15 Nov** (worklog/025): one-paragraph abstract, contributions as
       changes over existing work, 10 references, gaps as prose, humanized impersonal text, no
-      title page or chapter page breaks, now 12 pages. Open before ticking: student review,
-      bibliography entries marked `check`. Deviations from the list below: 10 pt / 2 cm margins and **no
-      appendix** (page limit; settings are in §3.6 and Algorithm 1), one EDA figure, four tables
-      and two figures in Ch 4 (efficiency numbers in the text). Each
-      chapter starts on a new page as a numbered chapter; every figure, table, equation and
+      title page or chapter page breaks, now 12 pages. All 10 references verified against
+      Crossref 15 Nov. **Reviewed by the student 15 Nov — done**; the student may still edit
+      the text later. Deviations from the list
+      below: 10 pt / 2 cm margins; **no appendix** (settings are in §3.6 and Algorithm 1); **no
+      separate title page** (title block above the abstract, real details instead of
+      placeholders); ToC and lists of figures/tables follow the abstract on page 1--2;
+      **chapters are numbered but do not start on a new page**; **research gaps as prose, no gap
+      table**; **10 cited references** (Ch 2 covers only these); one EDA figure, four tables and
+      two figures in Ch 4 (efficiency numbers in the text); 12 pages, so the page budget below
+      is not followed. Each
+      chapter is numbered; every figure, table, equation and
       algorithm is numbered and referenced in the text; proper citations (`references.bib`),
       no plagiarism. Rough page budget: preliminaries ~3, Ch 1 ~1.5, Ch 2 ~1.5, Ch 3 ~3.5,
       Ch 4 ~3, Ch 5 ~1, references ~1, appendix ≤ 1.

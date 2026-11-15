@@ -273,8 +273,8 @@ seeding determinism, and split/leakage checks. See `.claude/reference/testing.md
   prose, no gap table); 10 pt, 2 cm margins; no appendix — settings are in §3.6 and Algorithm 1. Numbers in the text are `\res{metric}{model}{condition}`
   macros generated from `docs/results/*.csv`; typed numbers and their sources are in
   `report/checks/claims.md`. The text was written by Claude at the user's decision although
-  the format document says "no AI contents" — the user reviews and owns it. Open: title-page
-  placeholders, user review, bibliography entries still marked `check` (`annote` field).
+  the format document says "no AI contents" — the user reviews and owns it. All 10 references
+  verified against Crossref (15 Nov). Reviewed by the user 15 Nov; 9.1 ticked (the user may still edit the text later).
   −attention has **63 %** fewer parameters (59 032 vs 157 720); older notes say 61 %.
 - Solo project: when time is short, follow ROADMAP "scope controls" — never cut the main
   comparison, ablation, report, poster, or demo.
