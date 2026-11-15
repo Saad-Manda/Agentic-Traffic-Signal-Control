@@ -10,7 +10,7 @@ For the seed-models ``results/train/<variant>_<tag>_s<seed>/checkpoints/best.pt`
 1. **Reference pass** — ungated greedy episode per model × condition (clean + the search
    file's observation perturbations), decisions logged. The clean decisions give σ;
    τ_{p,seed} = p-th percentile of that model's σ. The perturbed ones are the −gate reference
-   and the data of ``scripts/sigma_check.py``.
+   and the data of the σ check in ``notebooks/04_gate_attention.ipynb``.
 2. **Sweep** — gated episode per model × p × condition.
 3. **Select** p* = lowest mean travel time over seeds × conditions (ties within the tolerance
    -> smaller p) and write ``gate.json`` into every model's run directory, plus

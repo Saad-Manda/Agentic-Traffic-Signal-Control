@@ -1,7 +1,7 @@
 """Hypothesis readings of Phase 7, fixed before the test flow was opened.
 
 Every function takes per-seed values (lower is better for travel time and waiting time) and
-returns plain dicts, so the verdicts in ``scripts/final_tables.py`` are computed, not judged
+returns plain dicts, so the verdicts in ``notebooks/02_results.ipynb`` are computed, not judged
 by eye. 95 % CI = Student t over seeds (:func:`trafficrl.utils.stats.summarise`); a
 deterministic baseline's CI is its value.
 

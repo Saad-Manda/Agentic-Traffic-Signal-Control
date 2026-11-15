@@ -123,8 +123,6 @@ python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent dqn -
     --checkpoint 'results/train/dqn_final_s{seed}/checkpoints/best.pt'
 python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent idqn --split val \
     --checkpoint 'results/train/idqn_final_s{seed}/checkpoints/best.pt'
-python scripts/val_table.py        # docs/results/val_phase5.{csv,md}
-python scripts/plot_training.py    # docs/figures/training/learning_curves.{png,md}
 ```
 
 Training runs write `results/train/<run>/` (train / val logs, `checkpoints/{best,last}.pt`,
@@ -135,7 +133,8 @@ Each run uses ~0.9 GB RAM; on a 7.7 GB WSL VM run at most 4–5 at once.
 
 Expected (WSL dev, Jinan val, 5 seeds; tuned trial t6 = lr 1e-4, γ 0.8, batch 64, ε-decay
 0.3 for both): DQN **299.8 ± 1.0 s**, IDQN **312.7 ± 2.5 s**, vs Max-Pressure 326.1 s and
-Fixed-Time 434.8 s (table `docs/results/val_phase5.csv`).
+Fixed-Time 434.8 s. The validation table and learning curves of all models are built in
+`notebooks/02_results.ipynb` (step 9).
 
 ### 8. Proposed UG-MARL: grid, finals, gate calibration, validation (ROADMAP Phase 6)
 
@@ -154,7 +153,6 @@ python scripts/tune.py --config configs/ugmarl_noens.yaml  --seeds 0 1 2 3 4 --w
 python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --config configs/eval_ugmarl.yaml --tag final --workers 5
 python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --config configs/eval_ugmarl.yaml --tag final --workers 5 \
     agents.ugmarl.use_attention=false
-python scripts/sigma_check.py --tag final          # docs/figures/ugmarl/sigma_validity.{png,md}
 # 6.8: every baseline + UG-MARL / −gate under detector noise / dropout on validation (evaluation only)
 python scripts/robustness.py --spec configs/robustness_val.yaml --workers 5   # docs/results/val_robustness.{csv,md}
 # validation evaluation of every variant (decision logs for the explanation figures)
@@ -167,11 +165,6 @@ python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decision
     --checkpoint 'results/train/ugmarl-noattn_final_s{seed}/checkpoints/best.pt' agents.ugmarl.use_attention=false
 python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decisions \
     --checkpoint 'results/train/ugmarl-noens_final_s{seed}/checkpoints/best.pt' agents.ugmarl.use_ensemble=false
-python scripts/val_table.py --agents fixed_time max_pressure dqn idqn ugmarl ugmarl-nogate ugmarl-noattn \
-    ugmarl-noens --out docs/results/val_phase6 --title "Phase 6 — validation results (native Ubuntu)" --intro "…"
-python scripts/plot_training.py --agents dqn idqn ugmarl ugmarl-noattn ugmarl-noens \
-    --out docs/figures/training/learning_curves_phase6.png --platform native \
-    --title "UG-MARL and RL baselines: greedy validation travel time during training"
 ```
 
 The gate acts at evaluation only; training and checkpoint selection are ungated. Equations
@@ -190,9 +183,9 @@ python scripts/lock_models.py --verify
 python scripts/robustness.py --spec configs/final_test.yaml --final --workers 1 --results-dir results/final
 # Hangzhou, zero-shot: 7 models x 3 flows x seeds 0-4 = 105 episodes (~15 min)
 python scripts/robustness.py --spec configs/final_heldout.yaml --final --workers 1 --results-dir results/final
-# tables (pure reader, repeatable): docs/results/test_{main,ablation,robustness,efficiency,safety_explain}.{csv,md}
-#                                   docs/results/heldout_generalisation.{csv,md}
-python scripts/final_tables.py --study all
+# tables (reads the runs, repeatable): learning curves, docs/results/val_phase6.csv,
+#   test_{main,ablation,robustness,efficiency,safety_explain}.csv, heldout_generalisation{,_all}.csv
+jupyter nbconvert --to notebook --execute --inplace notebooks/02_results.ipynb
 ```
 
 Every final episode also writes `trace_s<seed>.csv` (per step × intersection),
@@ -202,32 +195,32 @@ Every final episode also writes `trace_s<seed>.csv` (per step × intersection),
 Expected output (deterministic on the same machine; learned agents mean ± std over 5 seeds),
 average travel time on the clean test flow: Fixed-Time 462.2 s, Max-Pressure 320.8 s,
 DQN 292.2 ± 0.6 s, IDQN 307.9 ± 1.4 s, UG-MARL 295.4 ± 1.1 s. Hypothesis verdicts printed by
-`final_tables.py`: H1 supported, H2 supported, H3 not supported. Results: worklog/020.
+`02_results.ipynb`: H1 supported, H2 supported, H3 not supported. Results: worklog/020.
 
 ### 10. Analysis: figures, error analysis, sensitivity (ROADMAP Phase 8)
 
 No test or held-out episode is run here: everything on those flows is read from the logs of
-step 9 (`results/final/`). The two scripts run on the **validation** flow only and select
-nothing (`gate.json` and p\* = 80 stay as locked).
+step 9 (`results/final/`). The τ sweep and notebook 04 run on the **validation** flow only and
+select nothing (`gate.json` and p\* = 80 stay as locked).
 
 ```bash
 # sensitivity to the gate threshold: p = 50, 60, 70 on validation (75 episodes, ~25 min with 5 workers)
 python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml --workers 5
 #   -> docs/results/tau_sensitivity.{csv,md};  --tables-only rebuilds the table without running
-# attention faithfulness check: 5 validation episodes + offline slot perturbation (~1 min)
-python scripts/attention_faithfulness.py --tag final
-#   -> docs/results/attention_faithfulness.{csv,md}
 python scripts/lock_models.py --verify     # nothing locked has changed
-# reader notebook (no simulation, ~2 min): 18 figures + error-analysis tables + readings
-jupyter nbconvert --to notebook --execute --inplace notebooks/02_analysis.ipynb
-#   -> docs/figures/results/*.{png,pdf,md}, docs/results/error_analysis.md (+ 13 CSVs)
+# error analysis (no simulation, ~1 min): 17 figures + error-analysis tables + readings
+jupyter nbconvert --to notebook --execute --inplace notebooks/03_error_analysis.ipynb
+#   -> docs/figures/results/*.{png,pdf}, docs/results/error_analysis_*.csv
+# σ check + attention faithfulness: 10 validation episodes (~1-3 min)
+jupyter nbconvert --to notebook --execute --inplace notebooks/04_gate_attention.ipynb
+#   -> docs/results/{sigma_validity,sigma_validity_td,attention_faithfulness}.csv + 2 figures
 ```
 
 The analysis and plotting functions are defined in the notebook itself (settings:
 `configs/analysis.yaml`). Its
 first section recomputes travel time and queue of all 305 final episodes from the logs and
-stops if any differs from `metrics.csv` by more than 0.001. Both scripts refuse to run twice
-(`results/analysis/<study>` exists) and refuse any split other than `val`.
+stops if any differs from `metrics.csv` by more than 0.001. Notebook 04 asserts the validation
+split and checks that each episode reproduces the validation-table travel time.
 
 Expected output: reproduction check passes with a largest difference of 0.00005 s; τ sweep
 scores 343.2 / 343.8 / 342.3 s for p = 50 / 60 / 70 (343.7 s at the locked p\* = 80);
@@ -258,15 +251,14 @@ ruff check src tests scripts
 
 ```
 configs/          YAML experiment configs; every config inherits `base.yaml` and sets `seed`
-src/trafficrl/    data/ (splits, roadnet, audit, trace, eda), envs/ (traffic_env, features,
-                  metrics, perturb, engine), agents/ (base, baselines/, ugmarl/), eval/ (runner),
-                  utils/ (seed, config, runlog, plotting, stats)
-scripts/          entry points: train, tune, evaluate, calibrate_gate, robustness, lock_models,
-                  val_table, final_tables, plot_training, sigma_check, tau_sweep,
-                  attention_faithfulness
+src/trafficrl/    data/ (splits, roadnet), envs/ (traffic_env, features,
+                  metrics, perturb, engine), agents/ (base, baselines/, ugmarl/), eval/ (runner,
+                  explain, lock, report, hypotheses), utils/ (seed, config, runlog, plotting, stats)
+scripts/          train, tune, evaluate, calibrate_gate, robustness, lock_models, tau_sweep
 tests/            data split / leakage checks
-notebooks/        01_eda_train.ipynb (EDA, train split only); 02_analysis.ipynb (Phase 8 reader:
-                  calls tested functions in src/, simulates nothing)
+notebooks/        01_eda_train (EDA, train split only), 02_results (learning curves + all result
+                  tables), 03_error_analysis (figures + error analysis), 04_gate_attention
+                  (σ check + attention faithfulness, validation)
 docs/             dataset_card.md, data_audit.json, experiment_log.csv (one row per run),
                   results/ (result tables as CSV), figures/
 report/           LaTeX report: main.tex, chapters/, figures/ (architecture diagram, Algorithm 1),

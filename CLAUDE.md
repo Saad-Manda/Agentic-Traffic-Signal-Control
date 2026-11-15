@@ -73,7 +73,6 @@ python scripts/tune.py --search configs/search/rl_baselines.yaml --agent dqn --w
 python scripts/tune.py --config configs/dqn.yaml --seeds 0 1 2 3 4 --workers 5
 python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent dqn --split val \
     --checkpoint 'results/train/dqn_final_s{seed}/checkpoints/best.pt'
-python scripts/val_table.py && python scripts/plot_training.py
 
 # Phase 6 (UG-MARL): grid K x d on val, 5-seed finals (full / −attention / −ensemble),
 # gate calibration (τ per seed-model -> gate.json), σ check, val evaluation of all variants
@@ -81,12 +80,9 @@ python scripts/tune.py --search configs/search/ugmarl.yaml --agent ugmarl --work
 python scripts/tune.py --config configs/ugmarl.yaml --seeds 0 1 2 3 4 --workers 5   # + ugmarl_noattn / _noens
 python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml \
     --config configs/eval_ugmarl.yaml --tag final --workers 5 [agents.ugmarl.use_attention=false]
-python scripts/sigma_check.py --tag final
 python scripts/robustness.py --spec configs/robustness_val.yaml --workers 5   # 6.8: model x condition on val
 python scripts/evaluate.py --config configs/eval_ugmarl.yaml --agent ugmarl --split val --log-decisions \
     --checkpoint 'results/train/ugmarl_final_s{seed}/checkpoints/best.pt' [agents.ugmarl.use_gate=false]
-python scripts/val_table.py --agents fixed_time max_pressure dqn idqn ugmarl ugmarl-nogate \
-    ugmarl-noattn ugmarl-noens --out docs/results/val_phase6 --title "…" --intro "…"
 ```
 
 ```bash
@@ -94,15 +90,15 @@ python scripts/val_table.py --agents fixed_time max_pressure dqn idqn ugmarl ugm
 python scripts/lock_models.py --write | --verify            # models/manifest.json
 python scripts/robustness.py --spec configs/final_test.yaml    --final --workers 1 --results-dir results/final
 python scripts/robustness.py --spec configs/final_heldout.yaml --final --workers 1 --results-dir results/final
-python scripts/final_tables.py --study all                  # pure reader -> docs/results/test_*.md, heldout_generalisation.md
+jupyter nbconvert --to notebook --execute --inplace notebooks/02_results.ipynb   # all result tables + learning curves (reader)
 ```
 Ablations are rows of the same studies (no `run_ablation.py`).
 
 ```bash
 # Phase 8 (analysis, DONE 13 Nov): validation-only studies + reader notebook; no test episode is run
 python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml --workers 5   # runs once; --tables-only rebuilds
-python scripts/attention_faithfulness.py --tag final                                    # runs once
-jupyter nbconvert --to notebook --execute --inplace notebooks/02_analysis.ipynb         # repeatable, ~2 min
+jupyter nbconvert --to notebook --execute --inplace notebooks/03_error_analysis.ipynb   # reader, ~1 min
+jupyter nbconvert --to notebook --execute --inplace notebooks/04_gate_attention.ipynb   # σ check + attention, 10 val episodes
 ```
 
 ```bash
@@ -116,16 +112,16 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/02_analysis.ipynb 
 configs/            # YAML experiment configs (one per run; include seed)
 data/raw/           # original public datasets (untouched, gitignored if large)
 data/processed/     # preprocessed flows / splits
-notebooks/          # 01_eda_train (EDA, train split only; runs its own rule rollouts, ~1 min);
-                    #   02_analysis (figures + error analysis from results/final/, never simulates)
+notebooks/          # 01_eda_train (EDA, train only; own rule rollouts), 02_results (learning curves,
+                    #   val / test / held-out tables + verdicts -> docs/results/*.csv), 03_error_analysis
+                    #   (figures + error analysis, reader), 04_gate_attention (σ check + attention, val)
 src/trafficrl/
   data/             # splits, roadnet model
   envs/             # traffic_env.py (TrafficEnv, make_env), features.py, metrics.py,
                     #   perturb.py (noise / dropout / surge), engine.py
   eval/             # runner.py: run_episode, evaluate, resolve_gate (shared by every agent);
                     #   explain.py (DecisionRecorder, StepRecorder); report.py; lock.py (manifest);
-                    #   hypotheses.py (H1–H3 verdict rules, regret — fixed before the test runs);
-                    #   faithfulness.py (attention check)
+                    #   hypotheses.py (H1–H3 verdict rules, regret — fixed before the test runs)
   train/            # loop.py (train, train_episode), tune.py (random search, parallel runs)
   agents/
     core/           # QLearner (Double DQN, SMDP target), replay, networks (K-head axis), encoders
@@ -133,11 +129,9 @@ src/trafficrl/
     ugmarl/         # proposed: network.py (attention + K heads), agent.py (σ, gate,
                     #   explanations, ablation flags), gate.py (σ, percentile τ, gate.json)
   utils/            # seeding, config, runlog (experiment log + env.json), plotting style
-scripts/            # train.py, tune.py, evaluate.py, val_table.py, plot_training.py,
-                    #   calibrate_gate.py, sigma_check.py, robustness.py (model × condition runs:
-                    #   val 6.8, final test / held-out with --final), lock_models.py (manifest),
-                    #   final_tables.py (Phase 7 tables + hypothesis verdicts),
-                    #   tau_sweep.py, attention_faithfulness.py (Phase 8, validation only),
+scripts/            # train.py, tune.py, evaluate.py, calibrate_gate.py, robustness.py (model ×
+                    #   condition runs: val 6.8, final test / held-out with --final), lock_models.py
+                    #   (manifest), tau_sweep.py (validation only)
 tests/
 results/            # metrics CSVs, plots, checkpoints (gitignored)
 models/             # manifest.json: SHA-256 lock of the final checkpoints / gate.json (checkpoints
@@ -177,8 +171,9 @@ All **frozen 10 Nov** in `docs/evaluation_protocol.md` (changes need a dated Dec
 - Model / env / training / evaluation code lives in `src/trafficrl/`; notebooks import from
   `src/`, never the reverse. **Since 15 Nov (cleanup) the notebooks define their own analysis
   helpers** (EDA aggregations + rule-controller rollouts in `01_eda_train`; breakdowns and
-  figure functions in `02_analysis`) — `data/{audit,eda,trace}.py` and
-  `eval/{analysis,figures}.py` were moved into them. Every results table
+  figure functions in `03_error_analysis`) — `data/{audit,eda,trace}.py` and
+  `eval/{analysis,figures}.py` were moved into them; the table / curve / σ / attention scripts
+  became `02_results` and `04_gate_attention`. Every results table
   and figure is produced by a command listed in the README — no hidden manual steps.
 - Every agent (baseline or proposed) implements the same interface (see
   `.claude/reference/api.md`) so evaluation code is shared.
@@ -258,7 +253,7 @@ hashes). All other tests were removed 15 Nov (user decision; they are on `archiv
   `results/final/` (gitignored — keep them, Phase 8 reads them). H1 supported, H2 supported
   (clean max-wait part inside seed noise), H3 not supported; UG-MARL is 3.2 s behind DQN on
   clean test and has the smallest worst-case regret (6.8 s). **Do not re-run `--final`, retrain
-  or re-calibrate**; `scripts/final_tables.py` may be re-run freely. Seeds are 0–4 for 7.1–7.4.
+  or re-calibrate**; `notebooks/02_results.ipynb` may be re-run freely. Seeds are 0–4 for 7.1–7.4.
 - **Phase 8 is done (13 Nov):** `docs/analysis.md` (interpretation), `notebooks/02_analysis.ipynb`,
   `docs/figures/results/`, `docs/results/{error_analysis,tau_sensitivity,attention_faithfulness}.md`.
   Findings to keep straight in the report: the 3.2 s deficit to DQN is spread over all

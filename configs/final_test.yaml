@@ -4,7 +4,7 @@
 # (model, condition, seed) episode is run exactly ONCE.
 #   python scripts/robustness.py --spec configs/final_test.yaml --final --workers 1 \
 #       --results-dir results/final
-#   python scripts/final_tables.py --study all
+#   then run notebooks/02_results.ipynb for the tables
 # Models are locked (models/manifest.json, checked by --final); nothing is selected from the
 # result. Seeds 0-4 for every experiment (protocol §6, amended 12 Nov before any final run).
 study: final_test
@@ -13,7 +13,7 @@ split: test                      # refused without --final
 seeds: [0, 1, 2, 3, 4]           # learned models: seed s = checkpoint trained with seed s
 tag: final                       # training runs results/train/<train_model>_<tag>_s<seed>
 log_trace: true                  # trace_s<seed>.csv + vehicles_s<seed>.csv for every episode
-table: false                     # tables come from scripts/final_tables.py
+table: false                     # tables come from notebooks/02_results.ipynb
 
 models:                          # row order of the tables
   fixed_time:    {config: configs/eval_baselines.yaml}

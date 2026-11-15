@@ -1,6 +1,5 @@
-# Phase 8 reader analysis (ROADMAP 8.1–8.4; plan .claude/plans/phase8-analysis.md).
-# Read by notebooks/02_analysis.ipynb. Nothing is simulated here, so there is no seed: the
-# seeds are those of the finished studies. Test / held-out data are read from the saved logs
+# Settings of the error analysis, read by notebooks/03_error_analysis.ipynb. Nothing is
+# simulated here, so there is no seed: the seeds are those of the finished studies. Test / held-out data are read from the saved logs
 # of the Phase 7 pass (results/final) and, for the route join only, from the flow files.
 final_dir: results/final
 studies:
@@ -21,4 +20,4 @@ gate_horizon_s: 60                    # queue after a decision (gate-effect tabl
 out_figures: docs/figures/results
 out_tables: docs/results
 tau_sensitivity: docs/results/tau_sensitivity.csv              # scripts/tau_sweep.py
-faithfulness: docs/results/attention_faithfulness.csv          # scripts/attention_faithfulness.py
+faithfulness: docs/results/attention_faithfulness.csv          # notebooks/04_gate_attention.ipynb

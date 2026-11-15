@@ -15,7 +15,7 @@ re-run. The table (``<out>.{csv,md}``) is built from the finished runs.
 Spec extras (Phase 7): a condition may carry ``name`` and any config override (e.g.
 ``data.flow_index`` for the three Hangzhou flows); a model may set ``log_decisions: true``;
 ``log_trace: true`` logs every step and vehicle; ``table: false`` skips the Markdown table
-(Phase 7 tables come from ``scripts/final_tables.py``).
+(the final tables come from ``notebooks/02_results.ipynb``).
 
 **Nothing is selected here.** ``split: test | heldout`` is refused unless ``--final``; with
 ``--final`` the lock manifest ``models/manifest.json`` must match the checkpoints, and a job
@@ -280,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: no finished run for {absent}", file=sys.stderr)
         return 1
     if not spec.get("table", True):
-        print(f"all {len(runs)} jobs finished; table: false (use scripts/final_tables.py)")
+        print(f"all {len(runs)} jobs finished; table: false (tables: notebooks/02_results.ipynb)")
         return 0
     table = condition_table(runs)
     out = Path(args.out) if args.out else DOCS / spec["study"]
