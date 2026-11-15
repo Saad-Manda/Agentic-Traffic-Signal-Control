@@ -132,7 +132,7 @@ def evaluate(
     split = cfg["data"]["split"]
     if split in FINAL_SPLITS and not final:
         raise PermissionError(
-            f"split {split!r} is final-evaluation only: pass final=True (--final) in Phase 7"
+            f"split {split!r} is final-evaluation only: pass final=True (--final)"
         )
     if log_trace and track != "full":
         raise ValueError("log_trace needs track='full' (per-vehicle log)")

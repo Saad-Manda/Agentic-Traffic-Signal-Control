@@ -1,5 +1,5 @@
 {
-  "_comment": "Split definition (ROADMAP 1.4). Whole flow files are assigned to splits; nothing is resampled. Paths are relative to the repo root. Source: github.com/wingsweihua/colight @ 04440b722e7f36d7043a3f2ad8e40c3df301fad3. Frozen with the evaluation protocol (ROADMAP 3.5); later changes need a dated Decision Log entry.",
+  "_comment": "Split definition. Whole flow files are assigned to splits; nothing is resampled. Paths are relative to the repo root. Source: github.com/wingsweihua/colight @ 04440b722e7f36d7043a3f2ad8e40c3df301fad3. Frozen with the evaluation protocol (ROADMAP 3.5); later changes need a dated Decision Log entry.",
   "source": {
     "repo": "https://github.com/wingsweihua/colight",
     "commit": "04440b722e7f36d7043a3f2ad8e40c3df301fad3"

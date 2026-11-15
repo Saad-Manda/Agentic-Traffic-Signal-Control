@@ -169,8 +169,8 @@ def write_md(path: Path, spec: dict, table: pd.DataFrame, spec_path: Path) -> No
             ""
             if final
             else " Validation was used for checkpoint, (K, d) and p selection, so "
-            "learned-model scores are optimistic; the reported robustness result is ROADMAP 7.3 "
-            "on the test flow."
+            "learned-model scores are optimistic; the final robustness result is the one on the "
+            "test flow."
         ),
         "",
     ]
@@ -214,20 +214,19 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--results-dir", type=Path, default=RESULTS)
     ap.add_argument("--train-dir", type=Path, default=REPO_ROOT / "results" / "train")
     ap.add_argument("--table-only", action="store_true", help="run nothing, rebuild the table")
-    ap.add_argument("--final", action="store_true", help="allow test / held-out (Phase 7 only)")
+    ap.add_argument("--final", action="store_true", help="allow the test / held-out splits")
     ap.add_argument("--manifest", type=Path, default=MANIFEST, help="lock file checked by --final")
     ap.add_argument(
         "--rerun-failed",
         action="store_true",
-        help="--final only: re-run jobs that were started but not finished (log the reason "
-        "in the ROADMAP Decision Log first)",
+        help="--final only: re-run jobs that were started but not finished (note the reason first)",
     )
     args = ap.parse_args(argv)
 
     spec = read_yaml(args.spec)
     if spec["split"] in FINAL_SPLITS and not args.final:
         print(
-            f"error: split {spec['split']!r} is final-evaluation only (Phase 7, --final)",
+            f"error: split {spec['split']!r} is final-evaluation only (pass --final)",
             file=sys.stderr,
         )
         return 2
@@ -259,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
         if broken:
             print(
                 f"error: unfinished final runs {broken}: a final episode is run once. Find the "
-                "cause, add a Decision Log row, then pass --rerun-failed",
+                "cause, then pass --rerun-failed",
                 file=sys.stderr,
             )
             return 2

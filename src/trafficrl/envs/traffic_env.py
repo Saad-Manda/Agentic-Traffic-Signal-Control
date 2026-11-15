@@ -236,7 +236,7 @@ def make_env(
     if split in FINAL_SPLITS and not allow_final:
         raise SplitError(
             f"{dataset}/{split} is a final-evaluation split; it is opened only by "
-            "scripts/evaluate.py --final (Phase 7)"
+            "scripts/evaluate.py --final"
         )
     roadnet_path, flows = flow_files(dataset, split)
     index = int(data.get("flow_index", 0))

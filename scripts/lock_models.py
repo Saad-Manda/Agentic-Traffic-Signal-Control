@@ -41,9 +41,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"error: {e}", file=sys.stderr)
             return 2
         m = {
-            "_comment": "Models locked on validation before the final evaluation (ROADMAP "
-            "Phase 7). Written by scripts/lock_models.py --write; verified by "
-            "scripts/robustness.py --final. Paths are relative to results/train/.",
+            "_comment": "Models locked on validation before the final evaluation. Written by "
+            "scripts/lock_models.py --write; verified by scripts/robustness.py --final. "
+            "Paths are relative to results/train/.",
             "locked_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "git_commit": git_commit(),
             **m,

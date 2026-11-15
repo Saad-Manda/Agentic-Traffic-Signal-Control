@@ -1,5 +1,5 @@
 {
-  "_comment": "Models locked on validation before the final evaluation (ROADMAP Phase 7). Written by scripts/lock_models.py --write; verified by scripts/robustness.py --final. Paths are relative to results/train/.",
+  "_comment": "Models locked on validation before the final evaluation. Written by scripts/lock_models.py --write; verified by scripts/robustness.py --final. Paths are relative to results/train/.",
   "locked_at": "2026-11-12T23:09:31+05:30",
   "git_commit": "92d080f",
   "tag": "final",

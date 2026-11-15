@@ -25,12 +25,12 @@ def main(argv: list[str] | None = None) -> int:
         help="learned agents: checkpoint path; '{seed}' is replaced by each evaluation seed",
     )
     ap.add_argument("--track", choices=("full", "light"))
-    ap.add_argument("--final", action="store_true", help="allow test / held-out (Phase 7 only)")
+    ap.add_argument("--final", action="store_true", help="allow the test / held-out splits")
     ap.add_argument("--note", default="", help="free text for the experiment log")
     ap.add_argument(
         "--log-decisions",
         action="store_true",
-        help="write decisions_s<seed>.csv (σ, gate, attention per decision; plan phase6 D7)",
+        help="write decisions_s<seed>.csv (σ, gate, attention per decision)",
     )
     ap.add_argument(
         "--log-trace",
@@ -48,8 +48,8 @@ def main(argv: list[str] | None = None) -> int:
     split = cfg["data"]["split"]
     if split in FINAL_SPLITS and not args.final:
         print(
-            f"error: split {split!r} is final-evaluation only; it is run once in Phase 7 "
-            "with --final, after model selection on the validation flow",
+            f"error: split {split!r} is final-evaluation only; pass --final (run it once, "
+            "after model selection on the validation flow)",
             file=sys.stderr,
         )
         return 2
