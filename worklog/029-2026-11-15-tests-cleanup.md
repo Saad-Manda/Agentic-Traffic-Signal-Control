@@ -33,7 +33,7 @@ branch `archive/full-dev`.
 | `worklog/029-…`, `worklog/README.md` | created / modified | this entry and its index row | mandatory work log |
 
 ## Commits
-See `git log` (committed with this entry).
+`f2b6451` chore(tests): keep only the data split and leakage tests
 
 ## Next
 Remove `plot_training.py` (pending user answer); clean up the code (ROADMAP / plan IDs in

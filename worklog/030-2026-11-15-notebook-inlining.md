@@ -47,7 +47,7 @@ there only to feed a notebook.
 | `worklog/030-…`, `worklog/README.md` | created / modified | this entry and its index row | mandatory work log |
 
 ## Commits
-Not committed yet.
+`2603586` refactor(notebooks): move notebook-only helpers into the notebooks
 
 ## Next
 User to decide which other scripts / modules move into notebooks (see the list given in chat).

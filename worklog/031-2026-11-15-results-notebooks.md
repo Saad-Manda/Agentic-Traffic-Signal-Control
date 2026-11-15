@@ -74,7 +74,7 @@ verdict rules fixed before the test runs.
 | `worklog/031-…`, `worklog/README.md` | created / modified | this entry and its index row | mandatory work log |
 
 ## Commits
-Not committed yet.
+`3d2672f` refactor(notebooks): turn result and analysis scripts into notebooks
 
 ## Next
 Code cleanup pass over the remaining scripts / src (ROADMAP / plan / worklog references in
