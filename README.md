@@ -223,8 +223,8 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/02_analysis.ipynb
 #   -> docs/figures/results/*.{png,pdf,md}, docs/results/error_analysis.md (+ 13 CSVs)
 ```
 
-The notebook holds no logic: every number and figure is a tested function in
-`trafficrl.eval.analysis` / `figures` / `faithfulness` (settings: `configs/analysis.yaml`). Its
+The analysis and plotting functions are defined in the notebook itself (settings:
+`configs/analysis.yaml`). Its
 first section recomputes travel time and queue of all 305 final episodes from the logs and
 stops if any differs from `metrics.csv` by more than 0.001. Both scripts refuse to run twice
 (`results/analysis/<study>` exists) and refuse any split other than `val`.

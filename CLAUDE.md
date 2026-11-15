@@ -116,17 +116,16 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/02_analysis.ipynb 
 configs/            # YAML experiment configs (one per run; include seed)
 data/raw/           # original public datasets (untouched, gitignored if large)
 data/processed/     # preprocessed flows / splits
-notebooks/          # 01_eda_train (EDA, train split only); 02_analysis (Phase 8 reader: figures,
-                    #   error analysis — calls functions in src/, never simulates)
+notebooks/          # 01_eda_train (EDA, train split only; runs its own rule rollouts, ~1 min);
+                    #   02_analysis (figures + error analysis from results/final/, never simulates)
 src/trafficrl/
-  data/             # splits, roadnet model, audit checks, EDA traces + aggregations (train only)
+  data/             # splits, roadnet model
   envs/             # traffic_env.py (TrafficEnv, make_env), features.py, metrics.py,
                     #   perturb.py (noise / dropout / surge), engine.py
   eval/             # runner.py: run_episode, evaluate, resolve_gate (shared by every agent);
                     #   explain.py (DecisionRecorder, StepRecorder); report.py; lock.py (manifest);
                     #   hypotheses.py (H1–H3 verdict rules, regret — fixed before the test runs);
-                    #   analysis.py (Phase 8 breakdowns on the saved logs, Study / Context),
-                    #   figures.py (one function per Phase 8 figure), faithfulness.py (attention check)
+                    #   faithfulness.py (attention check)
   train/            # loop.py (train, train_episode), tune.py (random search, parallel runs)
   agents/
     core/           # QLearner (Double DQN, SMDP target), replay, networks (K-head axis), encoders
@@ -175,10 +174,11 @@ All **frozen 10 Nov** in `docs/evaluation_protocol.md` (changes need a dated Dec
 
 ## Code Patterns / Conventions
 
-- Core logic in `src/trafficrl/` as importable modules; notebooks import from `src/`, never
-  the reverse, and hold **no logic** (no `def` / `class`; `tests/test_notebooks.py`). Two
-  notebooks: train-split EDA, and the Phase 8 reader `02_analysis.ipynb` (allowed 13 Nov,
-  Decision Log) which only calls tested functions and never simulates. Every results table
+- Model / env / training / evaluation code lives in `src/trafficrl/`; notebooks import from
+  `src/`, never the reverse. **Since 15 Nov (cleanup) the notebooks define their own analysis
+  helpers** (EDA aggregations + rule-controller rollouts in `01_eda_train`; breakdowns and
+  figure functions in `02_analysis`) — `data/{audit,eda,trace}.py` and
+  `eval/{analysis,figures}.py` were moved into them. Every results table
   and figure is produced by a command listed in the README — no hidden manual steps.
 - Every agent (baseline or proposed) implements the same interface (see
   `.claude/reference/api.md`) so evaluation code is shared.
