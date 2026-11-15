@@ -1,59 +1,109 @@
-# Uncertainty-Gated Multi-Agent Reinforcement Learning for Adaptive Traffic Signal Control (UG-MARL)
+# UG-MARL: Uncertainty-Gated Multi-Agent RL for Traffic Signal Control
 
-Built on the CityFlow simulator. Repository name: `Agentic-Traffic-Signal-Control`.
+Every intersection in a city has to decide, every few seconds, which traffic gets green.
+Reinforcement learning (RL) controllers learn this from simulation and beat hand-written
+rules on average travel time. But they can't tell when one of their decisions is unreliable,
+and they fall apart when the detector readings look different from what they saw in training.
 
-## Install (Ubuntu 24.04: native or WSL2)
+This project tests a simple fix. Each intersection runs a learned controller that looks at
+its own lanes and its four neighbours. The controller has several Q-value heads (an
+ensemble). When the heads disagree too much, meaning the model is unsure, that intersection
+hands its decision to Max-Pressure, a rule-based controller that keeps queues stable and
+needs no training. The threshold for "too much" is chosen on validation data only.
 
-Tested on WSL2 Ubuntu 24.04, Python 3.12.3, g++ 13.3, CMake 3.28.3 (28 Oct 2026), and on
-native Ubuntu 24.04.3 (kernel 7.0, i5-13420H, 15 GB RAM; 11 Nov 2026).
-Clone the repo into the Linux filesystem (e.g. `~/Agentic-Traffic-Signal-Control`), not `/mnt/...`.
+Everything runs in the [CityFlow](https://github.com/cityflow-project/CityFlow) simulator on
+real traffic from two Chinese cities: Jinan (12 intersections, used for training and testing)
+and Hangzhou (16 intersections, never seen in training).
 
-### 1. System packages
+## How it works
+
+![UG-MARL architecture](docs/figures/architecture.png)
+
+The blue path is how a decision is made at test time. The intersection's observation and its
+neighbours' go through an attention encoder and K Q-heads. If the spread σ of the heads is
+above the threshold τ, Max-Pressure picks the phase; otherwise the model's best phase is used.
+The orange path is training: the network learns on the train flow with the gate off, and
+both the checkpoint and τ are chosen on the validation flow.
+
+## Main result
+
+On the Jinan test flow the gated model (UG-MARL) has an average travel time
+of 295.4 s. That beats Max-Pressure (320.8 s) and independent DQN (307.9 s), and is 3.2 s
+behind a shared DQN (292.2 s). With detector noise of 0.2 the learned controllers without a
+gate climb to 759-870 s, while UG-MARL stays at 420.5 s, level with Max-Pressure. Across six
+test conditions its largest gap to the best controller is 6.8 s, the smallest of the five
+controllers.
+
+![Main comparison on the Jinan test flow](docs/figures/results/main_comparison.png)
+
+## Controllers compared
+
+| Name in the code | What it is |
+|---|---|
+| `fixed_time` | Cycles through the 8 phases, 30 s each |
+| `max_pressure` | Gives green to the phase with the largest queue difference (Varaiya 2013) |
+| `dqn` | One DQN network shared by all intersections, no coordination |
+| `idqn` | One independent DQN per intersection |
+| `ugmarl` | Proposed model: neighbour attention + 3 Q-heads + uncertainty gate |
+| `ugmarl-nogate`, `ugmarl-noattn`, `ugmarl-noens` | Ablations: no gate, no attention, a single head (so no gate) |
+
+## Repository layout
+
+```
+configs/      YAML settings for every run (all inherit configs/base.yaml)
+src/trafficrl/
+  data/       train / val / test split of the flow files, road-network parser
+  envs/       CityFlow environment, observations, metrics, detector noise
+  agents/     Fixed-Time, Max-Pressure, DQN, IDQN and UG-MARL
+  train/      training loop and hyperparameter search
+  eval/       evaluation loop, decision logs, hypothesis checks, model lock
+scripts/      command-line entry points (train, tune, evaluate, ...)
+notebooks/    00 data audit, 01 EDA, 02 result tables, 03 error analysis, 04 σ / attention checks
+docs/         dataset card, result CSVs, figures, experiment log
+models/       manifest.json: SHA-256 hashes of the final checkpoints
+tests/        checks that the data split has no leakage
+```
+
+## Setup
+
+Tested on Ubuntu 24.04 with Python 3.12 (native and WSL2). Clone into the Linux filesystem
+(e.g. `~/Agentic-Traffic-Signal-Control`), not into `/mnt/...`.
 
 ```bash
 sudo apt update && sudo apt install -y build-essential cmake python3-venv python3-dev git
-```
 
-### 2. Virtual environment
-
-```bash
 cd ~/Agentic-Traffic-Signal-Control
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt   # exact pins (torch with bundled CUDA, ~3 GB download)
-pip install -e .                  # makes `src/trafficrl` importable (`import trafficrl`)
-python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+pip install -r requirements.txt   # exact versions; PyTorch is a ~3 GB download
+pip install -e .                  # makes `import trafficrl` work
 ```
 
-### 3. CityFlow (built from source, pybind11 bumped for Python 3.12)
-
-CityFlow pins an old pybind11 fork that does not build on Python 3.12, so we replace the
-submodule with upstream pybind11 **v2.13.6**.
+CityFlow has to be built from source. Its bundled pybind11 doesn't build on Python 3.12,
+so swap it for pybind11 v2.13.6:
 
 ```bash
 mkdir -p ~/src && cd ~/src
 git clone https://github.com/cityflow-project/CityFlow
 cd CityFlow
-git checkout 81ee0f47659ca66177a71f81676691c58ee89184   # pinned commit (Aug 2025)
+git checkout 81ee0f47659ca66177a71f81676691c58ee89184
 git submodule update --init extern/rapidjson
 rm -rf extern/pybind11
 git clone --depth 1 --branch v2.13.6 https://github.com/pybind/pybind11 extern/pybind11
-pip install .            # with the project .venv active
+pip install .                     # with the project's .venv active
 python -c "import cityflow; print(cityflow.__file__)"
 ```
 
-No sudo / no system `cmake` (native Ubuntu, 11 Nov): install CMake into the venv and build
-without isolation, so the build sees the venv's `cmake`:
+If `cmake` isn't installed system-wide, run `pip install cmake==3.28.3` and then
+`pip install --no-build-isolation .` instead.
 
-```bash
-pip install cmake==3.28.3
-pip install --no-build-isolation .
-```
+Training runs on the CPU (faster than the GPU for these small networks). Each training run
+uses about 0.9 GB of RAM.
 
-### 4. Data (Jinan 3×4, Hangzhou 4×4)
+## Data
 
-From the CoLight repo (commit `04440b7`), into the gitignored `data/raw/`:
+The Jinan and Hangzhou flows come from the CoLight repository (commit `04440b7`):
 
 ```bash
 cd ~/Agentic-Traffic-Signal-Control
@@ -62,100 +112,108 @@ git clone --depth 1 --filter=blob:none --sparse https://github.com/wingsweihua/c
 cd colight_src && git sparse-checkout set data/Jinan data/Hangzhou
 ```
 
-The files are pinned by SHA-256 in `data/processed/splits.json`; every load through
-`trafficrl.data.splits.flow_files` checks the hash and fails on a mismatch.
+The data comes without a license file. Use it for academic work only and cite
+CoLight (Wei et al., CIKM 2019).
 
-The data has no license file. Use it for academic purposes only and cite CoLight (Wei et al.,
-CIKM 2019). Split and data dictionary: `docs/dataset_card.md`.
+`data/processed/splits.json` assigns whole flow files to splits and pins each file
+by its SHA-256 hash. Loading goes through `trafficrl.data.splits.flow_files`, which refuses a
+file whose hash doesn't match.
 
-### 5. EDA notebook
+| Split | Files | Used for |
+|---|---|---|
+| train | Jinan `real` | training |
+| val | Jinan `real_2000` | checkpoint, hyperparameter and gate-threshold selection |
+| test | Jinan `real_2500` | final evaluation, run once |
+| heldout | Hangzhou, 3 flows | zero-shot test on an unseen city, run once |
 
-`notebooks/01_eda_train.ipynb` describes the Jinan training flow (train split only): arrivals,
-routes and movements, plus queues and travel times under three rule controllers. Its outputs
-are saved in the notebook; the data-audit counts are in `docs/data_audit.json`.
+The scripts refuse `test` and `heldout` unless you pass `--final`. More detail is in
+`docs/dataset_card.md`.
 
-Reference timing (WSL2, 1 thread, one 3600 s episode on Jinan train, 12 intersections, 6295
-vehicles): Fixed-Time 2.7 s, Max-Pressure 1.8 s wall time. One thread per simulator is fastest
-on this network, so runs are parallelised across seeds instead.
+## Reproducing the results
 
-### 6. Environment and rule baselines (ROADMAP Phase 4)
+The steps below run in order. Training and evaluation write to `results/`, which isn't in
+the repository because it's large, and append a row per run to `docs/experiment_log.csv`.
+The notebooks in steps 6-8 only read `results/`, so you can re-run them as often as you like.
+
+Rule-based controllers are deterministic, so their numbers come out exactly. The learned
+models are seeded (seeds 0-4) and use deterministic PyTorch kernels, so a re-run on the same
+machine and software gives the same numbers. On other hardware, expect the learned models'
+means to land within about one standard deviation of the values below.
+
+### 0. Data audit (~10 s)
 
 ```bash
-cd ~/Agentic-Traffic-Signal-Control
-python scripts/evaluate.py --agent fixed_time   --split val   # 5 seeds, ~25 s
-python scripts/evaluate.py --agent max_pressure --split val   # 5 seeds, ~25 s
-python scripts/evaluate.py --agent max_pressure --split train --seeds 0   # sanity check vs EDA
+jupyter nbconvert --to notebook --execute --inplace notebooks/00_data_audit.ipynb
 ```
 
-Each run writes `results/eval/<agent>_<dataset>-<split>_<condition>_<time>/` with
-`metrics.csv` (one row per seed), `summary.csv` (mean, std, 95 % CI, deterministic flag),
-`config.yaml`, `env.json`, `data.json`, and appends one row per seed to
-`docs/experiment_log.csv`. `--split test` / `heldout` exits with an error unless `--final`
-is given (Phase 7 only). Robustness conditions are config overrides, e.g.
-`robustness.noise_std=0.1`, `robustness.dropout_p=0.1`, `robustness.surge=1.5`.
+Checks every flow file and both road networks for missing fields, wrong types, duplicates and
+impossible routes, and stops if any count is not 0. Expected: 0 defects. Writes
+`docs/data_audit.json` and, for the training flow only, `docs/figures/audit/*.png`.
 
-Expected (Jinan, 3600 s, Δt = 15 s, 5 s yellow; deterministic, identical for every seed):
-
-| Agent | Split | Avg travel time | Avg waiting time | Throughput | Max per-vehicle wait |
-|---|---|---|---|---|---|
-| Fixed-Time | val | 434.84 s | 187.78 s | 3991 veh | 1124 s |
-| Max-Pressure | val | 326.11 s | 83.42 s | 4106 veh | 1334 s |
-| Fixed-Time | train | 516.79 s | 256.10 s | 4971 veh | 1725 s |
-| Max-Pressure | train | 349.67 s | 114.77 s | 5602 veh | 1897 s |
-
-The train values differ slightly from the EDA traces (515.21 / 344.13 s) because the EDA trace
-gives the first green 14 s instead of 15 s; copying that off-by-one into the env reproduces
-Max-Pressure's 344.13 s exactly (worklog/015).
-
-### 7. RL baselines: training, tuning, validation (ROADMAP Phase 5)
+### 1. EDA (training flow only, ~3 min)
 
 ```bash
-# one run: 100 episodes on Jinan train, greedy val episode every 5, best checkpoint on val
-python scripts/train.py --config configs/dqn.yaml  --run-name dqn_try   # ~12-30 min (CPU, load-dependent)
-python scripts/train.py --config configs/idqn.yaml --run-name idqn_try
-# tuning: 8 random trials from the committed search space, 4 parallel processes
+jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda_train.ipynb
+```
+
+Writes `docs/figures/eda/*.png`. Expected: Max-Pressure on the training flow scores 451 / 375
+/ 344 / 347 s at a decision interval of 5 / 10 / 15 / 20 s, which is why 15 s is used
+throughout. The data-quality table reads `docs/data_audit.json` from step 0.
+
+### 2. Rule baselines on validation (~1 min)
+
+```bash
+python scripts/evaluate.py --agent fixed_time   --split val
+python scripts/evaluate.py --agent max_pressure --split val
+```
+
+Expected average travel time: Fixed-Time 434.8 s, Max-Pressure 326.1 s (identical for
+every seed).
+
+### 3. DQN and IDQN: tune, then train 5 seeds
+
+```bash
+# 8 random trials each from configs/search/rl_baselines.yaml (validation flow)
 python scripts/tune.py --search configs/search/rl_baselines.yaml --agent dqn  --workers 4
 python scripts/tune.py --search configs/search/rl_baselines.yaml --agent idqn --workers 4
-# chosen configs on seeds 0-4, then full-tracking val evaluation (seed s loads checkpoint s)
-python scripts/tune.py --config configs/dqn.yaml  --seeds 0 1 2 3 4 --workers 5 --tag final
-python scripts/tune.py --config configs/idqn.yaml --seeds 0 1 2 3 4 --workers 5 --tag final
+# the chosen settings are already in configs/dqn.yaml and configs/idqn.yaml
+python scripts/tune.py --config configs/dqn.yaml  --seeds 0 1 2 3 4 --workers 5
+python scripts/tune.py --config configs/idqn.yaml --seeds 0 1 2 3 4 --workers 5
 python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent dqn --split val \
     --checkpoint 'results/train/dqn_final_s{seed}/checkpoints/best.pt'
 python scripts/evaluate.py --config configs/eval_rl_baselines.yaml --agent idqn --split val \
     --checkpoint 'results/train/idqn_final_s{seed}/checkpoints/best.pt'
 ```
 
-Training runs write `results/train/<run>/` (train / val logs, `checkpoints/{best,last}.pt`,
-TensorBoard `tb/`, `summary.json`, config, `env.json`) and one row in
-`docs/experiment_log.csv`. `train.py` accepts only `data.split=train`. Device: CPU (faster
-than CUDA for these small MLPs, worklog/016). Phase 5 numbers are WSL *dev* numbers.
-Each run uses ~0.9 GB RAM; on a 7.7 GB WSL VM run at most 4–5 at once.
+One training run takes 15-25 min on a CPU. Each seed's checkpoint is chosen on validation and
+saved as `results/train/<model>_final_s<seed>/checkpoints/best.pt`. Expected validation travel
+time: DQN 299.8 ± 1.0 s, IDQN 312.7 ± 2.5 s.
 
-Expected (WSL dev, Jinan val, 5 seeds; tuned trial t6 = lr 1e-4, γ 0.8, batch 64, ε-decay
-0.3 for both): DQN **299.8 ± 1.0 s**, IDQN **312.7 ± 2.5 s**, vs Max-Pressure 326.1 s and
-Fixed-Time 434.8 s. The validation table and learning curves of all models are built in
-`notebooks/02_results.ipynb` (step 9).
-
-### 8. Proposed UG-MARL: grid, finals, gate calibration, validation (ROADMAP Phase 6)
+### 4. UG-MARL: tune, train, calibrate the gate
 
 ```bash
-# smoke: 2 episodes; the gate with tau = 0 must reproduce Max-Pressure (326.11 s on val)
-python scripts/train.py --config configs/ugmarl.yaml --run-name smoke_ugmarl train.episodes=2 train.val_every=1
-python scripts/evaluate.py --config configs/eval_ugmarl.yaml --agent ugmarl --split val --seeds 0 \
-    --checkpoint results/train/smoke_ugmarl/checkpoints/last.pt agents.ugmarl.gate.tau=0.0
-# grid K {3,5,10} x d {32,64,128} on seed 0 (search file committed first), winner -> configs/ugmarl.yaml
+# grid over ensemble size K {3, 5, 10} x attention width d {32, 64, 128}; winner K=3, d=128
 python scripts/tune.py --search configs/search/ugmarl.yaml --agent ugmarl --workers 5
-# finals on seeds 0-4: full model and the two trained ablations
+# full model and the two retrained ablations, 5 seeds each
 python scripts/tune.py --config configs/ugmarl.yaml        --seeds 0 1 2 3 4 --workers 5
 python scripts/tune.py --config configs/ugmarl_noattn.yaml --seeds 0 1 2 3 4 --workers 5
 python scripts/tune.py --config configs/ugmarl_noens.yaml  --seeds 0 1 2 3 4 --workers 5
-# gate threshold per seed-model (validation only) -> results/train/<variant>_final_s<seed>/gate.json
-python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --config configs/eval_ugmarl.yaml --tag final --workers 5
-python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml --config configs/eval_ugmarl.yaml --tag final --workers 5 \
-    agents.ugmarl.use_attention=false
-# 6.8: every baseline + UG-MARL / −gate under detector noise / dropout on validation (evaluation only)
-python scripts/robustness.py --spec configs/robustness_val.yaml --workers 5   # docs/results/val_robustness.{csv,md}
-# validation evaluation of every variant (decision logs for the explanation figures)
+# gate threshold per model: p-th percentile of σ on a clean validation episode
+python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml \
+    --config configs/eval_ugmarl.yaml --workers 5
+python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml \
+    --config configs/eval_ugmarl.yaml --workers 5 agents.ugmarl.use_attention=false
+```
+
+The gate only acts at evaluation time; training and checkpoint selection run without it.
+Calibration writes `gate.json` next to each checkpoint and
+`docs/results/gate_calibration{,_noattn}.csv`. Expected: p = 80 is chosen (mean 343.7 s over
+seeds and the five detector conditions; no gate: 485.2 s).
+
+### 5. Validation runs of every model
+
+```bash
+python scripts/robustness.py --spec configs/robustness_val.yaml --workers 5
 C=configs/eval_ugmarl.yaml
 python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decisions \
     --checkpoint 'results/train/ugmarl_final_s{seed}/checkpoints/best.pt'
@@ -167,85 +225,85 @@ python scripts/evaluate.py --config $C --agent ugmarl --split val --log-decision
     --checkpoint 'results/train/ugmarl-noens_final_s{seed}/checkpoints/best.pt' agents.ugmarl.use_ensemble=false
 ```
 
-The gate acts at evaluation only; training and checkpoint selection are ungated. Equations
-and the stability argument: report Ch. 3.
+The first command writes `docs/results/val_robustness.csv` (every controller under detector
+noise and dropout). Expected validation travel time, UG-MARL: 302.3 ± 1.1 s.
 
-### 9. Final evaluation: test flow and held-out city (ROADMAP Phase 7)
-
-Run once, after everything above is fixed. `--final` is refused unless `models/manifest.json`
-matches the checkpoints, and it stops on a started-but-unfinished job (`--rerun-failed` after
-logging the reason in the ROADMAP Decision Log).
+### 6. Final test and Hangzhou (run once)
 
 ```bash
-python scripts/lock_models.py --write      # models/manifest.json: hashes of best.pt / gate.json / config (commit it)
-python scripts/lock_models.py --verify
-# Jinan test: 8 models x 6 conditions x seeds 0-4 = 240 episodes (~30 min, one process -> valid latency)
-python scripts/robustness.py --spec configs/final_test.yaml --final --workers 1 --results-dir results/final
-# Hangzhou, zero-shot: 7 models x 3 flows x seeds 0-4 = 105 episodes (~15 min)
+python scripts/lock_models.py --write    # hash the checkpoints into models/manifest.json
+python scripts/robustness.py --spec configs/final_test.yaml    --final --workers 1 --results-dir results/final
 python scripts/robustness.py --spec configs/final_heldout.yaml --final --workers 1 --results-dir results/final
-# tables (reads the runs, repeatable): learning curves, docs/results/val_phase6.csv,
-#   test_{main,ablation,robustness,efficiency,safety_explain}.csv, heldout_generalisation{,_all}.csv
 jupyter nbconvert --to notebook --execute --inplace notebooks/02_results.ipynb
 ```
 
-Every final episode also writes `trace_s<seed>.csv` (per step × intersection),
-`vehicles_s<seed>.csv` (per vehicle) and, for UG-MARL variants, `decisions_s<seed>.csv` under
-`results/final/<study>/eval/<model>__<condition>/` — the inputs of the Phase 8 figures.
+`--final` checks the checkpoints against `models/manifest.json` first, so a model can't be
+swapped after it was locked. The test run has 240 episodes (~30 min) and the Hangzhou run
+has 105 (~15 min). Both use one process so the decision-latency numbers are clean.
 
-Expected output (deterministic on the same machine; learned agents mean ± std over 5 seeds),
-average travel time on the clean test flow: Fixed-Time 462.2 s, Max-Pressure 320.8 s,
-DQN 292.2 ± 0.6 s, IDQN 307.9 ± 1.4 s, UG-MARL 295.4 ± 1.1 s. Hypothesis verdicts printed by
-`02_results.ipynb`: H1 supported, H2 supported, H3 not supported. Results: worklog/020.
+Notebook 02 writes the learning curves and every table in `docs/results/`, then prints the
+hypothesis verdicts. Expected (average travel time, clean test flow, mean ± std over 5 seeds):
 
-### 10. Analysis: figures, error analysis, sensitivity (ROADMAP Phase 8)
+| Model | Test | Noise 0.2 | Hangzhou (all flows) |
+|---|---|---|---|
+| Fixed-Time | 462.2 | 462.2 | 667.5 |
+| Max-Pressure | 320.8 | 413.7 | 431.8 |
+| DQN | 292.2 ± 0.6 | 828.2 | 410.4 ± 7.1 |
+| IDQN | 307.9 ± 1.4 | 758.9 | can't transfer* |
+| UG-MARL | 295.4 ± 1.1 | 420.5 | 410.0 ± 2.9 |
 
-No test or held-out episode is run here: everything on those flows is read from the logs of
-step 9 (`results/final/`). The τ sweep and notebook 04 run on the **validation** flow only and
-select nothing (`gate.json` and p\* = 80 stay as locked).
+\* IDQN has one network per Jinan intersection, so it can't run on Hangzhou's 16.
+
+Verdicts: H1 supported, H2 supported, H3 not supported.
+
+### 7. Error analysis (reads the logs, ~1 min)
 
 ```bash
-# sensitivity to the gate threshold: p = 50, 60, 70 on validation (75 episodes, ~25 min with 5 workers)
-python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml --workers 5
-#   -> docs/results/tau_sensitivity.{csv,md};  --tables-only rebuilds the table without running
-python scripts/lock_models.py --verify     # nothing locked has changed
-# error analysis (no simulation, ~1 min): 17 figures + error-analysis tables + readings
+python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml --workers 5   # ~25 min
 jupyter nbconvert --to notebook --execute --inplace notebooks/03_error_analysis.ipynb
-#   -> docs/figures/results/*.{png,pdf}, docs/results/error_analysis_*.csv
-# σ check + attention faithfulness: 10 validation episodes (~1-3 min)
-jupyter nbconvert --to notebook --execute --inplace notebooks/04_gate_attention.ipynb
-#   -> docs/results/{sigma_validity,sigma_validity_td,attention_faithfulness}.csv + 2 figures
 ```
 
-The analysis and plotting functions are defined in the notebook itself (settings:
-`configs/analysis.yaml`). Its
-first section recomputes travel time and queue of all 305 final episodes from the logs and
-stops if any differs from `metrics.csv` by more than 0.001. Notebook 04 asserts the validation
-split and checks that each episode reproduces the validation-table travel time.
+The τ sweep tries thresholds p = 50, 60, 70 on validation and writes
+`docs/results/tau_sensitivity.csv`. Expected: 343.2 / 343.8 / 342.3 s against 343.7 s at
+p = 80; nothing is re-selected. Notebook 03 first recomputes travel time from the logs
+of all 305 final episodes. It stops if any episode differs from the saved metrics by more
+than 0.001 s (expected largest difference: 0.00005 s). It writes
+`docs/figures/results/*.png` and `docs/results/error_analysis_*.csv`.
 
-Expected output: reproduction check passes with a largest difference of 0.00005 s; τ sweep
-scores 343.2 / 343.8 / 342.3 s for p = 50 / 60 / 70 (343.7 s at the locked p\* = 80);
-faithfulness, replacement: |Δμ| 0.0061 (highest-α neighbour) vs 0.0022 (lowest-α) vs 0.0415
-(own observation). Interpretation: report Ch. 4.
-
-### 11. Tests and lint
+### 8. σ and attention checks (validation, ~3 min)
 
 ```bash
-pytest            # data split / leakage checks
+jupyter nbconvert --to notebook --execute --inplace notebooks/04_gate_attention.ipynb
+```
+
+Writes `docs/results/sigma_validity{,_td}.csv`, `docs/results/attention_faithfulness.csv`,
+`docs/figures/ugmarl/sigma_validity.png` and `docs/figures/results/attention_faithfulness.png`.
+Expected: σ hardly tracks the TD error (Spearman ρ between −0.02 and 0.06 per seed). Swapping
+the input of the neighbour with the highest attention weight moves Q by 0.0061, the
+lowest-weight neighbour 0.0022 and the intersection's own input 0.0415.
+
+## Where each table and figure comes from
+
+| Output | Made by |
+|---|---|
+| `docs/figures/eda/*.png` | `notebooks/01_eda_train.ipynb` |
+| `docs/figures/training/learning_curves.png` | `notebooks/02_results.ipynb` |
+| `docs/results/val_phase6.csv`, `test_*.csv`, `heldout_generalisation*.csv` | `notebooks/02_results.ipynb` |
+| `docs/results/val_robustness.csv` | `scripts/robustness.py --spec configs/robustness_val.yaml` |
+| `docs/results/gate_calibration*.csv` | `scripts/calibrate_gate.py` |
+| `docs/results/tau_sensitivity.csv` | `scripts/tau_sweep.py` |
+| `docs/figures/results/*.png`, `docs/results/error_analysis_*.csv` | `notebooks/03_error_analysis.ipynb` |
+| `docs/results/sigma_validity*.csv`, `attention_faithfulness.csv` and their figures | `notebooks/04_gate_attention.ipynb` |
+| `docs/data_audit.json`, `docs/figures/audit/*.png` | `notebooks/00_data_audit.ipynb` |
+
+## Tests and lint
+
+```bash
+pytest                         # data split: structure, no leakage, pinned hashes
 ruff check src tests scripts
 ```
 
-## Repository layout
+## Credits
 
-```
-configs/          YAML experiment configs; every config inherits `base.yaml` and sets `seed`
-src/trafficrl/    data/ (splits, roadnet), envs/ (traffic_env, features,
-                  metrics, perturb, engine), agents/ (base, baselines/, ugmarl/), eval/ (runner,
-                  explain, lock, report, hypotheses), utils/ (seed, config, runlog, plotting, stats)
-scripts/          train, tune, evaluate, calibrate_gate, robustness, lock_models, tau_sweep
-tests/            data split / leakage checks
-notebooks/        01_eda_train (EDA, train split only), 02_results (learning curves + all result
-                  tables), 03_error_analysis (figures + error analysis), 04_gate_attention
-                  (σ check + attention faithfulness, validation)
-docs/             dataset_card.md, data_audit.json, experiment_log.csv (one row per run),
-                  results/ (result tables as CSV), figures/
-```
+Traffic data from CoLight (Wei et al., CIKM 2019); simulator CityFlow (Zhang et al., WWW 2019);
+Max-Pressure from Varaiya (2013).
