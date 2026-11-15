@@ -1,8 +1,7 @@
 # Dataset card — Jinan (primary) and Hangzhou (held-out)
 
 ROADMAP 1.5–1.6 · guidelines G3 · decision 10 Nov 2026 (ROADMAP Decision Log, worklog/011).
-Numbers below are produced by `python scripts/dataset_stats.py --json docs/dataset_stats.json`
-(full machine-readable output in `docs/dataset_stats.json`).
+Full machine-readable statistics: `docs/dataset_stats.json`.
 
 ## 1. Overview
 
@@ -106,9 +105,9 @@ or pedestrians. There is no vehicle ID field. CityFlow assigns `flow_<i>_<j>` ID
 Agent action space (to be fixed in Phase 4): choose one of the 8 green phases (1–8). The
 environment inserts phase 0 for the 5 s transition.
 
-## 5. Quality checks (full audit: `docs/data_audit.md`, 10 Nov 2026)
+## 5. Quality checks (counts: `docs/data_audit.json`, 10 Nov 2026)
 
-The full audit (`python scripts/audit_data.py`) found **0 defects** in all six flow files and
+The full audit found **0 defects** in all six flow files and
 both road networks. It also documents three properties that are kept as released: 1–2 % of
 trips end inside the network instead of at a boundary node, 3–4 % of routes pass an
 intersection twice, and the Jinan training flow has a five-minute low-demand period. The

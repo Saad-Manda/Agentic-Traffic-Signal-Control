@@ -26,3 +26,7 @@ data/raw/
 /report/main.pdf
 /report/main.synctex.gz
 /report/main.toc
+
+# Markdown tables / captions written next to the results (the CSVs are the record)
+/docs/results/*.md
+/docs/figures/**/*.md

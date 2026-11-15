@@ -140,7 +140,7 @@ def main_table(df, spec, args, prefix) -> dict:
     lines = header(
         f"Main comparison — {spec['dataset']} `{split}`, clean detectors (ROADMAP 7.1)",
         spec,
-        "Validation column: `docs/results/val_phase6.md` (optimistic for learned models: used "
+        "Validation column: `docs/results/val_phase6.csv` (optimistic for learned models: used "
         "for checkpoint, (K, d) and p selection). Training time = wall time per run on CPU "
         "with 5 runs in parallel, so compare it only roughly.",
     )
@@ -585,7 +585,7 @@ def heldout_table(held, hspec, args, test: pd.DataFrame | None) -> None:
     metrics = [ATT, WAIT, MAXW, "throughput_veh", "fallback_rate"]
     st = stats_frame(held, metrics)
     write(args.out_dir, "heldout_generalisation", lines, st)
-    # the "All flows" column as data (read by scripts/report_tables.py); same columns as `st`
+    # the "All flows" column as data; same columns as `st`
     rows = []
     for m in models:
         n = held[held["model"] == m]["seed"].nunique()

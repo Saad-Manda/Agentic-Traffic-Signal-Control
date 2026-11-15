@@ -1,4 +1,4 @@
-"""Multi-intersection CityFlow environment (ROADMAP 4.1; protocol: docs/evaluation_protocol.md).
+"""Multi-intersection CityFlow environment.
 
 **Timing — per-intersection clocks** (plan D2, Decision Log 10 Nov). The engine runs at 1 s.
 Each signalised intersection holds a green for Δt (15 s), then becomes *ready* and the agent

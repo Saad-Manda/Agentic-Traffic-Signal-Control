@@ -1,7 +1,6 @@
 """Hypothesis readings of Phase 7, fixed before the test flow was opened.
 
-Rules (ROADMAP Phase 7 set-up, ``docs/evaluation_protocol.md`` §9, ``PRD.md`` §1c). Every
-function takes per-seed values (lower is better for travel time and waiting time) and
+Every function takes per-seed values (lower is better for travel time and waiting time) and
 returns plain dicts, so the verdicts in ``scripts/final_tables.py`` are computed, not judged
 by eye. 95 % CI = Student t over seeds (:func:`trafficrl.utils.stats.summarise`); a
 deterministic baseline's CI is its value.

@@ -1,4 +1,4 @@
-"""Robustness hooks (ROADMAP 4.3; definitions frozen in docs/evaluation_protocol.md §6).
+"""Robustness hooks: sensor noise, detector dropout and demand surge.
 
 * **Sensor noise** — Gaussian with standard deviation σ added to every capacity-scaled lane
   reading x̃ = x / C_l, clipped to [0, 1], reported back in vehicles (x̃′ · C_l).

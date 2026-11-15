@@ -34,7 +34,7 @@ from trafficrl.utils.plotting import (
     apply_style,
 )
 
-INTERPRETATION = "`docs/analysis.md` and `notebooks/02_analysis.ipynb`"
+INTERPRETATION = "`notebooks/02_analysis.ipynb` and the report (Ch. 4)"
 CONDITION_LABEL = {
     "clean": "clean",
     "noise0.1": "noise 0.1",
@@ -164,7 +164,7 @@ def fig_main_comparison(study: A.Study, agents: Sequence[str], out=None) -> plt.
         "over seeds 0–4; error bars: 95 % CI (Student t); dots: seeds. Fixed-Time and "
         "Max-Pressure are deterministic (no error bar). (a) average travel time, (b) maximum "
         "per-vehicle wait inside the network.",
-        "; ".join(vals) + ". Source: `results/final/final_test` (= `docs/results/test_main.md`).",
+        "; ".join(vals) + ". Source: `results/final/final_test` (= `docs/results/test_main.csv`).",
     )  # fmt: skip
 
 
@@ -196,7 +196,7 @@ def fig_ablation(study: A.Study, variants: Sequence[str], conditions: Sequence[s
         "noise 0.2. Points: mean over seeds 0–4; bars: 95 % CI; small dots: seeds. −gate uses "
         "the same checkpoints as the full model (diamond); −attention and −ensemble are "
         "trained separately. The y axes do not start at 0.",
-        "; ".join(vals) + ". Source: `docs/results/test_ablation.md`.",
+        "; ".join(vals) + ". Source: `docs/results/test_ablation.csv`.",
     )  # fmt: skip
 
 
@@ -262,7 +262,7 @@ def fig_generalisation(study: A.Study, models: Sequence[str], out=None) -> plt.F
         "Average travel time on the three Hangzhou flow files (4 × 4 network), models trained "
         "and calibrated on Jinan only (τ from Jinan validation). Bars: mean over seeds 0–4; "
         "error bars: 95 % CI. IDQN is not transferable (one network per Jinan intersection).",
-        "; ".join(vals) + ". Source: `docs/results/heldout_generalisation.md`.",
+        "; ".join(vals) + ". Source: `docs/results/heldout_generalisation.csv`.",
     )  # fmt: skip
 
 
@@ -345,7 +345,7 @@ def fig_robustness(study: A.Study, models: Sequence[str], out=None) -> plt.Figur
         "bands / bars: 95 % CI. −gate (dashed) is the same checkpoints as UG-MARL with the "
         "gate switched off. Noise and dropout change what the controllers observe, not the "
         "traffic; Fixed-Time does not use detectors.",
-        "; ".join(vals) + ". Source: `docs/results/test_robustness.md`.",
+        "; ".join(vals) + ". Source: `docs/results/test_robustness.csv`.",
     )  # fmt: skip
 
 
@@ -463,7 +463,8 @@ def fig_gate_firing(
         f"to Max-Pressure per {window_s // 60}-minute window. (c) The same share per "
         "intersection, drawn at the intersection's place in the 3 × 4 network. Seeds 0–4 "
         "pooled; τ per seed-model from Jinan validation (p* = 80).",
-        "; ".join(vals) + ". Source: `decisions_s*.csv` (= `docs/results/test_safety_explain.md`).",
+        "; ".join(vals)
+        + ". Source: `decisions_s*.csv` (= `docs/results/test_safety_explain.csv`).",
     )  # fmt: skip
 
 

@@ -1,4 +1,4 @@
-"""Episode metrics (ROADMAP 4.2; definitions frozen in docs/evaluation_protocol.md §5).
+"""Episode metrics.
 
 :class:`EpisodeTracker` is fed by :class:`trafficrl.envs.traffic_env.TrafficEnv`:
 
