@@ -227,20 +227,7 @@ scores 343.2 / 343.8 / 342.3 s for p = 50 / 60 / 70 (343.7 s at the locked p\* =
 faithfulness, replacement: |Δμ| 0.0061 (highest-α neighbour) vs 0.0022 (lowest-α) vs 0.0415
 (own observation). Interpretation: report Ch. 4.
 
-### 11. Report and poster
-
-The report is LaTeX in `report/` (`report/report.pdf`); the tables in `report/tables/` and the
-numbers in `report/generated/numbers.tex` are taken from `docs/results/*.csv`.
-
-```bash
-sudo apt install -y latexmk texlive-latex-recommended texlive-latex-extra \
-    texlive-science texlive-pictures texlive-publishers texlive-bibtex-extra
-cd report && latexmk -pdf main.tex && cp build/main.pdf report.pdf
-```
-
-The poster is `poster/poster.pptx` (PDF export: `poster/poster.pdf`).
-
-### 12. Tests and lint
+### 11. Tests and lint
 
 ```bash
 pytest            # data split / leakage checks
@@ -261,7 +248,4 @@ notebooks/        01_eda_train (EDA, train split only), 02_results (learning cur
                   (σ check + attention faithfulness, validation)
 docs/             dataset_card.md, data_audit.json, experiment_log.csv (one row per run),
                   results/ (result tables as CSV), figures/
-report/           LaTeX report: main.tex, chapters/, figures/ (architecture diagram, Algorithm 1),
-                  tables/ + generated/ (from docs/results/*.csv), report.pdf
-poster/           poster.pptx, poster.pdf
 ```
