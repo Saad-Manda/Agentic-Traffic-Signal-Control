@@ -250,7 +250,7 @@ The poster is `poster/poster.pptx` (PDF export: `poster/poster.pdf`).
 ### 12. Tests and lint
 
 ```bash
-pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones
+pytest            # data split / leakage checks
 ruff check src tests scripts
 ```
 
@@ -264,7 +264,7 @@ src/trafficrl/    data/ (splits, roadnet, audit, trace, eda), envs/ (traffic_env
 scripts/          entry points: train, tune, evaluate, calibrate_gate, robustness, lock_models,
                   val_table, final_tables, plot_training, sigma_check, tau_sweep,
                   attention_faithfulness
-tests/            pytest suite mirroring src/
+tests/            data split / leakage checks
 notebooks/        01_eda_train.ipynb (EDA, train split only); 02_analysis.ipynb (Phase 8 reader:
                   calls tested functions in src/, simulates nothing)
 docs/             dataset_card.md, data_audit.json, experiment_log.csv (one row per run),

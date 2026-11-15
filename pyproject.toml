@@ -23,4 +23,3 @@ select = ["E", "F", "W", "I", "B", "UP"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["slow: simulator-heavy tests (deselect with -m 'not slow')"]

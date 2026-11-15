@@ -88,3 +88,4 @@ Follow-up tasks.
 | [026](026-2026-11-15-poster.md) | 2026-11-15 | Poster built: one 16:9 slide from a `python-pptx` script, numbers / table / figure from `docs/results`, own design, no logos; user review open | poster, code, decision | 9.2 | built |
 | [027](027-2026-11-15-scripts-cleanup.md) | 2026-11-15 | Repo cleanup step 1: 7 scripts not needed for the model removed with their modules and tests; scripts behind report numbers kept; full repo saved on `archive/full-dev` | code, cleanup | — | done |
 | [028](028-2026-11-15-docs-cleanup.md) | 2026-11-15 | Repo cleanup step 2: narrative docs (methodology, protocol, analysis, explainer, literature) and all Markdown result / caption files removed; CSVs, figures and experiment log kept | docs, cleanup | — | done |
+| [029](029-2026-11-15-tests-cleanup.md) | 2026-11-15 | Repo cleanup step 3: all tests removed except the data split / leakage checks (275 → 10) | tests, cleanup | — | done |

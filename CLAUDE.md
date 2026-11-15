@@ -202,8 +202,8 @@ All **frozen 10 Nov** in `docs/evaluation_protocol.md` (changes need a dated Dec
 
 ## Testing
 
-`pytest` under `tests/`. Focus: agent interface conformance, gate logic, metric computations,
-seeding determinism, and split/leakage checks. See `.claude/reference/testing.md`.
+`pytest` under `tests/`: only `tests/data/test_splits.py` (split structure, leakage, pinned
+hashes). All other tests were removed 15 Nov (user decision; they are on `archive/full-dev`).
 
 ## Key Files
 
