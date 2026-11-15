@@ -290,7 +290,22 @@ generated from `docs/results/*.csv`; the result figures are the PDFs of step 11.
 output: `pages: 12`, `report check: ok`. `report/checks/claims.md` lists the source of every
 claim, `report/checks/algorithm_check.md` the check of Algorithm 1 against the code.
 
-### 13. Tests and lint
+### 13. Poster (ROADMAP 9.2)
+
+One 16:9 slide (13.33 × 7.5 in), built by a script; nothing is simulated. Needs LibreOffice
+(`soffice`) for the PDF export.
+
+```bash
+python scripts/build_poster.py --pdf   # poster/poster.pptx, poster/poster.pdf, poster/figures/
+```
+
+The text is `poster/content.yaml` (edit it and rebuild). Numbers are written there as
+`{metric@model@condition}` and filled from `docs/results/*.csv` with the same keys and
+formatting as the report's `\res` macros; Table 1 and Figure 2 are built from the same files,
+and Figure 1 is drawn with native PowerPoint shapes, so everything stays editable. Hand-typed
+numbers are listed in `report/checks/claims.md` ("Poster").
+
+### 14. Tests and lint
 
 ```bash
 pytest            # all tests; `pytest -m "not slow"` skips simulator-heavy ones

@@ -1,6 +1,6 @@
 # Exact pins (pip freeze, WSL2 Ubuntu 24.04, Python 3.12.3, 9 Nov 2026) so WSL and native
 # Ubuntu get identical environments. Direct dependencies:
-#   torch numpy pandas matplotlib seaborn pyyaml tensorboard jupyterlab pytest ruff
+#   torch numpy pandas matplotlib seaborn pyyaml tensorboard jupyterlab pytest ruff python-pptx
 # Everything else below is transitive. torch 2.15.0 wheel bundles CUDA 13.2 (needs a recent
 # NVIDIA driver; WSL uses the Windows driver).
 # NOT listed: CityFlow (built from source, README step 3) and this package
@@ -61,6 +61,7 @@ jupyterlab_pygments==0.3.0
 jupyterlab_server==2.28.1
 kiwisolver==1.5.1
 lark==1.3.1
+lxml==6.1.3
 Markdown==3.11.3
 MarkupSafe==3.0.4
 matplotlib==3.11.2
@@ -109,6 +110,7 @@ pyparsing==3.3.3
 pytest==9.2.0
 python-dateutil==4.0.0
 python-json-logger==4.2.0
+python-pptx==1.0.2
 PyYAML==6.0.3
 pyzmq==27.3.0
 referencing==0.37.0
@@ -143,3 +145,4 @@ webencodings==0.6.1
 websocket-client==1.9.2
 Werkzeug==3.1.9
 wheel==0.48.0
+XlsxWriter==3.3.1

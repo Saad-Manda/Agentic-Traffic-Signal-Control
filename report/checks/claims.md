@@ -52,6 +52,21 @@ source file changes.
 | Parameters (3.4) | 157 720 = 55 936 + 3 × 33 928 | formula in `docs/methodology.md` §7 with d = 128, K = 3; `test_efficiency.csv` |
 | Hardware / software (3.6) | i5-13420H, Python 3.12.3, PyTorch 2.15.0, NumPy 2.5.4 | `results/final/…/env.json` |
 
+## Poster (`poster/content.yaml`)
+
+Every result number on the poster is a `{metric@model@condition}` placeholder filled from
+`docs/results/*.csv` (`trafficrl.eval.poster.numbers`, same formatting as the `\res` macros);
+Table 1 and Figure 2 are built from `test_robustness.csv` and `test_efficiency.csv`. Typed:
+
+| Text on the poster | Value | Source |
+|---|---|---|
+| Vehicles left outside the network at noise 0.2 | 11–14 % | as report 4.5.3 (`error_analysis_entry.csv`) |
+| Heads, width, gate percentile | K = 3, 128, p\* = 80 | report §3.6, `docs/results/gate_calibration.md` |
+| Training settings in Algorithm 1 | 100 episodes, Bernoulli(0.8) masks | `configs/ugmarl.yaml`, `report/checks/algorithm_check.md` |
+| Networks, episode, decision interval, state size | 3×4 / 4×4, 1 h, 15 s, 44 values | `docs/evaluation_protocol.md` |
+| "gap is spread over all intersections and is not caused by the gate" | – | `docs/analysis.md` §error analysis |
+| References [1]–[5] | 5 of the report's 10 | `report/references.bib` (verified 15 Nov) |
+
 ## Statements about other work
 
 Each is taken from the project's literature notes (`docs/literature/01–06`), where the
