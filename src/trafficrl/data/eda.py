@@ -1,11 +1,11 @@
 """Aggregations for the exploratory data analysis (ROADMAP 3.3).
 
 Demand-side descriptions of a flow file (who enters where, which movements are used) and
-loaders for the simulator traces written by ``scripts/collect_traces.py``.
+loaders for the simulator traces of the train flow.
 
 **Train split only.** These functions describe demand distributions, so they are called
-only on the training flow file (``database.md`` rule 9). The audit script and the EDA
-notebook enforce this; nothing here is used on validation, test or held-out flows.
+only on the training flow file (``database.md`` rule 9). The EDA notebook enforces this;
+nothing here is used on validation, test or held-out flows.
 """
 
 from __future__ import annotations

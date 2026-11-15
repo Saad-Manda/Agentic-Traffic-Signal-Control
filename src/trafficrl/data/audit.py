@@ -6,7 +6,7 @@ and handled by a recorded decision, never by silent filtering.
 
 The counts are structural (is each record valid?), so they are safe to compute on every
 split including the held-out city. Demand *distributions* and plots are produced for the
-train split only (``scripts/audit_data.py``, ``database.md`` rules 7 and 9).
+train split only.
 """
 
 from __future__ import annotations

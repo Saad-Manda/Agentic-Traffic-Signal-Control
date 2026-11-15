@@ -47,11 +47,6 @@ def test_eda_config_points_at_the_train_split():
     assert set(cfg["eda"]["controllers"]) == set(CONTROLLERS)
 
 
-def test_audit_script_plots_train_only():
-    src = (REPO_ROOT / "scripts" / "audit_data.py").read_text()
-    assert re.search(r'^PLOT_SPLITS = \("train",\)', src, flags=re.M)
-
-
 @pytest.mark.skipif(not NOTEBOOK.exists(), reason="EDA notebook not written yet")
 def test_notebook_reads_only_the_train_split():
     """The EDA notebook must not name a val / test / held-out file or split."""

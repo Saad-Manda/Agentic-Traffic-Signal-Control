@@ -1,5 +1,5 @@
-# EDA traces and data audit (ROADMAP 3.0, 3.3). Train split only: scripts/collect_traces.py
-# rejects any other dataset / split. Values below were written before the first run.
+# EDA traces and data audit (ROADMAP 3.0, 3.3). Train split only.
+# Values below were written before the first run.
 base: base.yaml
 seed: 0
 
