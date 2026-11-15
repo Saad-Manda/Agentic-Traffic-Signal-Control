@@ -1,10 +1,4 @@
-"""Seed-level summary statistics: mean ± std and 95 % CI (evaluation protocol §7).
-
-The CI uses Student's t with n − 1 degrees of freedom. A small table of two-sided 97.5 %
-quantiles replaces a scipy dependency (n − 1 = 1…30; beyond that the normal value 1.96).
-If every value is equal (rule-based baselines are deterministic across seeds) the result is
-flagged ``deterministic`` and the CI collapses to the value.
-"""
+"""Mean, std and 95 % t-interval over seeds."""
 
 from __future__ import annotations
 
@@ -12,11 +6,37 @@ import math
 from collections.abc import Sequence
 
 T975 = {
-    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306,
-    9: 2.262, 10: 2.228, 11: 2.201, 12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120,
-    17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086, 21: 2.080, 22: 2.074, 23: 2.069, 24: 2.064,
-    25: 2.060, 26: 2.056, 27: 2.052, 28: 2.048, 29: 2.045, 30: 2.042,
-}  # fmt: skip
+    1: 12.706,
+    2: 4.303,
+    3: 3.182,
+    4: 2.776,
+    5: 2.571,
+    6: 2.447,
+    7: 2.365,
+    8: 2.306,
+    9: 2.262,
+    10: 2.228,
+    11: 2.201,
+    12: 2.179,
+    13: 2.160,
+    14: 2.145,
+    15: 2.131,
+    16: 2.120,
+    17: 2.110,
+    18: 2.101,
+    19: 2.093,
+    20: 2.086,
+    21: 2.080,
+    22: 2.074,
+    23: 2.069,
+    24: 2.064,
+    25: 2.060,
+    26: 2.056,
+    27: 2.052,
+    28: 2.048,
+    29: 2.045,
+    30: 2.042,
+}
 
 
 def t975(df: int) -> float:

@@ -1,4 +1,4 @@
-"""Q-learning core shared by DQN, IDQN and UG-MARL (ROADMAP 5.1, plan phase5-rl-baselines)."""
+"""Q-learning core shared by DQN, IDQN and UG-MARL."""
 
 from trafficrl.agents.core.encoders import LocalEncoder, NeighborhoodEncoder
 from trafficrl.agents.core.networks import MLPQNet, StackedMLPQNet, n_params

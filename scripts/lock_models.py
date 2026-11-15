@@ -1,13 +1,4 @@
-"""Lock the models selected on validation before the final evaluation (plan phase7 P8).
-
-    python scripts/lock_models.py --write     # models/manifest.json (commit it)
-    python scripts/lock_models.py --verify    # exit 2 if a locked file is missing / changed
-
-The manifest holds the SHA-256 of every ``best.pt``, training ``config.yaml`` and
-``gate.json`` of the 5-seed final runs (DQN, IDQN, UG-MARL, −attention, −ensemble), with τ and
-the best validation score. ``scripts/robustness.py --final`` verifies it before any test or
-held-out episode. Nothing is simulated here.
-"""
+"""Write or verify the SHA-256 lock of the final models."""
 
 from __future__ import annotations
 

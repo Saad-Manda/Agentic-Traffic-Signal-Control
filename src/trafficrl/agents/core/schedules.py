@@ -1,4 +1,4 @@
-"""Exploration schedule (plan phase5-rl-baselines D7)."""
+"""Exploration schedule."""
 
 from __future__ import annotations
 

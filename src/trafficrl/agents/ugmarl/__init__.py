@@ -1,4 +1,4 @@
-"""Proposed UG-MARL: neighbor attention, Q-ensemble, uncertainty gate (plan phase6-ugmarl)."""
+"""UG-MARL: neighbour attention, Q-ensemble and uncertainty gate."""
 
 from trafficrl.agents.ugmarl.agent import UGMARLAgent, variant_name
 from trafficrl.agents.ugmarl.network import UGMARLNet, expected_params

@@ -1,14 +1,4 @@
-"""Evaluate one agent on one split over several seeds (ROADMAP 4.6).
-
-    python scripts/evaluate.py --config configs/eval_baselines.yaml --agent max_pressure \
-        --split val [--seeds 0 1 2 3 4] [--checkpoint PATH[{seed}]] [--log-decisions] \
-        [--log-trace] [--final] [overrides ...]
-
-Writes ``results/eval/<run_id>/{metrics,summary}.csv`` (+ config, env.json, data.json) and
-appends one row per seed to ``docs/experiment_log.csv``. ``--split test|heldout`` is refused
-unless ``--final`` is given — final evaluation happens once, in Phase 7, after every choice
-has been made on the validation flow.
-"""
+"""Evaluate one agent on one split over several seeds."""
 
 from __future__ import annotations
 

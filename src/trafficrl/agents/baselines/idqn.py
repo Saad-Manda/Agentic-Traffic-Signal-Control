@@ -1,13 +1,4 @@
-"""Multi-agent RL baseline: independent DQN learners (ROADMAP 5.3).
-
-One Double-DQN network **and** one replay buffer per intersection (Tan 1993 independent
-learners; the IDQN baseline of CoLight / PressLight). The 12 networks are stored as one
-:class:`~trafficrl.agents.core.StackedMLPQNet` and evaluated in a single batched call; their
-parameters are independent. Each intersection acts on its own 44-value state only.
-
-IDQN is tied to the training network's intersections (one network per intersection), so it
-cannot be applied zero-shot to a city with a different layout (Hangzhou, 7.4).
-"""
+"""Multi-agent baseline: one independent DQN per intersection."""
 
 from __future__ import annotations
 

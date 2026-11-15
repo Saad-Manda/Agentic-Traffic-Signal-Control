@@ -1,16 +1,4 @@
-"""Train / val / test / held-out split of the traffic datasets (ROADMAP 1.4, 3.1–3.2).
-
-The split is defined in ``data/processed/splits.json``: whole CityFlow flow files are
-assigned to splits, each pinned by SHA-256. Every consumer (env, training, evaluation)
-must get its flow files through :func:`flow_files` so that
-
-* training code can only ever reach the ``train`` split (and ``val`` for selection),
-* a silently replaced or edited file is detected (hash mismatch), and
-* the held-out city is reachable only through the explicit ``heldout`` split.
-
-CityFlow assigns vehicle IDs per file (``flow_<i>_<j>``), so "vehicle-set overlap" is
-checked as *file* overlap: a file (by path or content hash) may belong to one split only.
-"""
+"""Train / val / test / held-out split of the flow files, pinned by SHA-256."""
 
 from __future__ import annotations
 

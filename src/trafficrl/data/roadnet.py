@@ -1,20 +1,4 @@
-"""CityFlow road-network model (ROADMAP 3.4).
-
-One parser shared by the data audit, the feature builder, the EDA and the environment
-wrapper. It reads only the roadnet file (the map), never a flow file, so everything derived
-from it (lane order, phases, neighbours, lane capacity) is free of demand information.
-
-Conventions (dataset card §4.2):
-
-* Lane id = ``"<road id>_<lane index>"``; lane 0 = left turn, 1 = through, 2 = right turn.
-* Light phase 0 is the 5 s transition ("yellow"); phases 1..8 are the green phases the
-  agent chooses from.
-* Directions are numbered 0 = east, 1 = north, 2 = west, 3 = south (direction of travel).
-
-**Canonical lane order** of an intersection: incoming roads sorted by direction of travel
-(E, N, W, S), then lane index. Every intersection therefore exposes its 12 incoming lanes
-in the same geometric order, which lets one network share parameters across intersections.
-"""
+"""Parser for CityFlow road networks (lanes, phases, neighbours)."""
 
 from __future__ import annotations
 
@@ -48,23 +32,23 @@ class Movement:
 @dataclass(frozen=True)
 class Intersection:
     id: str
-    in_roads: tuple[str, ...]  # canonical order (E, N, W, S direction of travel)
+    in_roads: tuple[str, ...]
     out_roads: tuple[str, ...]
-    in_lanes: tuple[str, ...]  # canonical order
+    in_lanes: tuple[str, ...]
     out_lanes: tuple[str, ...]
-    movements: tuple[Movement, ...]  # roadnet order (indices used by the light phases)
-    green_phases: dict[int, tuple[int, ...]]  # engine phase id -> movement indices
-    neighbors: tuple[str | None, ...]  # signalised neighbour towards E, N, W, S
+    movements: tuple[Movement, ...]
+    green_phases: dict[int, tuple[int, ...]]
+    neighbors: tuple[str | None, ...]
 
 
 @dataclass(frozen=True)
 class Roadnet:
-    intersections: dict[str, Intersection]  # signalised only, sorted by id
+    intersections: dict[str, Intersection]
     virtual_ids: frozenset[str]
-    road_start: dict[str, str]  # road id -> start intersection id
+    road_start: dict[str, str]
     road_end: dict[str, str]
     road_length_m: dict[str, float]
-    road_links: frozenset[tuple[str, str]]  # (start road, end road) pairs that are connected
+    road_links: frozenset[tuple[str, str]]
     lane_length_m: dict[str, float]
     lane_max_speed: dict[str, float]
 
@@ -156,7 +140,7 @@ def parse_roadnet(raw: dict) -> Roadnet:
                 green[k] = tuple(p["availableRoadLinks"])
 
         nb = []
-        for r in out_roads:  # one per direction, E N W S
+        for r in out_roads:
             other = roads[r]["endIntersection"]
             nb.append(None if other in virtual else other)
 
@@ -193,10 +177,7 @@ def load_roadnet(path: str | Path) -> Roadnet:
 
 
 def lane_capacity(roadnet: Roadnet, vehicle_space_m: float) -> dict[str, int]:
-    """Vehicles that fit on each lane bumper to bumper: ``floor(length / vehicle_space_m)``.
-
-    ``vehicle_space_m`` = vehicle length + minimum gap (5.0 + 2.5 m in both datasets).
-    """
+    """Vehicles that fit on each lane: ``floor(length / vehicle_space_m)``."""
     if vehicle_space_m <= 0:
         raise ValueError(f"vehicle_space_m must be positive, got {vehicle_space_m}")
     return {

@@ -1,9 +1,4 @@
-"""Shared matplotlib style for every project figure (audit, EDA, results).
-
-One place for colours and axis styling so figures in the report and poster look like one
-set. Colours are the first slots of a categorical palette checked for colour-blind
-separation; each controller keeps its colour in every figure (colour follows the entity).
-"""
+"""Shared matplotlib style and colours."""
 
 from __future__ import annotations
 
@@ -20,15 +15,9 @@ GRID = "#e1e0d9"
 AXIS = "#c3c2b7"
 
 BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
-# Phase 6 additions: the proposed model gets a strong colour of its own; its trained
-# ablations are muted variants and always direct-labelled.
 VIOLET, MAGENTA, SLATE = "#6b3fc4", "#c2417a", "#6f6c64"
-# sequential ramp (one hue, light -> dark) for magnitudes
 BLUE_RAMP = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#104281"]
 
-# Results figures use slots 1-4 in this fixed order (validated: adjacent-pair CVD and
-# normal-vision separation pass; aqua / yellow are < 3:1 on the surface, so these series are
-# always direct-labelled). "random" appears only in EDA figures, never next to DQN.
 CONTROLLER_COLOR = {
     "fixed_time": BLUE,
     "max_pressure": ORANGE,
@@ -36,7 +25,7 @@ CONTROLLER_COLOR = {
     "idqn": YELLOW,
     "random": AQUA,
     "ugmarl": VIOLET,
-    "ugmarl-nogate": VIOLET,  # same weights as ugmarl; drawn dashed where both appear
+    "ugmarl-nogate": VIOLET,
     "ugmarl-noattn": MAGENTA,
     "ugmarl-noens": SLATE,
 }

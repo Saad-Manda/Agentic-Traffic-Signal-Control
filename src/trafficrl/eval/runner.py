@@ -1,22 +1,4 @@
-"""Shared evaluation loop for every agent (ROADMAP 4.6; protocol §5–§7).
-
-:func:`run_episode` plays one episode and adds the agent-side metrics (decision latency,
-fallback rate) to the env metrics. :func:`evaluate` runs one agent on one split for several
-seeds and writes, under ``<results_dir>/<run_id>/``:
-
-* ``metrics.csv``  — one row per seed;
-* ``summary.csv``  — per metric: mean, std, 95 % CI, n, deterministic flag;
-* ``config.yaml``, ``env.json`` (software + hardware), ``data.json`` (flow file, surge hash);
-* ``decisions_s<seed>.csv`` with ``log_decisions=True`` (:mod:`trafficrl.eval.explain`);
-* ``trace_s<seed>.csv`` (per step × intersection) and ``vehicles_s<seed>.csv`` (per vehicle)
-  with ``log_trace=True`` — the inputs of the Phase 8 error analysis;
-
-and appends one row per seed to ``docs/experiment_log.csv``.
-
-UG-MARL with the gate on needs τ for every seed: ``agents.ugmarl.gate.tau`` (a number) or
-``agents.ugmarl.gate.file`` (``auto`` = ``gate.json`` in the seed's checkpoint run directory,
-or a path with ``{seed}``). A gated run without τ is refused — never silently ungated.
-"""
+"""Evaluation loop shared by every agent."""
 
 from __future__ import annotations
 
@@ -78,8 +60,7 @@ def run_episode(
 
 
 def resolve_checkpoint(checkpoint: str | Path | None, seed: int) -> Path | None:
-    """``{seed}`` in the path is replaced by the evaluation seed, so each seed loads the model
-    trained with that seed (protocol §6: a seed fixes training **and** evaluation)."""
+    """Replace ``{seed}`` in the checkpoint path with the evaluation seed."""
     return None if checkpoint is None else Path(str(checkpoint).replace("{seed}", str(seed)))
 
 
@@ -157,7 +138,7 @@ def evaluate(
         raise ValueError("log_trace needs track='full' (per-vehicle log)")
     condition = condition_label(cfg)
     label = model_label(agent_name, cfg)
-    if agent_name == "ugmarl":  # fail before any output if a seed has no τ
+    if agent_name == "ugmarl":
         for seed in seeds:
             resolve_gate(cfg, resolve_checkpoint(checkpoint, int(seed)), int(seed))
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")

@@ -1,10 +1,4 @@
-"""State encoders: env observations -> network input (plan phase5-rl-baselines D2).
-
-:class:`LocalEncoder` keeps each intersection's own 44 values (DQN, IDQN).
-:class:`NeighborhoodEncoder` (every UG-MARL variant; plan phase6-ugmarl D2) stacks the own
-row, the four neighbour rows and a presence flag. Both have the same two methods, so the
-replay buffer stores whatever ``encode_transition`` returns.
-"""
+"""State encoders from env observations to network input."""
 
 from __future__ import annotations
 
@@ -28,13 +22,9 @@ class LocalEncoder:
 
 
 class NeighborhoodEncoder:
-    """``(5, obs_dim + 1)`` per intersection: slot 0 = self, slots 1–4 = neighbours E, N, W, S.
+    """Stack own observation and the four neighbours (E, N, W, S) with a presence flag.
 
-    Columns ``0 .. obs_dim-1`` hold that intersection's observation (the *observed* one, after
-    any noise / dropout), the last column is the presence flag (1 = real intersection, 0 =
-    network boundary; an absent slot's row is all zeros). ``index`` / ``mask`` are
-    :meth:`TrafficEnv.neighbor_index`. UG-MARL −attention uses the same encoding and ignores
-    slots 1–4, so the replay content is identical across ablations.
+    Output per intersection is ``(5, obs_dim + 1)``; absent neighbours are zero rows.
     """
 
     SLOTS = ("self", "E", "N", "W", "S")

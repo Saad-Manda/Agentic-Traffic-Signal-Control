@@ -1,14 +1,4 @@
-"""Shared agent interface (``.claude/reference/api.md``).
-
-Every controller — rule-based baseline, DQN, IDQN, UG-MARL and its ablations — implements
-:class:`Agent`, so one evaluation loop (``trafficrl.eval.runner``) serves all of them.
-
-``act`` receives the observations of **all** intersections plus the env ``info`` dict and
-returns a phase for every intersection; the env applies only the actions of the
-intersections listed in ``info["ready"]``. Computing all intersections every call keeps the
-measured decision latency comparable across agents ("batch of all intersections",
-evaluation protocol §5).
-"""
+"""Interface shared by every agent."""
 
 from __future__ import annotations
 

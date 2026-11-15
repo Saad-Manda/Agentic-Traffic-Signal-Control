@@ -1,11 +1,4 @@
-"""Train one learned agent on the train flow, select its checkpoint on validation (ROADMAP 5.4).
-
-    python scripts/train.py --config configs/dqn.yaml [--run-name NAME] [overrides ...]
-
-Writes ``results/train/<run>/`` (train / val logs, best + last checkpoints, TensorBoard,
-config, env.json, summary.json) and one row in ``docs/experiment_log.csv``. Only
-``data.split=train`` is accepted (exit 2 otherwise); test / held-out flows are never opened.
-"""
+"""Train one learned agent and select its checkpoint on validation."""
 
 from __future__ import annotations
 

@@ -1,17 +1,4 @@
-"""Training loop for learned agents (ROADMAP 5.4; plan phase5-rl-baselines D7).
-
-:func:`train` trains one agent on the **train** flow and selects its checkpoint on the
-**validation** flow (greedy episode every ``train.val_every`` episodes). Output under
-``<output.results_dir>/<run_name>/``:
-
-* ``train_log.csv`` — per training episode: train travel time, mean raw reward, ε, loss, …
-* ``val_log.csv``   — per validation episode: every metric of :func:`run_episode`
-* ``checkpoints/best.pt`` (lowest val average travel time) and ``checkpoints/last.pt``
-* ``tb/`` (TensorBoard), ``config.yaml`` (resolved), ``env.json``, ``summary.json``
-
-and one row in ``docs/experiment_log.csv``. Test / held-out flows are never opened:
-:func:`make_env` is called without ``allow_final`` and the split names are fixed here.
-"""
+"""Training loop: train on the train flow, select the checkpoint on validation."""
 
 from __future__ import annotations
 
@@ -73,7 +60,7 @@ def train_episode(env, agent) -> dict[str, float]:
     }
     for key in ("loss", "q_mean", "td_abs", "grad_norm"):
         out[key] = float(np.mean([s[key] for s in stats])) if stats else float("nan")
-    if stats and "sigma_mean" in stats[0]:  # UG-MARL ensemble: head disagreement
+    if stats and "sigma_mean" in stats[0]:
         out["sigma_mean"] = float(np.mean([s["sigma_mean"] for s in stats]))
     return out
 
@@ -102,7 +89,7 @@ def train(
             "checkpoints are selected on 'val', test / held-out are never used here"
         )
     seed = int(cfg["seed"])
-    label = model_label(agent_name, cfg)  # UG-MARL: variant name (ugmarl-noattn, …)
+    label = model_label(agent_name, cfg)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_name = run_name or f"{label}_s{seed}_{stamp}"
     out = REPO_ROOT / cfg["output"]["results_dir"] / run_name
@@ -123,7 +110,7 @@ def train(
     eps = LinearSchedule(
         tcfg["eps_start"], tcfg["eps_end"], float(tcfg["eps_decay_frac"]) * episodes
     )
-    from torch.utils.tensorboard import SummaryWriter  # lazy: slow import
+    from torch.utils.tensorboard import SummaryWriter
 
     writer = SummaryWriter(str(out / "tb"))
     train_rows, val_rows = [], []

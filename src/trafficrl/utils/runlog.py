@@ -1,10 +1,4 @@
-"""Experiment log and environment record (guidelines G8, ROADMAP 5.4).
-
-Every simulator / training / evaluation run
-
-* appends one row to ``docs/experiment_log.csv`` (tracked, mentor-facing), and
-* saves its software versions and hardware (``env.json``) next to its results.
-"""
+"""Experiment log and software / hardware record."""
 
 from __future__ import annotations
 
@@ -39,20 +33,22 @@ COLUMNS = (
 
 
 def git_commit(repo: Path = REPO_ROOT) -> str:
-    """Short commit hash, with ``-dirty`` if the working tree has uncommitted changes.
-
-    The experiment log itself is ignored: every run appends to it, so a study of several
-    runs started from a clean tree would otherwise mark all rows after the first as dirty.
-    """
+    """Short commit hash, with ``-dirty`` if the tree has uncommitted changes."""
     try:
         head = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            cwd=repo, capture_output=True, text=True, check=True,
-        ).stdout.strip()  # fmt: skip
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
         dirty = subprocess.run(
             ["git", "status", "--porcelain", "--", ".", ":(exclude)docs/experiment_log.csv"],
-            cwd=repo, capture_output=True, text=True, check=True,
-        ).stdout.strip()  # fmt: skip
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
         return f"{head}-dirty" if dirty else head
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
@@ -76,7 +72,7 @@ def _cpu_model() -> str:
 
 
 def platform_tag() -> str:
-    """``dev-WSL`` on WSL (dev numbers), ``native`` otherwise (Decision Log 11 Nov)."""
+    """``dev-WSL`` on WSL, ``native`` otherwise."""
     try:
         if "microsoft" in Path("/proc/version").read_text().lower():
             return "dev-WSL"
@@ -132,11 +128,7 @@ def append_experiment_row(
     notes: str = "",
     path: Path = EXPERIMENT_LOG,
 ) -> dict[str, Any]:
-    """Append one run to the experiment log (the header is written if the file is new).
-
-    ``validation_metric`` is filled only for runs evaluated on the validation split;
-    ``metric_name`` / ``metric_value`` hold the run's own headline metric on ``split``.
-    """
+    """Append one run to the experiment log."""
     row = {
         "run_id": run_id,
         "date": datetime.now().astimezone().isoformat(timespec="seconds"),

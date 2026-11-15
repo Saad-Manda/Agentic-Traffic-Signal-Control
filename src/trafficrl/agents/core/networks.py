@@ -1,14 +1,4 @@
-"""Q-networks with a group axis and a heads axis (plan phase5-rl-baselines D4).
-
-Both networks map states shaped ``(G, B, in_dim)`` to Q-values shaped ``(G, B, K, A)``:
-
-* :class:`MLPQNet` — **one** parameter set, broadcast over the group axis (shared-parameter
-  DQN: G = 1 at training time, the B axis holds the intersections when acting).
-* :class:`StackedMLPQNet` — **G independent** parameter sets evaluated in one batched matmul
-  (IDQN: G = number of intersections). Equivalent to a loop of G :class:`MLPQNet`.
-
-K (heads) is 1 for DQN / IDQN; UG-MARL's Q-ensemble (Phase 6) uses K > 1 on the same trunk.
-"""
+"""MLP Q-networks with a group axis and a heads axis."""
 
 from __future__ import annotations
 
@@ -58,7 +48,6 @@ class StackedMLPQNet(nn.Module):
         self.weights = nn.ParameterList()
         self.biases = nn.ParameterList()
         for i, o in _dims(in_dim, hidden, heads * n_actions):
-            # initialise each group exactly like an nn.Linear (Kaiming-uniform), then stack
             lins = [nn.Linear(i, o) for _ in range(groups)]
             self.weights.append(nn.Parameter(torch.stack([lin.weight.data.T for lin in lins])))
             self.biases.append(nn.Parameter(torch.stack([lin.bias.data for lin in lins])))

@@ -1,26 +1,4 @@
-"""Model × condition evaluation runs + table (ROADMAP 6.8 on validation; Phase 7 with --final).
-
-    python scripts/robustness.py --spec configs/robustness_val.yaml [--workers 5] \
-        [--out docs/results/val_robustness] [--table-only] [--final]
-    python scripts/robustness.py --spec configs/final_test.yaml --final --workers 1 \
-        --results-dir results/final          # Phase 7: every test episode, once
-
-The spec lists models, seeds and observation / demand conditions. Each (model, condition) is
-one ``scripts/evaluate.py`` process over all seeds, written to
-``<results-dir>/<study>/eval/<model>__<condition>/`` (one experiment-log row per episode).
-Learned models load ``results/train/<train_model>_<tag>_s{seed}/checkpoints/best.pt``; gated
-UG-MARL reads τ from the ``gate.json`` next to each checkpoint. A finished job is skipped on a
-re-run. The table (``<out>.{csv,md}``) is built from the finished runs.
-
-Spec extras (Phase 7): a condition may carry ``name`` and any config override (e.g.
-``data.flow_index`` for the three Hangzhou flows); a model may set ``log_decisions: true``;
-``log_trace: true`` logs every step and vehicle; ``table: false`` skips the Markdown table
-(the final tables come from ``notebooks/02_results.ipynb``).
-
-**Nothing is selected here.** ``split: test | heldout`` is refused unless ``--final``; with
-``--final`` the lock manifest ``models/manifest.json`` must match the checkpoints, and a job
-that was started but not finished stops the script (``--rerun-failed`` after logging why).
-"""
+"""Evaluate several models under several conditions and build the table."""
 
 from __future__ import annotations
 
@@ -88,11 +66,21 @@ def build_jobs(spec: dict, study_dir: Path, train_dir: Path, final: bool):
             name = cond_name(cond)
             job_dir = study_dir / "eval" / f"{model}__{name}"
             argv = [
-                sys.executable, str(EVAL_SCRIPT), "--config", str(REPO_ROOT / m["config"]),
-                "--agent", m.get("agent", model), "--split", spec["split"],
-                "--dataset", spec["dataset"], "--seeds", *seeds,
-                "--note", f"{spec['study']}: {model}, {name}",
-            ]  # fmt: skip
+                sys.executable,
+                str(EVAL_SCRIPT),
+                "--config",
+                str(REPO_ROOT / m["config"]),
+                "--agent",
+                m.get("agent", model),
+                "--split",
+                spec["split"],
+                "--dataset",
+                spec["dataset"],
+                "--seeds",
+                *seeds,
+                "--note",
+                f"{spec['study']}: {model}, {name}",
+            ]
             if ckpt:
                 argv += ["--checkpoint", ckpt]
             if final:
@@ -116,10 +104,10 @@ def missing_inputs(spec: dict, train_dir: Path) -> list[str]:
         if tpl is None:
             continue
         gated = m.get("agent", model) == "ugmarl" and not any(
-            o.replace(" ", "").lower() in ("agents.ugmarl.use_gate=false",
-                                           "agents.ugmarl.use_ensemble=false")
+            o.replace(" ", "").lower()
+            in ("agents.ugmarl.use_gate=false", "agents.ugmarl.use_ensemble=false")
             for o in m.get("overrides", [])
-        )  # fmt: skip
+        )
         for s in spec["seeds"]:
             ckpt = Path(tpl.replace("{seed}", str(s)))
             if not ckpt.exists():
@@ -141,14 +129,20 @@ def write_md(path: Path, spec: dict, table: pd.DataFrame, spec_path: Path) -> No
     def stats(model, cond):
         r = cell.loc[(model, cond)]
         return {
-            "mean": r["avg_travel_time_mean"], "std": r["avg_travel_time_std"],
+            "mean": r["avg_travel_time_mean"],
+            "std": r["avg_travel_time_std"],
             "ci95_low": r["avg_travel_time_ci95_low"],
-            "ci95_high": r["avg_travel_time_ci95_high"], "deterministic": r["deterministic"],
-        }  # fmt: skip
+            "ci95_high": r["avg_travel_time_ci95_high"],
+            "deterministic": r["deterministic"],
+        }
 
     def grid(title, fn):
-        out = [f"## {title}", "", "| Model | " + " | ".join(conds) + " |",
-               "|---|" + "---|" * len(conds)]  # fmt: skip
+        out = [
+            f"## {title}",
+            "",
+            "| Model | " + " | ".join(conds) + " |",
+            "|---|" + "---|" * len(conds),
+        ]
         for m in models:
             vals = [fn(m, c) if (m, c) in cell.index else "—" for c in conds]
             out.append(f"| {label(m)} | " + " | ".join(vals) + " |")
@@ -171,11 +165,15 @@ def write_md(path: Path, spec: dict, table: pd.DataFrame, spec_path: Path) -> No
         "[95 % CI, Student t] over seeds; rule-based controllers are deterministic on the clean "
         "flow only (the perturbation is drawn from the seed). **Evaluation only — no "
         "checkpoint, hyperparameter or τ is selected from this table.**"
-        + ("" if final else " Validation was used for checkpoint, (K, d) and p selection, so "
-           "learned-model scores are optimistic; the reported robustness result is ROADMAP 7.3 "
-           "on the test flow."),
+        + (
+            ""
+            if final
+            else " Validation was used for checkpoint, (K, d) and p selection, so "
+            "learned-model scores are optimistic; the reported robustness result is ROADMAP 7.3 "
+            "on the test flow."
+        ),
         "",
-    ]  # fmt: skip
+    ]
     lines += grid("Average travel time (s)", lambda m, c: fmt(stats(m, c)))
     lines += grid(
         "Maximum per-vehicle wait (s), mean over seeds",
@@ -199,9 +197,10 @@ def write_md(path: Path, spec: dict, table: pd.DataFrame, spec_path: Path) -> No
             base = cell.loc[(m, "clean"), "avg_travel_time_mean"]
             vals = [
                 f"{cell.loc[(m, c), 'avg_travel_time_mean'] - base:+.1f}"
-                if (m, c) in cell.index else "—"
+                if (m, c) in cell.index
+                else "—"
                 for c in others
-            ]  # fmt: skip
+            ]
             lines.append(f"| {label(m)} | " + " | ".join(vals) + " |")
         lines.append("")
     path.write_text("\n".join(lines))
@@ -249,14 +248,14 @@ def main(argv: list[str] | None = None) -> int:
             f"{n}: not in the lock manifest" for n in uncovered(manifest, training_runs(spec))
         ]
         if problems:
-            print("error: lock manifest check failed:\n  " + "\n  ".join(problems),
-                  file=sys.stderr)  # fmt: skip
+            print("error: lock manifest check failed:\n  " + "\n  ".join(problems), file=sys.stderr)
             return 2
     study_dir = args.results_dir / spec["study"]
     jobs = build_jobs(spec, study_dir, args.train_dir, args.final)
     if args.final and not args.table_only and not args.rerun_failed:
-        broken = [f"{m}__{c}" for m, c, d, _ in jobs
-                  if finished_run(d) is None and unfinished_runs(d)]  # fmt: skip
+        broken = [
+            f"{m}__{c}" for m, c, d, _ in jobs if finished_run(d) is None and unfinished_runs(d)
+        ]
         if broken:
             print(
                 f"error: unfinished final runs {broken}: a final episode is run once. Find the "

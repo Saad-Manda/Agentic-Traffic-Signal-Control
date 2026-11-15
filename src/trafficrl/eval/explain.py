@@ -1,13 +1,4 @@
-"""Per-decision explanation log (ROADMAP 6.4; plan phase6-ugmarl D7).
-
-:class:`DecisionRecorder` turns ``agent.last_explanations()`` into one row per **ready**
-intersection per decision: σ, τ, whether the gate fired, the learned and the Max-Pressure
-choice, the phase taken, the five attention weights (self, E, N, W, S), the gap between the
-best and second-best mean Q, and the observed vehicle count on the incoming lanes.
-``scripts/evaluate.py --log-decisions`` writes ``decisions_s<seed>.csv``; the Phase 8
-figures (attention heatmaps, gate-firing analysis) read these files. Attention weights and σ
-describe what the model computed — associations, not causes.
-"""
+"""Per-decision and per-step logs for analysing the agents."""
 
 from __future__ import annotations
 
@@ -84,14 +75,7 @@ class DecisionRecorder:
 
 
 class StepRecorder:
-    """Per-step network state for the Phase 8 error analysis (plan phase7 P6).
-
-    One row per env step × intersection: time, green phase (pending green during a yellow),
-    yellow flag, whether the intersection decides at this step, and the **true** waiting
-    vehicles ``q_0…q_11`` and vehicle counts ``n_0…n_11`` on its incoming lanes (canonical
-    lane order of :class:`~trafficrl.envs.features.FeatureBuilder`). Read-only: it never
-    touches the engine, the sensor model or the agent.
-    """
+    """One row per step and intersection: phase, yellow flag, true queue and vehicle counts."""
 
     def __init__(self, env: Any) -> None:
         self._env = env
@@ -100,9 +84,14 @@ class StepRecorder:
         self.rows: list[tuple] = []
         n = max(len(v) for v in self._in_lanes.values())
         self.columns = [
-            "t", "iid", "phase", "in_yellow", "ready",
-            *(f"q_{k}" for k in range(n)), *(f"n_{k}" for k in range(n)),
-        ]  # fmt: skip
+            "t",
+            "iid",
+            "phase",
+            "in_yellow",
+            "ready",
+            *(f"q_{k}" for k in range(n)),
+            *(f"n_{k}" for k in range(n)),
+        ]
         self._n = n
 
     def record(self, info: Mapping[str, Any]) -> None:
@@ -114,10 +103,15 @@ class StepRecorder:
             c = [count.get(ln, 0) for ln in lanes]
             self.rows.append(
                 (
-                    int(info["t"]), iid, info["phase"][iid], bool(info["in_yellow"][iid]),
-                    iid in ready, *(q + pad)[: self._n], *(c + pad)[: self._n],
+                    int(info["t"]),
+                    iid,
+                    info["phase"][iid],
+                    bool(info["in_yellow"][iid]),
+                    iid in ready,
+                    *(q + pad)[: self._n],
+                    *(c + pad)[: self._n],
                 )
-            )  # fmt: skip
+            )
 
     def frame(self) -> pd.DataFrame:
         return pd.DataFrame(self.rows, columns=self.columns)

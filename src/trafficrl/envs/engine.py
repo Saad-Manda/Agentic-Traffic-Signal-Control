@@ -10,7 +10,7 @@ from trafficrl.utils.seed import seed_cityflow
 
 def make_engine(roadnet_path: Path, flow_path: Path, seed: int, threads: int, workdir: Path):
     """Create a seeded ``cityflow.Engine`` for one roadnet / flow pair (no replay output)."""
-    import cityflow  # imported here so the rest of the package works without the simulator
+    import cityflow
 
     roadnet_path, flow_path = Path(roadnet_path).resolve(), Path(flow_path).resolve()
     if roadnet_path.parent != flow_path.parent:

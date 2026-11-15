@@ -1,20 +1,4 @@
-"""Episode metrics.
-
-:class:`EpisodeTracker` is fed by :class:`trafficrl.envs.traffic_env.TrafficEnv`:
-
-* ``on_second(speeds)`` after every simulated second, with ``engine.get_vehicle_speed()``
-  (keys = vehicles currently running in the network) — only at ``track="full"``;
-* ``on_step(lane_waiting)`` at every env step (decision step), with the **true** waiting
-  counts;
-* ``on_switch()`` whenever a yellow phase is inserted.
-
-``track="light"`` skips the per-second vehicle reads (used for RL training, where only the
-primary metric and the queue are needed); the vehicle-level metrics are then ``None``.
-
-At ``track="full"`` the tracker also keeps the second each vehicle was first / last seen, so
-:meth:`EpisodeTracker.vehicle_frame` can give one row per vehicle (Phase 7 logs, Phase 8
-error analysis). These extras do not change any protocol metric.
-"""
+"""Episode metrics."""
 
 from __future__ import annotations
 
@@ -25,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 TRACK_LEVELS = ("full", "light")
-WAIT_SPEED = 0.1  # m/s — "waiting" threshold, same as CityFlow's lane waiting count
+WAIT_SPEED = 0.1
 
 
 class EpisodeTracker:
@@ -38,9 +22,9 @@ class EpisodeTracker:
         self.left: set[str] = set()
         self._inside: set[str] = set()
         self.wait_s: dict[str, int] = defaultdict(int)
-        self.seconds = 0  # simulated seconds seen by on_second
-        self.enter_t: dict[str, int] = {}  # second a vehicle was first seen in the network
-        self.leave_t: dict[str, int] = {}  # first second it was no longer there
+        self.seconds = 0
+        self.enter_t: dict[str, int] = {}
+        self.leave_t: dict[str, int] = {}
         self.queue_sum = 0.0
         self.steps = 0
         self.switches = 0

@@ -1,11 +1,4 @@
-"""Lock manifest of the models selected on validation (plan phase7 P8).
-
-``models/manifest.json`` lists, for every learned model and seed, the SHA-256 of the files a
-final evaluation reads: ``checkpoints/best.pt``, the run's ``config.yaml`` and, for gated
-UG-MARL variants, ``gate.json`` — plus τ, p and the best validation score for reference. It is
-written and committed **before** the test flow is opened; ``scripts/robustness.py --final``
-verifies it, so a checkpoint or τ changed afterwards cannot be evaluated silently.
-"""
+"""SHA-256 manifest of the final checkpoints and gate files."""
 
 from __future__ import annotations
 
@@ -16,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 MODELS = ("dqn", "idqn", "ugmarl", "ugmarl-noattn", "ugmarl-noens")
-GATED = ("ugmarl", "ugmarl-noattn")  # variants that need a gate.json
+GATED = ("ugmarl", "ugmarl-noattn")
 FILES = ("checkpoints/best.pt", "config.yaml")
 
 

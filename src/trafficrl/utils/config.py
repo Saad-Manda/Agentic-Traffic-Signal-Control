@@ -1,16 +1,4 @@
-"""YAML config loading (ROADMAP 0.3).
-
-One YAML file per experiment drives every run. Features kept deliberately small:
-
-* ``base:`` — a path (or list of paths), relative to the file, of configs to inherit from.
-  Bases are merged in order, then the file itself on top (nested dicts merge recursively;
-  lists and scalars are replaced).
-* CLI-style overrides ``"train.lr=0.0005"`` — values are parsed as YAML, so numbers, bools,
-  lists and ``null`` work; missing intermediate keys are created.
-* A top-level integer ``seed`` is required, so no run is ever unseeded.
-
-``save_config`` writes the fully resolved config next to the run's results.
-"""
+"""YAML config loading with ``base:`` inheritance and overrides."""
 
 from __future__ import annotations
 
@@ -26,11 +14,7 @@ BASE_KEY = "base"
 
 
 class _Loader(yaml.SafeLoader):
-    """SafeLoader that also reads ``1e-3`` / ``5E+4`` as floats.
-
-    Plain PyYAML follows YAML 1.1, where a float needs a '.', so ``lr: 1e-3`` would load
-    as the *string* "1e-3" — a silent hyperparameter bug.
-    """
+    """SafeLoader that also reads ``1e-3`` as a float."""
 
 
 _Loader.add_implicit_resolver(
@@ -41,7 +25,7 @@ _Loader.add_implicit_resolver(
 
 
 def _parse(text: str) -> Any:
-    return yaml.load(text, Loader=_Loader)  # noqa: S506 — _Loader is a SafeLoader
+    return yaml.load(text, Loader=_Loader)
 
 
 class ConfigError(ValueError):

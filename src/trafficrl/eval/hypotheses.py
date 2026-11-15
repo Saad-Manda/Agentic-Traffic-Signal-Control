@@ -1,19 +1,4 @@
-"""Hypothesis readings of Phase 7, fixed before the test flow was opened.
-
-Every function takes per-seed values (lower is better for travel time and waiting time) and
-returns plain dicts, so the verdicts in ``notebooks/02_results.ipynb`` are computed, not judged
-by eye. 95 % CI = Student t over seeds (:func:`trafficrl.utils.stats.summarise`); a
-deterministic baseline's CI is its value.
-
-* **H1** — UG-MARL's CI upper end below Max-Pressure's value and below IDQN's CI lower end.
-* **H3** — UG-MARL's CI upper end below −attention's CI lower end.
-* **H2** — gate vs −gate (same checkpoints, so seeds are paired): (i) mean max wait on the
-  clean flow, (ii) mean max wait at noise 0.2, (iii) travel-time increase clean → noise 0.2;
-  *supported* = all three favour the gate, *partly supported* = (ii) and (iii) only.
-* **Minimum outcome** — UG-MARL's mean max wait ≤ Max-Pressure's.
-* **Regret** — a model's mean travel time minus the lowest mean among the reference agents
-  in the same condition (descriptive, no threshold).
-"""
+"""Verdict rules for hypotheses H1–H3 and regret."""
 
 from __future__ import annotations
 

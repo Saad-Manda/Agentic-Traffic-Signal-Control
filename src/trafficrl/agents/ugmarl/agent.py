@@ -1,21 +1,4 @@
-"""UG-MARL agent: neighbour attention + Q-ensemble + uncertainty gate (plan phase6-ugmarl D5).
-
-One :class:`~trafficrl.agents.ugmarl.network.UGMARLNet` shared by every intersection, trained
-by the common :class:`~trafficrl.agents.core.QLearner` (Double DQN, SMDP target, bootstrap
-masks when K > 1). Acting:
-
-* ``explore=True`` (training): ε-greedy on the mean Q μ — the **gate is never applied**;
-* ``explore=False``: a* = argmax μ, and if the gate is active and σ(s_i) > τ the action is
-  Max-Pressure's (same rule, Δt and observed detectors as the baseline, protocol §2).
-
-The gate is active iff ``use_gate`` and ``use_ensemble`` and τ is known. ``tau = None`` is
-the ungated policy (validation episodes inside ``train.py``, so checkpoints are selected
-ungated); evaluation code resolves τ first and refuses a gated run without one
-(:func:`trafficrl.eval.runner.evaluate`).
-
-Ablation flags (``agents.ugmarl``): ``use_attention`` (False: no neighbour input),
-``use_ensemble`` (False: K = 1, no σ, no gate), ``use_gate`` (False: same weights, gate off).
-"""
+"""UG-MARL agent: attention + Q-ensemble, gated to Max-Pressure when σ > τ."""
 
 from __future__ import annotations
 
@@ -41,7 +24,7 @@ def variant_name(params: Mapping[str, Any] | None) -> str:
     if not p.get("use_attention", True):
         parts.append("noattn")
     if not p.get("use_ensemble", True):
-        parts.append("noens")  # no σ -> no gate either
+        parts.append("noens")
     elif not p.get("use_gate", True):
         parts.append("nogate")
     return "-".join(parts)
@@ -87,8 +70,6 @@ class UGMARLAgent(QLearner):
         self.tau: float | None = None if tau is None else float(tau)
         self._explanations: dict[str, Any] = {}
 
-    # --- gate --------------------------------------------------------------------------
-
     @property
     def gate_requested(self) -> bool:
         """The configuration asks for a gate (τ may still be unknown)."""
@@ -100,8 +81,6 @@ class UGMARLAgent(QLearner):
 
     def variant(self) -> str:
         return variant_name({**self.arch, "use_gate": self.use_gate})
-
-    # --- acting ------------------------------------------------------------------------
 
     def forward_all(self, states: np.ndarray) -> tuple[torch.Tensor, torch.Tensor | None]:
         """``(n, K, A)`` Q-values and ``(n, 5)`` attention weights (None without attention)."""
@@ -117,7 +96,7 @@ class UGMARLAgent(QLearner):
         mu, a_star, sigma = sigma_from_q(q)
         greedy = a_star.cpu().numpy()
         actions: dict[str, int] = {}
-        if explore:  # training: ε-greedy on μ, identical to the baselines; no gate
+        if explore:
             for k, iid in enumerate(self.intersection_ids):
                 a = int(greedy[k])
                 if self.rng.random() < self.epsilon:
@@ -161,8 +140,6 @@ class UGMARLAgent(QLearner):
 
     def last_explanations(self) -> dict[str, Any]:
         return self._explanations
-
-    # --- checkpoint --------------------------------------------------------------------
 
     def checkpoint_extra(self) -> dict[str, Any]:
         return {"arch": dict(self.arch)}

@@ -1,18 +1,4 @@
-"""Grouped uniform replay buffer (ROADMAP 5.1; plan phase5-rl-baselines D3).
-
-One ring buffer per *group*: the shared-parameter DQN uses a single group that receives every
-intersection's transitions; IDQN uses one group per intersection. :meth:`ReplayBuffer.sample`
-draws ``batch`` transitions uniformly **from each group** and returns arrays shaped
-``(groups, batch, ...)``, which is the layout the Q-networks take.
-
-Rewards are stored raw (−|P_i|); the learner applies the constant reward scale. ``duration_s``
-(15 s or 20 s; shorter at the episode cut) is kept for the SMDP discount. ``done`` marks the
-time-limit cut and is stored for logging only (the learner always bootstraps).
-
-Optional ``extras`` add named per-transition columns (UG-MARL: the bootstrap mask of the K
-heads, plan phase6-ugmarl D4). Without extras the buffer and its sampling RNG stream are
-exactly those of Phase 5.
-"""
+"""Uniform replay buffer with one ring buffer per group."""
 
 from __future__ import annotations
 
@@ -33,7 +19,7 @@ class ReplayBuffer:
         if groups < 1 or capacity < 1:
             raise ValueError("groups and capacity must be >= 1")
         self.groups = groups
-        self.capacity = capacity  # per group
+        self.capacity = capacity
         self.state_shape = tuple(state_shape)
         self.rng = rng
         shape = (groups, capacity)

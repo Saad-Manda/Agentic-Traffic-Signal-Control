@@ -1,14 +1,4 @@
-"""Random-search tuning on validation, or one config over several seeds (ROADMAP 5.5).
-
-    # study: N trials from the committed search space, training seed from the search file
-    python scripts/tune.py --search configs/search/rl_baselines.yaml --agent dqn [--workers 4]
-    # chosen config on seeds 0-4
-    python scripts/tune.py --config configs/dqn.yaml --seeds 0 1 2 3 4 [--workers 5]
-
-Each run is a ``scripts/train.py`` process (train flow, checkpoint on val, own experiment-log
-row). Writes ``results/tune/<study>/{trials.csv, best.json, configs/, logs/}`` or
-``results/tune/<agent>_seeds/seeds.csv``.
-"""
+"""Random-search tuning on validation, or one config over several seeds."""
 
 from __future__ import annotations
 
@@ -46,7 +36,7 @@ def study(args) -> int:
         cfg = load_config(
             cfg_path, [*overrides(params), f"seed={spec['seed']}", f"train.agent={args.agent}"]
         )
-        resolved = save_config(cfg, out / "configs" / f"{run}.yaml")  # written before launch
+        resolved = save_config(cfg, out / "configs" / f"{run}.yaml")
         runs[run] = {"trial": k, **params}
         jobs.append((run, train_argv(resolved, run, args.overrides, f"tuning {name} trial {k}")))
     codes = run_parallel(jobs, args.workers, out / "logs")
@@ -80,7 +70,7 @@ def study(args) -> int:
 
 def seeds(args) -> int:
     cfg = load_config(args.config, args.overrides)
-    agent = model_label(cfg["train"]["agent"], cfg)  # UG-MARL ablations get their own names
+    agent = model_label(cfg["train"]["agent"], cfg)
     out = TUNE_DIR / f"{agent}_{args.tag}_seeds"
     runs, jobs = {}, []
     for s in args.seeds:

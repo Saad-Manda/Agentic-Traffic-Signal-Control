@@ -1,10 +1,4 @@
-"""Random-search tuning and multi-seed runs (ROADMAP 5.5; plan phase5-rl-baselines D8).
-
-The search space lives in ``configs/search/*.yaml`` and is committed before the first trial.
-Each trial is one ``scripts/train.py`` process (train flow, checkpoint on val); trials run
-as parallel processes, one simulator thread and one torch thread each. Test / held-out flows
-are never touched: ``train.py`` accepts only the train split.
-"""
+"""Random-search tuning and multi-seed runs."""
 
 from __future__ import annotations
 
@@ -57,8 +51,7 @@ def select_best(
     tie_tolerance: float,
     tie_break: Sequence[str] = ("train.lr",),
 ) -> pd.Series:
-    """Lowest ``metric``; trials within ``tie_tolerance`` of it -> smallest ``tie_break``
-    values, compared in order (Phase 5: ``train.lr``; UG-MARL: K, then d — smaller model)."""
+    """Lowest ``metric``; trials within ``tie_tolerance`` go to the smallest ``tie_break``."""
     ok = trials.dropna(subset=[metric])
     if ok.empty:
         raise ValueError("no finished trial")

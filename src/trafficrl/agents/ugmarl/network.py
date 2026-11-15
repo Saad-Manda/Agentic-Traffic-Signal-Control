@@ -1,21 +1,4 @@
-"""UG-MARL Q-network: neighbour attention + K-head Q-ensemble (plan phase6-ugmarl D3).
-
-Input ``(G, B, 5, obs_dim + 1)`` from :class:`~trafficrl.agents.core.NeighborhoodEncoder`
-(slot 0 = self, 1–4 = neighbours E, N, W, S; last column = presence flag). Output
-``(G, B, K, A)`` — the same contract as :class:`~trafficrl.agents.core.MLPQNet`, so the
-Q-learner core is unchanged. One parameter set is shared by every intersection (G = 1).
-
-    e_j  = ReLU(W_e s_j + b_e) + p_slot(j)                j ∈ {self, E, N, W, S}, e_j ∈ R^d
-    α_ij = softmax_j ((W_q e_i)ᵀ (W_k e_j) / √d)          absent neighbours masked (−∞)
-    c_i  = Σ_j α_ij W_v e_j
-    z_i  = [e_i ‖ c_i] ∈ R^{2d}                            (use_attention=False: z_i = e_i)
-    Q_k(s_i, ·) = W2_k ReLU(W1_k z_i + b1_k) + b2_k        k = 1..K, hidden ``head_hidden``
-
-One GAT-style layer with one attention head (CoLight, Wei et al. 2019), so α_i is a single
-5-vector per decision that can be plotted. Self is always present, so the softmax is never
-over an empty set. The K heads are stored stacked ``(K, in, out)`` and evaluated with one
-``einsum``; each is initialised like an independent ``nn.Linear``.
-"""
+"""UG-MARL Q-network: neighbour attention and a K-head Q-ensemble."""
 
 from __future__ import annotations
 
@@ -55,12 +38,12 @@ class UGMARLNet(nn.Module):
 
     def encode(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor | None]:
         """``z`` ``(..., z_dim)`` and attention weights ``(..., 5)`` (None without attention)."""
-        e = torch.relu(self.embed(x[..., : self.obs_dim])) + self.slot  # (..., 5, d)
+        e = torch.relu(self.embed(x[..., : self.obs_dim])) + self.slot
         if not self.use_attention:
             return e[..., 0, :], None
-        present = x[..., -1] > 0.5  # (..., 5); slot 0 is always 1
-        q = self.query(e[..., 0, :])  # (..., d)
-        k, v = self.key(e), self.value(e)  # (..., 5, d)
+        present = x[..., -1] > 0.5
+        q = self.query(e[..., 0, :])
+        k, v = self.key(e), self.value(e)
         scores = torch.einsum("...d,...jd->...j", q, k) / math.sqrt(self.attn_dim)
         scores = scores.masked_fill(~present, float("-inf"))
         alpha = torch.softmax(scores, dim=-1)
@@ -81,9 +64,9 @@ class UGMARLNet(nn.Module):
 
 
 def _stacked_linear(k: int, i: int, o: int) -> tuple[nn.Parameter, nn.Parameter]:
-    lins = [nn.Linear(i, o) for _ in range(k)]  # independent Kaiming-uniform init per head
-    w = nn.Parameter(torch.stack([lin.weight.data.T for lin in lins]))  # (K, in, out)
-    b = nn.Parameter(torch.stack([lin.bias.data for lin in lins]))  # (K, out)
+    lins = [nn.Linear(i, o) for _ in range(k)]
+    w = nn.Parameter(torch.stack([lin.weight.data.T for lin in lins]))
+    b = nn.Parameter(torch.stack([lin.bias.data for lin in lins]))
     return w, b
 
 

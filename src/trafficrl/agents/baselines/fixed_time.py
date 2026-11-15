@@ -1,11 +1,4 @@
-"""Fixed-Time controller (ROADMAP 4.4; protocol §4).
-
-Every intersection cycles through the green phases in order 1 → 8, each held for
-``green_seconds`` (30 s), with the env's 5 s yellow between phases. The agent works inside
-the Δt decision loop: at a ready intersection it keeps the phase while the green has run for
-less than ``green_seconds`` and moves to the next phase otherwise, so with Δt = 15 s it keeps
-at 15 s and switches at 30 s. Observations are ignored (the controller is blind by design).
-"""
+"""Fixed-Time controller: cycle through the phases, 30 s each."""
 
 from __future__ import annotations
 

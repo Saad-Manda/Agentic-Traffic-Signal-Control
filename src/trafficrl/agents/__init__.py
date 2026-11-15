@@ -17,10 +17,9 @@ LEARNED_AGENTS = ("dqn", "idqn", "ugmarl")
 
 
 def make_agent(name: str, env: Any, cfg: Mapping[str, Any]) -> Agent:
-    """Build agent ``name`` for ``env``.
+    """Build agent ``name`` for ``env`` from ``cfg['agents'][name]``.
 
-    Parameters come from ``cfg['agents'][name]``; learned agents also read the ``train:``
-    block (learning hyperparameters) and ``seed`` (exploration / replay RNG streams).
+    Learned agents also read the ``train`` block and ``seed``.
     """
     params = dict((cfg.get("agents", {}) or {}).get(name, {}) or {})
     if name == "fixed_time":

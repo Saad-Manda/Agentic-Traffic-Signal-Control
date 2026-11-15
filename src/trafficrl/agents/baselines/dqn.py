@@ -1,9 +1,4 @@
-"""Single-agent RL baseline: shared-parameter DQN (ROADMAP 5.2; Decision Log 27 Oct).
-
-One Double-DQN network (MLP 44 → 128 → 128 → 8) and one replay buffer shared by every
-intersection; each intersection acts on its **own** 44-value state only — no coordination
-signal. Same Q-learning core as IDQN and UG-MARL (:class:`~trafficrl.agents.core.QLearner`).
-"""
+"""Single-agent baseline: one DQN shared by every intersection."""
 
 from __future__ import annotations
 

@@ -22,11 +22,7 @@ def fmt(stats: dict, digits: int = 1) -> str:
 
 
 def condition_table(runs: Mapping[tuple[str, str], Path]) -> pd.DataFrame:
-    """One row per (model, condition) from finished evaluation runs (``scripts/robustness.py``).
-
-    ``runs`` maps ``(model, condition)`` to a run directory holding ``metrics.csv`` (one row
-    per seed). Travel time: mean, std, 95 % CI over seeds; max wait and fallback rate: mean.
-    """
+    """One row per (model, condition) from finished evaluation runs."""
     rows = []
     for (model, condition), run in runs.items():
         m = pd.read_csv(Path(run) / "metrics.csv")

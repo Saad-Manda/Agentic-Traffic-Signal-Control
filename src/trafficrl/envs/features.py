@@ -1,26 +1,4 @@
-"""Observation features and pressure definitions (ROADMAP 3.4, guidelines G6).
-
-For a signalised intersection with 12 incoming lanes ``l``, 12 movements ``m`` and lane
-capacity ``C_l`` (vehicles that fit on the lane, from the roadnet):
-
-* occupancy   x̃_l = min(x_l / C_l, 1)   x_l = vehicles on the lane
-* queue       q̃_l = min(q_l / C_l, 1)   q_l = waiting vehicles (speed < 0.1 m/s)
-* pressure    p_m = mean x̃ over the movement's incoming lanes
-                    − mean x̃ over its outgoing lanes            ∈ [−1, 1]
-* phase       one-hot of the current green phase (8)
-
-Observation = concatenation of the configured groups, default
-``[queue (12) | count (12) | pressure (12) | phase (8)]`` = 44 values, lanes in the
-canonical order of :mod:`trafficrl.data.roadnet`.
-
-**No fitted statistics.** Normalisation uses only lane capacities, which come from road
-lengths in the roadnet and a constant vehicle spacing. The builder never reads a flow file,
-so there is nothing that could leak from validation, test or held-out demand, and the same
-code applies unchanged to another city's roadnet.
-
-Raw (un-normalised) pressures used by Max-Pressure and the reward are defined here too so
-that every agent and the environment share one definition.
-"""
+"""Observation features and pressure, scaled by lane capacity."""
 
 from __future__ import annotations
 
@@ -38,7 +16,7 @@ NORMALISATIONS = ("lane_capacity",)
 @dataclass(frozen=True)
 class FeatureSpec:
     groups: tuple[str, ...] = GROUPS
-    vehicle_space_m: float = 7.5  # vehicle length 5.0 m + minimum gap 2.5 m
+    vehicle_space_m: float = 7.5
     clip: bool = True
     normalisation: str = "lane_capacity"
 
@@ -104,11 +82,7 @@ class FeatureBuilder:
         lane_waiting: Mapping[str, float],
         green_phase: int,
     ) -> np.ndarray:
-        """Observation of one intersection (float32, length :attr:`dim`).
-
-        ``green_phase`` is the current green phase id (during a transition: the phase being
-        switched to). ``lane_count`` / ``lane_waiting`` are the engine's per-lane dictionaries.
-        """
+        """Observation of one intersection (float32, length :attr:`dim`)."""
         inter = self.roadnet.intersections[iid]
         parts = []
         for g in self.spec.groups:
@@ -127,7 +101,7 @@ class FeatureBuilder:
                         dtype=np.float32,
                     )
                 )
-            else:  # phase
+            else:
                 if green_phase not in self.phase_ids:
                     raise ValueError(f"{iid}: {green_phase} is not a green phase {self.phase_ids}")
                 one_hot = np.zeros(len(self.phase_ids), dtype=np.float32)
@@ -146,8 +120,6 @@ class FeatureBuilder:
             iid: self.observation(iid, lane_count, lane_waiting, green_phases[iid])
             for iid in self.roadnet.intersections
         }
-
-    # --- raw pressures (vehicles), shared by Max-Pressure and the reward -------------------
 
     def phase_pressure(self, iid: str, lane_count: Mapping[str, float]) -> dict[int, float]:
         """Pressure of each green phase: Σ over its movements of (x_in − x_out)."""

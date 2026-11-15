@@ -1,25 +1,4 @@
-"""Calibrate the UG-MARL gate threshold τ on validation (ROADMAP 6.3 / 6.7b; plan D9).
-
-    python scripts/calibrate_gate.py --search configs/search/ugmarl_gate.yaml \
-        --config configs/eval_ugmarl.yaml --tag final [--workers 4] [overrides ...]
-    # −attention models: add  agents.ugmarl.use_attention=false
-
-For the seed-models ``results/train/<variant>_<tag>_s<seed>/checkpoints/best.pt``, Jinan
-**validation** only:
-
-1. **Reference pass** — ungated greedy episode per model × condition (clean + the search
-   file's observation perturbations), decisions logged. The clean decisions give σ;
-   τ_{p,seed} = p-th percentile of that model's σ. The perturbed ones are the −gate reference
-   and the data of the σ check in ``notebooks/04_gate_attention.ipynb``.
-2. **Sweep** — gated episode per model × p × condition.
-3. **Select** p* = lowest mean travel time over seeds × conditions (ties within the tolerance
-   -> smaller p) and write ``gate.json`` into every model's run directory, plus
-   ``docs/results/gate_calibration[_<variant>].{csv,md}``.
-
-Each (condition, p) job is one ``scripts/evaluate.py`` process over all seeds (one experiment-
-log row per episode), τ passed per seed through ``agents.ugmarl.gate.file``. Any split other
-than ``val`` is refused (exit 2); ``--final`` is never passed.
-"""
+"""Calibrate the UG-MARL gate threshold τ on the validation flow."""
 
 from __future__ import annotations
 
@@ -60,9 +39,21 @@ def cond_name(cond: dict) -> str:
 
 def eval_argv(config, ckpt, seeds, results_dir, extra, note, log_decisions=False):
     argv = [
-        sys.executable, str(EVAL_SCRIPT), "--config", str(config), "--agent", "ugmarl",
-        "--split", VAL, "--seeds", *map(str, seeds), "--checkpoint", ckpt, "--note", note,
-    ]  # fmt: skip
+        sys.executable,
+        str(EVAL_SCRIPT),
+        "--config",
+        str(config),
+        "--agent",
+        "ugmarl",
+        "--split",
+        VAL,
+        "--seeds",
+        *map(str, seeds),
+        "--checkpoint",
+        ckpt,
+        "--note",
+        note,
+    ]
     if log_decisions:
         argv.append("--log-decisions")
     return [*argv, *extra, f"output.results_dir={results_dir}"]
@@ -114,15 +105,23 @@ def main(argv: list[str] | None = None) -> int:
     base = [*args.overrides]
     study = f"{spec['study']} {variant}_{args.tag}"
 
-    # 1. reference pass: ungated, decisions logged (clean = σ pass)
     jobs = []
     for c in conds:
         name = f"ref_{cond_name(c)}"
-        jobs.append((name, eval_argv(
-            args.config, ckpt_tpl, seeds, out / "eval" / name,
-            [*base, "agents.ugmarl.use_gate=false", *cond_overrides(c)],
-            f"{study}: reference (ungated), {cond_name(c)}", log_decisions=True,
-        )))  # fmt: skip
+        jobs.append(
+            (
+                name,
+                eval_argv(
+                    args.config,
+                    ckpt_tpl,
+                    seeds,
+                    out / "eval" / name,
+                    [*base, "agents.ugmarl.use_gate=false", *cond_overrides(c)],
+                    f"{study}: reference (ungated), {cond_name(c)}",
+                    log_decisions=True,
+                ),
+            )
+        )
     codes = run_parallel(jobs, args.workers, out / "logs")
     if any(codes.values()):
         print(f"error: reference pass failed {codes}", file=sys.stderr)
@@ -138,46 +137,56 @@ def main(argv: list[str] | None = None) -> int:
             save_gate(out / "taus" / f"p{p:g}_s{s}.json", {"p": p, "tau": taus[s][p]})
     pd.concat(sig_rows).to_csv(out / "sigma_val.csv", index=False)
 
-    # 2. sweep: gated, every p x condition
     jobs = []
     for p in ps:
         for c in conds:
             name = f"p{p:g}_{cond_name(c)}"
             gate_file = out / "taus" / f"p{p:g}_s{{seed}}.json"
-            jobs.append((name, eval_argv(
-                args.config, ckpt_tpl, seeds, out / "eval" / name,
-                [*base, "agents.ugmarl.use_gate=true", f"agents.ugmarl.gate.file={gate_file}",
-                 *cond_overrides(c)],
-                f"{study}: p={p:g}, {cond_name(c)}",
-            )))  # fmt: skip
+            jobs.append(
+                (
+                    name,
+                    eval_argv(
+                        args.config,
+                        ckpt_tpl,
+                        seeds,
+                        out / "eval" / name,
+                        [
+                            *base,
+                            "agents.ugmarl.use_gate=true",
+                            f"agents.ugmarl.gate.file={gate_file}",
+                            *cond_overrides(c),
+                        ],
+                        f"{study}: p={p:g}, {cond_name(c)}",
+                    ),
+                )
+            )
     codes = run_parallel(jobs, args.workers, out / "logs")
     if any(codes.values()):
         print(f"error: sweep failed {codes}", file=sys.stderr)
         return 1
 
-    # 3. table + selection
     rows = []
     for p in [None, *ps]:
         for c in conds:
             name = f"ref_{cond_name(c)}" if p is None else f"p{p:g}_{cond_name(c)}"
             m = pd.read_csv(only_run(out / "eval" / name) / "metrics.csv")
             att = summarise(m["avg_travel_time_s"].tolist())
-            rows.append({
-                "p": "ungated" if p is None else p,
-                "condition": cond_name(c),
-                "avg_travel_time_mean": att["mean"],
-                "avg_travel_time_std": att["std"],
-                "avg_travel_time_ci95_low": att["ci95_low"],
-                "avg_travel_time_ci95_high": att["ci95_high"],
-                "fallback_rate_mean": m["fallback_rate"].mean(),
-                "max_waiting_time_mean": m["max_waiting_time_s"].mean(),
-                "n_seeds": len(m),
-            })  # fmt: skip
+            rows.append(
+                {
+                    "p": "ungated" if p is None else p,
+                    "condition": cond_name(c),
+                    "avg_travel_time_mean": att["mean"],
+                    "avg_travel_time_std": att["std"],
+                    "avg_travel_time_ci95_low": att["ci95_low"],
+                    "avg_travel_time_ci95_high": att["ci95_high"],
+                    "fallback_rate_mean": m["fallback_rate"].mean(),
+                    "max_waiting_time_mean": m["max_waiting_time_s"].mean(),
+                    "n_seeds": len(m),
+                }
+            )
     table = pd.DataFrame(rows)
     gated = table[table["p"] != "ungated"]
-    scores = (
-        gated.groupby("p")["avg_travel_time_mean"].mean().rename("score").reset_index()
-    )  # equal weights: every condition has the same seeds
+    scores = gated.groupby("p")["avg_travel_time_mean"].mean().rename("score").reset_index()
     tol = float(spec["selection"]["tie_tolerance_s"])
     p_star = select_percentile(scores, tol)
     ref_score = float(table[table["p"] == "ungated"]["avg_travel_time_mean"].mean())
@@ -203,12 +212,31 @@ def main(argv: list[str] | None = None) -> int:
     DOCS.mkdir(parents=True, exist_ok=True)
     table.to_csv(DOCS / f"gate_calibration{suffix}.csv", index=False)
     scores.assign(selected=scores["p"] == p_star).to_csv(out / "scores.csv", index=False)
-    write_md(DOCS / f"gate_calibration{suffix}.md", variant, args, table, scores, p_star,
-             ref_score, taus, seeds, tol)  # fmt: skip
-    (out / "selection.json").write_text(json.dumps(
-        {"p_star": p_star, "scores": dict(zip(scores["p"], scores["score"], strict=True)),
-         "ungated_score": ref_score, "taus": {str(s): taus[s] for s in seeds}},
-        indent=2, default=float) + "\n")  # fmt: skip
+    write_md(
+        DOCS / f"gate_calibration{suffix}.md",
+        variant,
+        args,
+        table,
+        scores,
+        p_star,
+        ref_score,
+        taus,
+        seeds,
+        tol,
+    )
+    (out / "selection.json").write_text(
+        json.dumps(
+            {
+                "p_star": p_star,
+                "scores": dict(zip(scores["p"], scores["score"], strict=True)),
+                "ungated_score": ref_score,
+                "taus": {str(s): taus[s] for s in seeds},
+            },
+            indent=2,
+            default=float,
+        )
+        + "\n"
+    )
     print(scores.to_string(index=False))
     print(f"ungated reference score {ref_score:.2f} s; selected p* = {p_star:g}")
     print(f"results: {out.relative_to(REPO_ROOT)}")

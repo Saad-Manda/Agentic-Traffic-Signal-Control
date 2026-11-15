@@ -1,13 +1,4 @@
-"""Uncertainty gate: σ(s), percentile thresholds, ``gate.json`` (plan phase6-ugmarl D5, D9).
-
-    μ(a)  = (1/K) Σ_k Q_k(s, a)              a* = argmax_a μ(a)
-    σ(s)  = sqrt((1/K) Σ_k (Q_k(s, a*) − μ(a*))²)          population std; 0 when K = 1
-    gate  : σ(s) > τ  ->  Max-Pressure,  otherwise a*
-
-τ is the p-th percentile of a model's σ over every decision of one clean, ungated validation
-episode (``scripts/calibrate_gate.py``), stored as ``gate.json`` next to the checkpoint's run
-directory. One p is used for all seeds; τ is per seed-model because σ's scale differs.
-"""
+"""Uncertainty gate: σ(s), percentile thresholds and gate.json."""
 
 from __future__ import annotations
 
@@ -28,7 +19,7 @@ def sigma_from_q(q: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Ten
     mu = q.mean(dim=-2)
     a_star = mu.argmax(dim=-1)
     idx = a_star[..., None, None].expand(*q.shape[:-1], 1)
-    q_star = q.gather(-1, idx).squeeze(-1)  # (..., K)
+    q_star = q.gather(-1, idx).squeeze(-1)
     sigma = q_star.std(dim=-1, unbiased=False)
     return mu, a_star, sigma
 

@@ -1,15 +1,4 @@
-"""Robustness hooks: sensor noise, detector dropout and demand surge.
-
-* **Sensor noise** — Gaussian with standard deviation σ added to every capacity-scaled lane
-  reading x̃ = x / C_l, clipped to [0, 1], reported back in vehicles (x̃′ · C_l).
-* **Detector dropout** — each lane detector independently reports 0 (count and waiting) with
-  probability p at each reading.
-* **Demand surge** — each vehicle of the flow duplicated with probability ``surge − 1``
-  (same route, start time + 1 s); the derived flow file lives in the run's work directory.
-
-Perturbations change what **every** controller observes (Max-Pressure reads the same
-detectors); the reward and the metrics always use the true simulator state.
-"""
+"""Sensor noise, detector dropout and demand surge."""
 
 from __future__ import annotations
 
@@ -73,10 +62,9 @@ class SensorModel:
 def surge_flow(
     roadnet_path: Path, flow_path: Path, out_dir: Path, surge: float, rng: np.random.Generator
 ) -> tuple[Path, Path, int]:
-    """Write a surged copy of ``flow_path`` (and the roadnet) into ``out_dir``.
+    """Write a surged copy of ``flow_path`` into ``out_dir``.
 
-    Returns ``(roadnet copy, surged flow, vehicles added)``. ``surge`` is the expected demand
-    multiplier, in [1, 2].
+    Returns ``(roadnet copy, surged flow, vehicles added)``.
     """
     if not 1.0 <= surge <= 2.0:
         raise ValueError(f"surge must be in [1, 2], got {surge}")

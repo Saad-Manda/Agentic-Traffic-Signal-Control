@@ -34,9 +34,6 @@ def _primary(train, val, test):
     }
 
 
-# --- the committed split file -------------------------------------------------------------
-
-
 def test_repo_split_structure():
     s = load_splits()
     assert {n: d["role"] for n, d in s.items()} == {"jinan": "primary", "hangzhou": "heldout"}
@@ -64,9 +61,6 @@ def test_flow_files_returns_existing_paths():
     roadnet, flows = flow_files("jinan", "train")
     assert roadnet.name == "roadnet_3_4.json"
     assert [f.name for f in flows] == ["anon_3_4_jinan_real.json"]
-
-
-# --- leakage / validation logic on synthetic specs ---------------------------------------
 
 
 def test_same_file_in_two_splits_is_leakage(tmp_path):
@@ -104,8 +98,8 @@ def test_cross_dataset_leakage(tmp_path):
 @pytest.mark.parametrize(
     "splits",
     [
-        {"train": [_f("x", "1")], "val": [_f("y", "2")]},  # missing test
-        {"train": [_f("x", "1")], "val": [_f("y", "2")], "test": []},  # empty split
+        {"train": [_f("x", "1")], "val": [_f("y", "2")]},
+        {"train": [_f("x", "1")], "val": [_f("y", "2")], "test": []},
     ],
 )
 def test_malformed_primary(tmp_path, splits):
@@ -133,7 +127,7 @@ def test_hash_mismatch_detected(tmp_path):
         },
     )
     s = load_splits(p, root=tmp_path)
-    flow_files("a", "train", splits=s)  # passes
+    flow_files("a", "train", splits=s)
     (tmp_path / "x.json").write_text("[1]")
     with pytest.raises(SplitError, match="hash mismatch"):
         flow_files("a", "train", splits=s)

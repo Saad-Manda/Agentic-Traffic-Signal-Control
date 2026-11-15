@@ -1,18 +1,4 @@
-"""Sensitivity of UG-MARL to the gate threshold τ on validation (ROADMAP 8.4; plan A2).
-
-    python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml [--workers 5]
-
-A check made **after** the final evaluation: extra percentiles p below the calibration grid
-are evaluated on the Jinan **validation** flow (clean + the four detector perturbations), with
-τ_{p,seed} taken from the σ sample the calibration used. Nothing is selected: the script has no
-code path that writes a ``gate.json``; threshold files go to ``results/analysis/<study>/taus``
-and are passed through ``agents.ugmarl.gate.file``. Any split other than ``val`` is refused.
-
-Output: ``docs/results/tau_sensitivity.{csv,md}`` — the new rows next to the existing
-calibration rows (p = 80…99, ungated) and Max-Pressure (the τ = 0 end), with the reading fixed
-in the ROADMAP Decision Log (13 Nov) applied by code. Each job is one ``scripts/evaluate.py``
-process over all seeds (one experiment-log row per episode).
-"""
+"""Sensitivity of UG-MARL to the gate threshold τ on the validation flow."""
 
 from __future__ import annotations
 
@@ -71,11 +57,25 @@ def tau_file(out: Path, p: float) -> Path:
 
 def eval_argv(config, ckpt, seeds, results_dir, gate_file, cond: dict, note: str) -> list[str]:
     return [
-        sys.executable, str(EVAL_SCRIPT), "--config", str(config), "--agent", "ugmarl",
-        "--split", VAL, "--seeds", *map(str, seeds), "--checkpoint", ckpt, "--note", note,
-        "agents.ugmarl.use_gate=true", f"agents.ugmarl.gate.file={gate_file}",
-        *(f"{k}={v}" for k, v in cond.items()), f"output.results_dir={results_dir}",
-    ]  # fmt: skip
+        sys.executable,
+        str(EVAL_SCRIPT),
+        "--config",
+        str(config),
+        "--agent",
+        "ugmarl",
+        "--split",
+        VAL,
+        "--seeds",
+        *map(str, seeds),
+        "--checkpoint",
+        ckpt,
+        "--note",
+        note,
+        "agents.ugmarl.use_gate=true",
+        f"agents.ugmarl.gate.file={gate_file}",
+        *(f"{k}={v}" for k, v in cond.items()),
+        f"output.results_dir={results_dir}",
+    ]
 
 
 def only_run(d: Path) -> Path:
@@ -116,9 +116,9 @@ def build_table(spec: dict, new_rows: pd.DataFrame) -> pd.DataFrame:
     mp = pd.read_csv(REPO_ROOT / spec["existing"]["max_pressure"])
     mp = mp[mp["model"] == "max_pressure"].drop(columns=["model", "deterministic"])
     mp = mp.assign(p="max_pressure", source=spec["existing"]["max_pressure"])
-    mp["fallback_rate_mean"] = 1.0  # τ = 0: every decision is the fallback
+    mp["fallback_rate_mean"] = 1.0
     cols = list(cal.columns)
-    ungated = cal["p"].astype(str) == "ungated"  # order: τ = 0 … rising p … τ = ∞
+    ungated = cal["p"].astype(str) == "ungated"
     return pd.concat([mp[cols], new_rows[cols], cal[~ungated], cal[ungated]], ignore_index=True)
 
 
@@ -128,8 +128,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--config", type=Path, default=REPO_ROOT / "configs" / "eval_ugmarl.yaml")
     ap.add_argument("--tag", default="final")
     ap.add_argument("--workers", type=int, default=4)
-    ap.add_argument("--tables-only", action="store_true",
-                    help="rebuild the table from the finished runs (no simulation)")  # fmt: skip
+    ap.add_argument(
+        "--tables-only",
+        action="store_true",
+        help="rebuild the table from the finished runs (no simulation)",
+    )
     args = ap.parse_args(argv)
 
     spec = read_yaml(args.search)
@@ -154,9 +157,10 @@ def main(argv: list[str] | None = None) -> int:
         out = OUT_ROOT / spec["study"]
         if out.exists() != args.tables_only:
             raise SweepError(
-                f"{out} does not exist: run the sweep first" if args.tables_only
+                f"{out} does not exist: run the sweep first"
+                if args.tables_only
                 else f"{out} exists (the sweep runs once; --tables-only rebuilds the table)"
-            )  # fmt: skip
+            )
         taus = thresholds(sigma, seeds, ps)
         files = {p: tau_file(out, p) for p in ps}
     except SweepError as e:
@@ -176,9 +180,11 @@ def main(argv: list[str] | None = None) -> int:
             name = f"p{p:g}_{condition_name(c)}"
             note = f"{spec['study']}: p={p:g}, {condition_name(c)}"
             jobs.append(
-                (name, eval_argv(args.config, ckpt_tpl, seeds, out / "eval" / name, files[p], c,
-                                 note))
-            )  # fmt: skip
+                (
+                    name,
+                    eval_argv(args.config, ckpt_tpl, seeds, out / "eval" / name, files[p], c, note),
+                )
+            )
     codes = run_parallel(jobs, args.workers, out / "logs")
     if any(codes.values()):
         print(f"error: jobs failed {codes}", file=sys.stderr)
@@ -189,18 +195,20 @@ def main(argv: list[str] | None = None) -> int:
         for c in conds:
             m = pd.read_csv(only_run(out / "eval" / f"p{p:g}_{condition_name(c)}") / "metrics.csv")
             att = summarise(m["avg_travel_time_s"].tolist())
-            rows.append({
-                "p": p,
-                "condition": condition_name(c),
-                "avg_travel_time_mean": att["mean"],
-                "avg_travel_time_std": att["std"],
-                "avg_travel_time_ci95_low": att["ci95_low"],
-                "avg_travel_time_ci95_high": att["ci95_high"],
-                "fallback_rate_mean": m["fallback_rate"].mean(),
-                "max_waiting_time_mean": m["max_waiting_time_s"].mean(),
-                "n_seeds": len(m),
-                "source": f"results/analysis/{spec['study']}",
-            })  # fmt: skip
+            rows.append(
+                {
+                    "p": p,
+                    "condition": condition_name(c),
+                    "avg_travel_time_mean": att["mean"],
+                    "avg_travel_time_std": att["std"],
+                    "avg_travel_time_ci95_low": att["ci95_low"],
+                    "avg_travel_time_ci95_high": att["ci95_high"],
+                    "fallback_rate_mean": m["fallback_rate"].mean(),
+                    "max_waiting_time_mean": m["max_waiting_time_s"].mean(),
+                    "n_seeds": len(m),
+                    "source": f"results/analysis/{spec['study']}",
+                }
+            )
     table = build_table(spec, pd.DataFrame(rows))
     DOCS.mkdir(parents=True, exist_ok=True)
     table.to_csv(DOCS / "tau_sensitivity.csv", index=False)
