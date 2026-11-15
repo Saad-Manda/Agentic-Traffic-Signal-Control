@@ -62,7 +62,7 @@ have no signal and are not agents.
 **Split type.** Jinan uses *whole flow files*: three separate one-hour demand scenarios on
 the same road network, so no vehicle record is shared or resampled between splits.
 Hangzhou is a *group-wise (location) split*: no Hangzhou data is used for training,
-tuning, normalisation or EDA plots. Rationale and rules: `.claude/reference/database.md`.
+tuning, normalisation or EDA plots.
 
 ## 4. Data dictionary
 

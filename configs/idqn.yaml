@@ -1,20 +1,17 @@
-# IDQN training (ROADMAP 5.3). Hyperparameters selected by the Phase 5 tuning study
-# (configs/search/rl_baselines.yaml, 8 trials, seed 0, validation flow; selection rule in that
-# file): winner trial t6 (idqn_rl_baselines_t6_s0), best val avg travel time 310.42 s.
-# Everything else = configs/base.yaml `train:`. See worklog/016.
+# IDQN training with the tuned hyperparameters.
 base: base.yaml
 seed: 0
 
 data:
   dataset: jinan
-  split: train           # training flow; checkpoints are selected on val inside train.py
+  split: train
 
 train:
   agent: idqn
-  lr: 1.0e-4             # tuned (study rl_baselines, trial t6)
-  gamma: 0.8             # tuned
-  batch_size: 64         # tuned
-  eps_decay_frac: 0.3    # tuned
+  lr: 1.0e-4
+  gamma: 0.8
+  batch_size: 64
+  eps_decay_frac: 0.3
 
 output:
   results_dir: results/train

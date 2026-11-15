@@ -1,71 +1,70 @@
-# Shared defaults inherited by every experiment config via `base: base.yaml`.
-# sim/features/data values were fixed before RL training (10 Nov 2026).
+# Shared defaults inherited by every experiment config.
 
-seed: 0                  # override per run; final results use >= 3 seeds
-deterministic: true      # torch deterministic kernels (utils/seed.py)
+seed: 0
+deterministic: true
 
 sim:
   engine: cityflow
-  threads: 1             # 1 thread per simulator, parallelise across runs (worklog/007)
-  episode_seconds: 3600  # frozen
-  decision_interval: 15  # Δt in seconds — frozen (EDA: Max-Pressure −8 % vs 10 s on train)
-  reward: pressure       # r_i = −|P_i| — frozen
-  yellow_seconds: 5      # CityFlow phase 0 = transition (worklog/007)
+  threads: 1
+  episode_seconds: 3600
+  decision_interval: 15  # Δt, seconds
+  reward: pressure       # r_i = −|P_i|
+  yellow_seconds: 5
 
-features:                # observation built by trafficrl.envs.features (ROADMAP 3.4)
-  groups: [queue, count, pressure, phase]   # concatenated in this order -> 44 values
-  normalisation: lane_capacity   # lane value / lane capacity; nothing is fitted (no leakage)
-  vehicle_space_m: 7.5           # vehicle.length 5.0 m + minGap 2.5 m (dataset card §4.1)
-  clip: true                     # clip normalised lane values to [0, 1]
+features:
+  groups: [queue, count, pressure, phase]   # 44 values per intersection
+  normalisation: lane_capacity
+  vehicle_space_m: 7.5   # vehicle length 5.0 m + min gap 2.5 m
+  clip: true
 
 data:
-  dataset: jinan         # jinan (primary) | hangzhou (held-out) — data/processed/splits.json
-  split: train           # train | val | test | heldout — test/heldout only in final evaluation (Phase 7)
+  dataset: jinan         # jinan | hangzhou
+  split: train           # train | val | test | heldout
 
 output:
   results_dir: results
 
-robustness:              # evaluation conditions (protocol §6; ROADMAP 4.3) — all off = clean
-  noise_std: 0.0         # σ on capacity-scaled lane readings; {0, 0.1, 0.2} in 7.3
-  dropout_p: 0.0         # per-lane, per-reading detector loss; {0, 0.1, 0.2} in 7.3
-  surge: 1.0             # expected demand multiplier (each vehicle duplicated w.p. surge − 1); 1.5 in 7.3
+robustness:
+  noise_std: 0.0         # std of the noise on capacity-scaled lane readings
+  dropout_p: 0.0         # per-lane, per-reading detector loss
+  surge: 1.0             # demand multiplier
 
-agents:                  # agent parameters, read by trafficrl.agents.make_agent
-  fixed_time: {green_seconds: 30}   # protocol §4: 30 s green per phase, order 1 → 8
-  max_pressure: {}                  # every Δt, ties → lowest phase id
-  dqn: {hidden: [128, 128]}         # shared-parameter DQN (5.2); size fixed, not tuned
-  idqn: {hidden: [128, 128]}        # one network per intersection (5.3)
-  ugmarl:                           # proposed (Phase 6; plan phase6-ugmarl D5)
-    use_attention: true             # ablation flag (−attention: no neighbour input)
-    use_ensemble: true              # ablation flag (−ensemble: heads -> 1, no σ, gate off)
-    use_gate: true                  # ablation flag (−gate); the gate acts at evaluation only
-    heads: 5                        # K — tuned (configs/search/ugmarl.yaml)
-    attn_dim: 64                    # d — tuned
-    head_hidden: 128                # fixed, the baselines' hidden width
-    mask_prob: 0.8                  # Bernoulli bootstrap mask — fixed, not tuned
+agents:
+  fixed_time: {green_seconds: 30}
+  max_pressure: {}
+  dqn: {hidden: [128, 128]}
+  idqn: {hidden: [128, 128]}
+  ugmarl:
+    use_attention: true
+    use_ensemble: true
+    use_gate: true
+    heads: 5             # K
+    attn_dim: 64         # d
+    head_hidden: 128
+    mask_prob: 0.8
     gate:
-      tau: null                     # number, or null -> read `file`
-      file: auto                    # auto = gate.json next to the checkpoint (scripts/calibrate_gate.py)
+      tau: null          # number, or null -> read `file`
+      file: auto         # auto = gate.json next to the checkpoint
 
-train:                   # scripts/train.py (Phase 5; plan phase5-rl-baselines). UG-MARL reuses it.
-  agent: dqn             # learned agent to train (dqn | idqn | ugmarl)
-  episodes: 100          # training episodes on the train flow
-  val_every: 5           # greedy validation episode every N training episodes (+ the last)
-  device: cpu            # step-6 benchmark: CPU 1.1–1.5x faster than CUDA for these MLPs (worklog/016)
-  torch_threads: 1       # one torch thread per process; runs are parallelised across processes
-  reward_scale: 0.01     # constant, not fitted: r~ = 0.01 * (−|P|) (protocol §9, 11 Nov)
+train:
+  agent: dqn             # dqn | idqn | ugmarl
+  episodes: 100
+  val_every: 5
+  device: cpu
+  torch_threads: 1
+  reward_scale: 0.01
   lr: 3.0e-4
-  gamma: 0.9             # per Δt = 15 s; SMDP: gamma ** (duration_s / 15)
+  gamma: 0.9
   batch_size: 64
-  buffer_size: 100000    # total transitions (IDQN: split evenly over intersections)
-  learning_starts: 2000  # transitions before the first gradient step
-  train_every: 4         # one gradient step per 4 new transitions
-  target_sync: 1000      # hard target-network copy every N gradient steps
-  grad_clip: 10.0        # max gradient L2 norm
+  buffer_size: 100000
+  learning_starts: 2000
+  train_every: 4
+  target_sync: 1000
+  grad_clip: 10.0
   eps_start: 1.0
   eps_end: 0.05
-  eps_decay_frac: 0.5    # ε reaches eps_end after this fraction of the episodes
+  eps_decay_frac: 0.5
 
-eval:                    # scripts/evaluate.py
-  seeds: [0, 1, 2, 3, 4] # protocol §6 (7.1 / 7.2); 7.3 / 7.4 use [0, 1, 2]
-  track: full            # full | light (light skips per-vehicle wait / throughput)
+eval:
+  seeds: [0, 1, 2, 3, 4]
+  track: full            # full | light

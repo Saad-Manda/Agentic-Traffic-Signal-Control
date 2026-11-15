@@ -1,28 +1,22 @@
-# UG-MARL training, full model (ROADMAP 6.1-6.3; plan phase6-ugmarl D5, D8).
-# Learning settings inherited from the baselines' tuning winner t6 (lr / gamma / batch /
-# eps-decay; tuned for DQN / IDQN, not for UG-MARL — disclosed). K and d selected by the grid
-# study (configs/search/ugmarl.yaml, 9 trials, seed 0, validation; selection rule in that
-# file): best 301.08 s (K 10, d 128); 301.52 (K 10, d 64) and 301.90 s (K 3, d 128) are within
-# 1 s -> smallest K wins: trial t2 (ugmarl_ugmarl_t2_s0), K = 3, d = 128. LOCKED (U14).
-# See worklog/017.
+# UG-MARL training, full model.
 base: base.yaml
 seed: 0
 
 data:
   dataset: jinan
-  split: train           # training flow; checkpoints are selected on val (ungated) in train.py
+  split: train
 
 train:
   agent: ugmarl
-  lr: 1.0e-4             # inherited (study rl_baselines, trial t6)
-  gamma: 0.8             # inherited
-  batch_size: 64         # inherited
-  eps_decay_frac: 0.3    # inherited
+  lr: 1.0e-4
+  gamma: 0.8
+  batch_size: 64
+  eps_decay_frac: 0.3
 
 agents:
   ugmarl:
-    heads: 3             # K — selected (grid trial t2)
-    attn_dim: 128        # d — selected
+    heads: 3
+    attn_dim: 128
 
 output:
   results_dir: results/train

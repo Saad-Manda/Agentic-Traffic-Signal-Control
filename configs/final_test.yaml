@@ -1,46 +1,38 @@
-# ROADMAP Phase 7 — FINAL evaluation on the Jinan TEST flow (plan phase7-final-experiments).
-# Written and committed BEFORE the test flow is opened. Serves 7.1 (main comparison), 7.2
-# (ablation), 7.3 (robustness), 7.5 (efficiency), 7.6 (safety / explainability): every
-# (model, condition, seed) episode is run exactly ONCE.
-#   python scripts/robustness.py --spec configs/final_test.yaml --final --workers 1 \
-#       --results-dir results/final
-#   then run notebooks/02_results.ipynb for the tables
-# Models are locked (models/manifest.json, checked by --final); nothing is selected from the
-# result. Seeds 0-4 for every experiment (protocol §6, amended 12 Nov before any final run).
+# Final evaluation on the Jinan test flow (run once with --final).
 study: final_test
 dataset: jinan
-split: test                      # refused without --final
-seeds: [0, 1, 2, 3, 4]           # learned models: seed s = checkpoint trained with seed s
-tag: final                       # training runs results/train/<train_model>_<tag>_s<seed>
-log_trace: true                  # trace_s<seed>.csv + vehicles_s<seed>.csv for every episode
-table: false                     # tables come from notebooks/02_results.ipynb
+split: test
+seeds: [0, 1, 2, 3, 4]
+tag: final
+log_trace: true
+table: false
 
-models:                          # row order of the tables
+models:
   fixed_time:    {config: configs/eval_baselines.yaml}
   max_pressure:  {config: configs/eval_baselines.yaml}
   dqn:           {config: configs/eval_rl_baselines.yaml}
   idqn:          {config: configs/eval_rl_baselines.yaml}
-  ugmarl:                                                     # gated, tau from gate.json
+  ugmarl:
     config: configs/eval_ugmarl.yaml
     log_decisions: true
-  ugmarl-nogate:                                              # same checkpoints, gate off
+  ugmarl-nogate:
     config: configs/eval_ugmarl.yaml
     agent: ugmarl
     train_model: ugmarl
     log_decisions: true
     overrides: [agents.ugmarl.use_gate=false]
-  ugmarl-noattn:                                              # own checkpoints and tau
+  ugmarl-noattn:
     config: configs/eval_ugmarl.yaml
     agent: ugmarl
     log_decisions: true
     overrides: [agents.ugmarl.use_attention=false]
-  ugmarl-noens:                                               # K = 1: no sigma, no gate
+  ugmarl-noens:
     config: configs/eval_ugmarl.yaml
     agent: ugmarl
     overrides: [agents.ugmarl.use_ensemble=false]
 
-conditions:                      # one factor at a time (protocol §6)
-  - {}                                   # clean -> 7.1, 7.2, 7.5, 7.6
+conditions:
+  - {}
   - {robustness.noise_std: 0.1}
   - {robustness.noise_std: 0.2}
   - {robustness.dropout_p: 0.1}

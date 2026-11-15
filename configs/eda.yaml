@@ -1,5 +1,4 @@
-# EDA traces and data audit (ROADMAP 3.0, 3.3). Train split only.
-# Values below were written before the first run.
+# EDA rollouts on the train split.
 base: base.yaml
 seed: 0
 
@@ -8,15 +7,15 @@ data:
   split: train
 
 eda:
-  seeds: [0, 1, 2]              # each controller is run once per seed (seed-effect check)
+  seeds: [0, 1, 2]
   controllers:
-    fixed_time:   {green_seconds: 30}        # cycle through phases 1..8
-    max_pressure: {decision_interval: 10}    # seconds between decisions
-    random:       {decision_interval: 10}    # uniform-random green phase
-  dt_sweep:                     # decision-interval sanity check (seed = `seed` above)
+    fixed_time:   {green_seconds: 30}
+    max_pressure: {decision_interval: 10}
+    random:       {decision_interval: 10}
+  dt_sweep:
     controller: max_pressure
     values: [5, 10, 15, 20]
-  arrival_bin_seconds: 60       # bin width for arrival-rate curves and the burst check
+  arrival_bin_seconds: 60
 
 output:
   results_dir: results/eda

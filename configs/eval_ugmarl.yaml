@@ -1,10 +1,4 @@
-# Validation evaluation of UG-MARL variants (plan phase6-ugmarl D9, D11). Seed s loads the
-# checkpoint trained with seed s and, when the gate is on, τ from that run's gate.json:
-#   python scripts/evaluate.py --config configs/eval_ugmarl.yaml --agent ugmarl --split val \
-#       --checkpoint 'results/train/ugmarl_final_s{seed}/checkpoints/best.pt' [--log-decisions]
-# Variants: agents.ugmarl.use_gate=false (−gate, same checkpoints), or
-#   --config configs/eval_ugmarl.yaml plus agents.ugmarl.use_attention=false / use_ensemble=false
-#   with the matching checkpoints. The architecture must match the trained runs (checked).
+# Evaluation of the UG-MARL variants; seed s loads the checkpoint and gate.json of seed s.
 base: [base.yaml, ugmarl.yaml]
 seed: 0
 

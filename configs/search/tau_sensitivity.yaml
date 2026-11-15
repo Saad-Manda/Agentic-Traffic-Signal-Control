@@ -1,32 +1,25 @@
-# ROADMAP 8.4 — sensitivity of UG-MARL to the gate threshold τ (plan .claude/plans/phase8-analysis.md, A2).
-# Written and committed BEFORE the runs. Validation flow only, evaluation only: this is a
-# sensitivity check made after the final evaluation. NOTHING is selected from it — p* = 80,
-# every gate.json and models/manifest.json stay as locked (Decision Log 13 Nov).
-#   python scripts/tau_sweep.py --search configs/search/tau_sensitivity.yaml --workers 5
+# Sensitivity of UG-MARL to the gate threshold τ (validation only, nothing selected).
 study: tau_sensitivity
-split: val                       # any other split is refused
-variant: ugmarl                  # results/train/ugmarl_<tag>_s<seed>
+split: val
+variant: ugmarl
 seeds: [0, 1, 2, 3, 4]
-percentiles: [50, 60, 70]        # below the calibration grid {80, 90, 95, 99}
+percentiles: [50, 60, 70]
 
-# tau_{p, seed} = p-th percentile of the SAME sigma sample the calibration used (clean, ungated
-# validation episode of each seed-model); no new sigma pass.
 sigma_source: results/tune/ugmarl_gate_ugmarl_final/sigma_val.csv
-check_percentile: 80             # must reproduce tau in each gate.json before any run
+check_percentile: 80
 
-conditions:                      # the five conditions of configs/search/ugmarl_gate.yaml
-  - {}                                   # clean
+conditions:
+  - {}
   - {robustness.noise_std: 0.1}
   - {robustness.noise_std: 0.2}
   - {robustness.dropout_p: 0.1}
   - {robustness.dropout_p: 0.2}
 
-# rows joined in the table (not re-run)
 existing:
-  calibration: docs/results/gate_calibration.csv     # p = 80, 90, 95, 99 and ungated
-  max_pressure: docs/results/val_robustness.csv      # tau = 0 end: the gate always fires
+  calibration: docs/results/gate_calibration.csv
+  max_pressure: docs/results/val_robustness.csv
 p_star: 80
 
-reading:                         # fixed before the runs (ROADMAP Decision Log 13 Nov)
-  insensitive_within_s: 5.0      # every p in 50–90 within this of p* -> "insensitive"
-  tie_tolerance_s: 1.0           # p < p* better by more than this -> "grid's lower end was binding"
+reading:
+  insensitive_within_s: 5.0
+  tie_tolerance_s: 1.0

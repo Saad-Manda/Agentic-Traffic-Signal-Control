@@ -1,23 +1,21 @@
-# Settings of the error analysis, read by notebooks/03_error_analysis.ipynb. Nothing is
-# simulated here, so there is no seed: the seeds are those of the finished studies. Test / held-out data are read from the saved logs
-# of the Phase 7 pass (results/final) and, for the route join only, from the flow files.
+# Settings of the error analysis notebook (03_error_analysis).
 final_dir: results/final
 studies:
   test:    {spec: configs/final_test.yaml}
   heldout: {spec: configs/final_heldout.yaml}
 
-agents: [fixed_time, max_pressure, dqn, idqn, ugmarl]            # the five compared agents
+agents: [fixed_time, max_pressure, dqn, idqn, ugmarl]
 ablations: [ugmarl, ugmarl-nogate, ugmarl-noattn, ugmarl-noens]
 proposed: ugmarl
-baselines: [dqn, max_pressure]        # error analysis: both baselines ... (Decision Log 13 Nov)
-compare_conditions: [clean, noise0.2] # ... in both conditions
-paired: ugmarl-nogate                 # same checkpoints as `proposed`, gate off
+baselines: [dqn, max_pressure]
+compare_conditions: [clean, noise0.2]
+paired: ugmarl-nogate
 
-window_s: 600                         # travel-time breakdown by scheduled start time
-case_window_s: 300                    # unit of the case rule: intersection x 5 minutes
-gate_horizon_s: 60                    # queue after a decision (gate-effect table)
+window_s: 600
+case_window_s: 300
+gate_horizon_s: 60
 
 out_figures: docs/figures/results
 out_tables: docs/results
-tau_sensitivity: docs/results/tau_sensitivity.csv              # scripts/tau_sweep.py
-faithfulness: docs/results/attention_faithfulness.csv          # notebooks/04_gate_attention.ipynb
+tau_sensitivity: docs/results/tau_sensitivity.csv
+faithfulness: docs/results/attention_faithfulness.csv
