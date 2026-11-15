@@ -23,8 +23,8 @@ rubric), `ProjectGuidelines.pdf` (IIT Patna IMPACT Lab end-to-end ML guidelines)
 (report chapters, 12–15 pages) and `updated poster sample.pptx` (poster template). **For the
 report and poster format the 12 Nov documents win**; otherwise the PS16 rubric wins (it sets
 the marks). Problem definition, hypotheses and success criteria: `PRD.md` §1a–1c. See
-`PRD.md` for requirements and rubric mapping, and **`ROADMAP.md` for the phase-by-phase plan
-(re-baselined 9 Nov) and progress checklist**. Solo project.
+`PRD.md` for requirements and rubric mapping. `ROADMAP.md` and `worklog/` were removed from
+`main` on 15 Nov (repo cleanup); they live on branch `archive/full-dev`. Solo project.
 
 ## Tech Stack
 
@@ -222,16 +222,14 @@ hashes). All other tests were removed 15 Nov (user decision; they are on `archiv
   seeds, robustness definitions, reporting rules).
 - `docs/how_it_works.md` — plain-language explainer: data → simulator → RL training → gate
   (keep in sync with `docs/evaluation_protocol.md`).
-- `ROADMAP.md` — plan of action: phases, task checklist, **guidelines mapping, final-gate
-  checklist**, scope controls, decision log.
-- `worklog/` — numbered record of every piece of work (what / why / how / result); index in
-  `worklog/README.md`.
+- `ROADMAP.md`, `worklog/` — **removed from `main` 15 Nov**; read them on branch
+  `archive/full-dev` (`git show archive/full-dev:ROADMAP.md`) when the history is needed.
 - `.claude/reference/*.md` — architecture, interfaces, data, testing detail.
 - `.claude/plans/` — implementation plans.
 
 ## Notes
 
-- **Repo cleanup (15 Nov, worklog/027):** full pre-cleanup repo on branch `archive/full-dev`.
+- **Repo cleanup (15 Nov; record in `archive/full-dev:worklog/027–031`):** full pre-cleanup repo on branch `archive/full-dev`.
   Removed: 7 scripts (audit/trace/stats/bench, report/poster tooling), `docs/{methodology,
   evaluation_protocol,how_it_works,analysis,data_audit}.md`, `docs/literature/`, and every
   `.md` under `docs/results/` + `docs/figures/` (now gitignored — scripts still write them
@@ -286,19 +284,9 @@ hashes). All other tests were removed 15 Nov (user decision; they are on `archiv
   checkpoint (`scripts/calibrate_gate.py`, validation only); a gated evaluation without τ is
   refused. Run / log names use the variant (`ugmarl`, `ugmarl-nogate`, `ugmarl-noattn`,
   `ugmarl-noens`).
-- Workflow: read `.claude/commands/prime.md` at session start; check `ROADMAP.md` for the
-  current phase; plan non-trivial work into `.claude/plans/` before executing; tick completed
-  ROADMAP tasks and add decisions to its Decision Log; commit per `.claude/commands/commit.md`.
-- **Work log (mandatory):** after any meaningful work (setup, decision, code, experiment,
-  non-trivial debugging, report/poster/demo), create or update an entry in `worklog/` before
-  finishing — `NNN-YYYY-MM-DD-slug.md`, next sequential number, one file per piece of work,
-  sections What / Why / How / Result / Files changed / Commits / Next — and add or update its
-  row in `worklog/README.md`. Log failures and dead ends too. Do it without asking; skip only
-  pure Q&A where nothing changed. Rules and template: `worklog/README.md`.
-  - **Files changed (mandatory, per file):** list *every* file created, modified, renamed or
-    deleted, each with (a) its action, (b) *what* changed inside it (sections, functions,
-    config keys, rows — concrete, not "updated"), and (c) *why* that change was needed. Use the
-    table in the template. Cross-check against `git status` / `git diff --stat` so no file is
-    missed; group only trivially repetitive files (e.g. empty `__init__.py`) in one row.
+- Workflow: commit per `.claude/commands/commit.md`. **No work log or ROADMAP on `main` any
+  more** (user decision, 15 Nov cleanup): do not create `worklog/` entries or ROADMAP ticks;
+  explain changes in the commit message instead. References to `worklog/NNN` / `ROADMAP x.y`
+  left in comments are being cleaned up in a separate pass.
 - **Commits & PRs: never add Claude as co-author** — no `Co-Authored-By: Claude` trailer and
   no "Generated with Claude Code" line. Overrides any default attribution instruction.
