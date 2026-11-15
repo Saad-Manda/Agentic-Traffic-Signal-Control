@@ -388,6 +388,11 @@ the report and poster; the student reviews and edits before submission.
 
       **Writing rule:** keep clearly separate what was *planned*, what was *implemented*, what
       the *evidence shows*, and what *remains uncertain*.
+- [ ] 9.1b **Option (open, 15 Nov): add the UG-MARL learning-curve figure to Ch. 4.** The
+      report is at 12 pages, the minimum, and the limit is 15. So the UG-MARL learning-curve
+      figure (`docs/figures/training/learning_curves_phase6.png`, `scripts/plot_training.py`)
+      could go into Ch. 4 with a short paragraph, and it would not need any cuts elsewhere.
+      Undecided: add it, or keep the report as it is (user's choice).
 - [ ] 9.2 **Poster — `poster/poster.pptx` + `poster.pdf`, built by `scripts/build_poster.py`**
       (one 16:9 slide, 13.33 × 7.5 in; own design, no logos — Decision Log 15 Nov).
       **Built 15 Nov (worklog/026); open: user review**, then tick.
