@@ -49,7 +49,7 @@ removal. `val_table.py` and `final_tables.py` stay as two separate files (user d
 | `worklog/027-…`, `worklog/README.md` | created / modified | this entry and its index row | mandatory work log |
 
 ## Commits
-Not committed yet.
+`8c990f3` chore: remove scripts not needed for the model
 
 ## Next
 Cleanup step 2: humanize the kept code (docstrings citing ROADMAP / plan IDs, etc.); remove
