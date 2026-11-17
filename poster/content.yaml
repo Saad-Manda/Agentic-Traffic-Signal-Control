@@ -30,9 +30,10 @@ existing:
 contributions:
   heading: "Contributions"
   items:
-    - "**Ensemble disagreement σ chooses the action** at execution time; earlier ensemble Q-learners use the heads to explore [3]."
-    - "**The learned policy leads, Max-Pressure is the fallback** (Com-MP [4] does the reverse), at each intersection separately [5]."
-    - "**Evaluation beyond clean benchmarks:** noise, dropout, demand surge, unseen city; attention weights tested before being read as explanations [2]."
+    - "**Formulation, data:** baseline limits measured on identical flows; observations scaled by lane capacity, nothing fitted."
+    - "**Model, theory:** Q-head disagreement σ picks the learned or Max-Pressure phase [3, 4, 5]; stability proven for the fallback only [1]."
+    - "**Gain:** smallest worst-case regret ({regret@ugmarl@worst} s); attention tested [2]."
+    - "**Validation:** 5 seeds, 6 test conditions, unseen city."
 
 setup:
   heading: "Data and protocol"
