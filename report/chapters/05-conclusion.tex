@@ -23,8 +23,8 @@ badly: the learned ones under detector noise, Max-Pressure on clean data and in 
 The largest regret of \ugmarl{} over the six conditions is \res{regret}{ugmarl}{worst}\,s,
 against \res{regret}{max_pressure}{worst}--\res{regret}{dqn}{worst}\,s for the baselines, and
 on an unseen city it performs at the level of DQN.
-\item \textbf{What the uncertainty measures.} $\sigma$ rises for inputs that look unlike the
-training data. This is why the gate helps under detector noise. It is also why the gate fires
+\item \textbf{What the uncertainty measures.} $\sigma$ rises for any input that looks unlike
+the training data. The gate therefore fires under detector noise, where it helps, and also
 during a demand surge, where it makes the longest wait worse.
 \end{itemize}
 
@@ -54,8 +54,8 @@ coursework and is not redistributed. The trips are anonymous and carry no identi
 personal data is processed. Fairness between road users was examined through waiting per
 approach. The learned controllers share waiting evenly across the four approaches (22--29\,\%
 each), and the longest unbroken queue on one approach lasts 849\,s under \ugmarl{} against
-1275\,s under Max-Pressure. Individual vehicles can still wait a very long time when demand is
-heavy. The controller has only been run in simulation and has no safety certification, and the
+1275\,s under Max-Pressure, although single vehicles still wait a very long time when demand
+is heavy. The controller has only been run in simulation and has no safety certification, and the
 gap between the simulator and real roads is unknown. Putting it on a real road would need fixed
 limits on red time, pedestrian phases and supervision by traffic engineers.
 
@@ -64,8 +64,9 @@ limits on red time, pedestrian phases and supervision by traffic engineers.
 The results suggest four next steps. (1) A fallback with a hard cap on the red time of each
 movement would bound the worst case of a single vehicle by design. (2) The gate needs a signal
 that tells unreliable inputs apart from heavy but correctly measured demand, for instance by
-adding a queue-based trigger or randomised prior functions to the ensemble. (3) Filtering the detector
-readings before they reach the fallback, since without filtering none of the controllers here
-beats Max-Pressure under noise. (4) Tuning the learning settings of \ugmarl{} on their own and
-running more seeds, to find out whether the gap to DQN comes from the architecture. Tests on
+adding a queue-based trigger or randomised prior functions to the ensemble. (3) The detector
+readings could be filtered before they reach the fallback; without filtering, none of the
+controllers here beats Max-Pressure under noise. (4) Tuning the learning settings of \ugmarl{}
+separately and running more seeds would show whether the gap to DQN comes from the
+architecture. Tests on
 irregular networks and with realistic detector faults would show how far these findings hold.

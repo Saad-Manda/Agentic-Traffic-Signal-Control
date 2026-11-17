@@ -1,9 +1,8 @@
 \chapter{Results and Discussion}
 \label{ch:results}
 
-Every number in this chapter comes from the Jinan test flow or the Hangzhou flows. Each
-episode was simulated once with the locked models, and the learned agents are reported as the
-mean $\pm$ standard deviation over seeds 0--4.
+Every number in this chapter comes from the Jinan test flow or the Hangzhou flows, and the
+learned agents are reported as the mean $\pm$ standard deviation over seeds 0--4.
 
 \section{Performance Evaluation Metrics}
 \label{sec:metrics}
@@ -48,8 +47,7 @@ learner. Waiting time, queue length and throughput put the controllers in the sa
 
 On clean data the best controller is the single shared DQN (\res{tt}{dqn}{clean}\,s).
 \ugmarl{} trails it by \res{regret}{ugmarl}{clean}\,s (1.1\,\%) and the intervals do not
-overlap. None of the hypotheses was about this comparison, but it is a loss and is reported
-as one. The maximum wait of \ugmarl{} (\res{maxw}{ugmarl}{clean}\,s) is lower than that of
+overlap; no hypothesis covered this comparison. The maximum wait of \ugmarl{} (\res{maxw}{ugmarl}{clean}\,s) is lower than that of
 Max-Pressure (\res{maxw}{max_pressure}{clean}\,s), which meets the minimum outcome set in
 advance. Against DQN and IDQN it is level, since the intervals overlap.
 
@@ -78,10 +76,9 @@ Max-Pressure shows the opposite pattern. It is best under noise and 12--62\,s be
 controller in the other conditions. In each condition \ugmarl{} stays close to whichever of the
 two does better. At noise 0.2 it holds \res{tt}{ugmarl}{noise0.2}\,s, level with Max-Pressure
 (\res{tt}{max_pressure}{noise0.2}\,s), and under dropout and the surge it is level with DQN.
-Over the six conditions its largest regret is \res{regret}{ugmarl}{worst}\,s. For Max-Pressure
-it is \res{regret}{max_pressure}{worst}\,s, for IDQN \res{regret}{idqn}{worst}\,s and for DQN
-\res{regret}{dqn}{worst}\,s. \ugmarl{} wins none of the conditions, and it is never far
-behind the winner.
+\ugmarl{} is best in none of the six conditions, but its largest regret over them is
+\res{regret}{ugmarl}{worst}\,s, against \res{regret}{max_pressure}{worst}\,s for
+Max-Pressure, \res{regret}{idqn}{worst}\,s for IDQN and \res{regret}{dqn}{worst}\,s for DQN.
 
 \textbf{H2 is supported} under the three-part rule. With the gate, the maximum wait is
 \res{maxw}{ugmarl}{clean} against \res{maxw}{ugmarl-nogate}{clean}\,s on clean data and
@@ -128,8 +125,7 @@ Max-Pressure at noise 0.1 and \res{fb}{ugmarl}{noise0.2}\,\% at noise 0.2, compa
 \res{fb}{ugmarl}{clean}\,\% on clean data. Dropout leaves it almost unchanged
 (\res{fb}{ugmarl}{drop0.1} and \res{fb}{ugmarl}{drop0.2}\,\%). The detectors are clean during
 the surge, yet $\sigma$ grows with the queues, and the fallback rate climbs through the hour
-to an average of \res{fb}{ugmarl}{surge1.5}\,\%. In short, $\sigma$ responds to any input that
-looks unlike the training data, whatever caused it.
+to an average of \res{fb}{ugmarl}{surge1.5}\,\%.
 
 \section{Discussion of Findings}
 \label{sec:discussion}
@@ -184,10 +180,10 @@ The saved logs were split by intersection, by 10-minute window and by route.
 for trips through one intersection to 37\,s for trips through four or more.
 \item \emph{Where it loses.} The 3.2\,s deficit to DQN is spread out. Waiting is higher at
 every intersection (by up to 12\,\%), in every time window and for every route length. The
-gate is not to blame, because the same checkpoints without it are level with the gated model.
+gate is not the cause: the same checkpoints without it are level with the gated model.
 All four \ugmarl{} variants trail DQN, so the gap comes either from the network family or
-from its learning settings, which were tuned for DQN and reused. The available runs cannot tell
-these two apart.
+from its learning settings, which were tuned for DQN and reused, and the available runs
+cannot separate the two.
 \item \emph{A failure the metrics hide.} At noise 0.2 the ungated learned controllers keep
 584--795 of the 5494 vehicles (11--14\,\%) out of the network for the whole hour, because the
 entry roads stay jammed. \ugmarl{} and Max-Pressure keep none out. The waiting-time metrics
@@ -209,7 +205,7 @@ Max-Pressure, so the gate does not add switching.
 For each decision the system logs $\sigma$, $\tau$, whether the gate fired, the learned
 phase, the Max-Pressure phase and the attention weights. These are associations, and two
 checks on validation data show how far they can be read. The first is that $\sigma$ has almost
-no correlation with the temporal-difference error (Spearman $\rho\approx0.03$). It flags
+no correlation with the temporal-difference error (Spearman $\rho\approx0.03$), so it flags
 unfamiliar inputs and says little about whether an action is wrong. The second check swaps
 out one neighbour's observation. Swapping the neighbour with the highest attention weight
 moves the Q-value more than swapping the one with the lowest (0.0061 against 0.0022, paired

@@ -18,8 +18,7 @@ single vehicle, and its model has neither finite lanes nor time lost at phase ch
 Deep Q-networks (DQN) \citep{mnih2015human} learn the value of each action from a state
 vector and were soon applied to isolated intersections. A single agent either controls one
 intersection or treats every intersection on its own with shared weights, which is the
-single-agent baseline used here. These agents output a phase and nothing about how far that
-choice can be trusted.
+single-agent baseline used here.
 
 \subsection{Multi-agent reinforcement learning}
 The simplest multi-agent form gives every intersection its own independent learner (IDQN),
@@ -43,9 +42,9 @@ gives each head a random subset of the experience. In signal control, ensembles 
 have been used to explore during training \citep{tan2020multiagent}, not to judge a decision
 once the controller is running. In automated driving, by contrast, Hoel et al.\
 \citep{hoel2020tactical} let an ensemble's disagreement switch a vehicle to a safe action at
-execution time. The concurrent Com-MP \citep{zhu2026commp} combines RL with Max-Pressure by
-keeping Max-Pressure as the phase selector and letting RL adapt it, which keeps a stability
-claim by construction but confines learning to the rule.
+execution time. The concurrent Com-MP \citep{zhu2026commp} combines RL with Max-Pressure in a
+way that keeps a stability claim by construction, at the cost of confining learning to the
+rule.
 
 \subsection{Explainability}
 Attention weights are often shown as explanations of a controller's decisions
@@ -53,21 +52,19 @@ Attention weights are often shown as explanations of a controller's decisions
 whether attention explains a given model has to be tested on that model.
 
 \section{Research Gaps}
+\label{sec:gaps}
 
-Three gaps stand out against the requirements of the problem statement.
+Measured against the problem statement, three gaps remain.
 
 \textbf{No reliability signal when the controller acts.} RL signal controllers return a phase
-and no sign of whether the decision can be trusted. Where ensembles of Q-heads exist, their
-disagreement serves exploration during training and is discarded afterwards
-\citep{tan2020multiagent}.
+with no indication of whether it can be trusted. Where ensembles of Q-heads exist, their
+disagreement is used for exploration and dropped after training.
 
 \textbf{Performance and guarantees live in different controllers.} Learned controllers are
 best on average and have no guarantee; Max-Pressure has a stability result and does not
-learn. Falling back to a safe controller when an ensemble disagrees is established for a
-single vehicle \citep{hoel2020tactical}, and the one recent hybrid of RL and Max-Pressure
-leaves the rule in charge \citep{zhu2026commp}. The search behind this review
-found no multi-agent signal controller that lets a learned policy lead and hands individual
-decisions back to Max-Pressure when its uncertainty is high.
+learn. The search behind this review was not exhaustive, but it found no multi-agent signal
+controller that lets a learned policy lead and hands individual decisions back to
+Max-Pressure when its uncertainty is high.
 
 \textbf{Robustness and explanations are rarely tested.} Most studies evaluate with perfect
 detectors on the training demand, and attention maps are presented without checking that they
@@ -76,12 +73,12 @@ reflect what the network uses.
 \ugmarl{} answers the first two gaps with a gate that reads ensemble disagreement while the
 controller runs, and the third with tests under detector noise, dropout, demand surge and an
 unseen city, plus a faithfulness check of the attention weights. Two published methods are
-closest. Com-MP also joins learning with Max-Pressure, but Max-Pressure always selects the
-phase there, whereas in \ugmarl{} the learned policy selects it and Max-Pressure takes over
-only when the uncertainty is high. Hoel et al.\ use the same chain of ensemble, threshold
-and fallback for one vehicle; here it runs at every intersection of a multi-agent network,
-with a fallback that has a stability result. The literature search was not exhaustive, so
-this claim holds only as far as that search reached. Attention-based coordination \citep{wei2019colight}, the
+closest. Com-MP \citep{zhu2026commp} also joins learning with Max-Pressure, but there
+Max-Pressure always selects the phase and RL adapts it; in \ugmarl{} the learned policy
+selects it and Max-Pressure takes over only when the uncertainty is high. Hoel et al.\
+\citep{hoel2020tactical} use the same chain of ensemble, threshold and fallback for one
+automated vehicle. \ugmarl{} runs it independently at each of the 12 or 16 intersections of a
+network, and its fallback has a stability result. Attention-based coordination \citep{wei2019colight}, the
 pressure reward \citep{wei2019presslight}, bootstrapped Q-heads \citep{osband2016deep} and the
 stability of Max-Pressure \citep{varaiya2013max} come from the cited work and are not claimed
 as new.

@@ -167,9 +167,9 @@ z_i=\Big[\,e_0\,\Big\|\,\sum_j\alpha_{ij}W_v e_j\Big].
 \label{eq:attention}
 \end{equation}
 A missing neighbour gets a weight of zero. The same weights therefore handle two, three or
-four neighbours, and grids of other sizes. The weight $\alpha_{ij}$ says how much slot $j$
-adds to $z_i$. That is an association inside the network and says nothing causal about
-how a neighbour affects the action.
+four neighbours, and grids of other sizes. The weight $\alpha_{ij}$ gives the share of slot
+$j$ in $z_i$; whether a neighbour actually moves the decision is tested separately in
+\cref{sec:discussion}.
 
 \subsection{Q-ensemble and uncertainty}
 On top of the shared $z_i$ sit $K$ two-layer heads $Q_1,\dots,Q_K$ (hidden width 128),
@@ -190,10 +190,10 @@ The agent acts on the mean of the heads and measures how far they spread at the 
 \end{equation}
 A head predicts an expected return, so the randomness of the traffic is averaged out within
 each head. What separates the heads is their initialisation and the experience their masks let
-through, which makes $\sigma$ an estimate of epistemic (model) uncertainty. It is a rough
-estimate. The heads share an encoder and are correlated, $\sigma$ is measured in Q units and
-is not a probability of error, and if all heads extrapolate a state in the same wrong way,
-$\sigma$ stays low. With the chosen $K=3$ and $d_e=128$, the network has 157\,720 parameters.
+through, which makes $\sigma$ an estimate of epistemic (model) uncertainty. Since the heads
+share an encoder they are correlated, and a state that all of them extrapolate in the same
+wrong way gets a low $\sigma$. $\sigma$ is also measured in Q units, not as a probability of
+error. With the chosen $K=3$ and $d_e=128$, the network has 157\,720 parameters.
 
 \subsection{Uncertainty gate}
 During evaluation, each intersection that is ready to decide applies
@@ -216,6 +216,7 @@ degraded-detector versions of it. Using the clean flow alone would have chosen n
 back, because the learned policy already beats Max-Pressure on it.
 
 \subsection{Safety argument}
+\label{sec:safety}
 \citet{varaiya2013max} proves that Max-Pressure keeps the expected total queue bounded if
 queues are points with unlimited storage, turning ratios are known, demand lies strictly inside
 the capacity region and the rule runs in every slot on the true queues. When the gate always
@@ -223,17 +224,16 @@ fires ($\tau<0$), \ugmarl{} \emph{is} Max-Pressure and the result holds as it st
 mixed policy only a sketch exists. Under any phase choice, the drift of a quadratic queue
 function differs from the Max-Pressure drift by a bounded amount per slot. The drift therefore
 stays negative if the learned policy acts in few enough slots or if demand sits far enough
-inside the capacity region, and a lower $\tau$ moves the system towards the proven case. None
-of this covers the controller as it actually runs. Its lanes are finite, it acts every 15\,s on
-counts that may be noisy, demand is not guaranteed to stay inside the capacity region, and
-a bounded queue does not bound how long one vehicle waits. The mixed policy is therefore not called
-provably stable, and its worst case is measured instead (H2).
+inside the capacity region, and a lower $\tau$ moves the system towards the proven case. The
+controller as it actually runs falls outside the theorem: its lanes are finite, it acts every
+15\,s on counts that may be noisy, and nothing keeps demand inside the capacity region. Even a
+bounded queue would not bound how long one vehicle waits. For these reasons the mixed policy
+is not called provably stable, and its worst case is measured instead (H2).
 
 \section{Algorithm}
 \label{sec:algorithm}
 
-\Cref{alg:ugmarl} sets out the full procedure, and each of its lines was checked against
-the code.
+\Cref{alg:ugmarl} sets out the full procedure.
 
 \input{figures/algorithm}
 

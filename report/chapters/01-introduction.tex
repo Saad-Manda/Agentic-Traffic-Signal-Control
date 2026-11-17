@@ -18,9 +18,9 @@ the problem statement lists for agentic systems. Their decisions become unreliab
 inputs drift away from the training data, they give no warning when that happens, nothing
 bounds their worst case, and their decisions are hard to explain. Benchmark studies add that
 reported gains are fragile and that a well-tuned independent DQN often matches newer methods
-\citep{ault2021reinforcement}. This project combines the two families: the learned
-multi-agent controller acts where it is reliable, the rule takes over where it is not, and
-the learned controller's own uncertainty decides which one acts.
+\citep{ault2021reinforcement}. This project combines the two families. A learned multi-agent
+controller picks the phase, and when its own uncertainty about a decision is high, Max-Pressure
+picks it instead.
 
 \section{Problem Statement}
 
@@ -33,8 +33,8 @@ $4\times4$), \emph{choose} the next signal phase of each intersection every
 $\dt$ seconds over a one-hour episode, \emph{under} minimum-green and yellow-transition
 constraints and with possibly noisy or missing detector readings, \emph{so that} the
 average travel time is lower than that of the baselines and the longest wait of a vehicle
-stays bounded. Each action changes the inputs that follow, so this is sequential
-decision-making rather than prediction of a fixed label.
+stays bounded. Each action changes the inputs that follow, which makes this a sequential
+decision problem.
 
 \section{Objectives}
 
@@ -55,7 +55,7 @@ compared with the same model without attention.
 \end{itemize}
 \item Measure robustness (detector noise, dropout, demand surge), transfer to an unseen
 city, cost and explainability. The minimum acceptable outcome is a maximum wait no worse
-than that of Max-Pressure, and negative results are reported as they came out.
+than that of Max-Pressure.
 \end{enumerate}
 
 \section{Scope of the Work}
@@ -68,33 +68,50 @@ transport, irregular networks and agents built on language models are out of sco
 
 \section{Contributions}
 
-Each contribution below changes something in an existing method or practice.
+The contributions are listed in the order in which the work was done.
 \begin{enumerate}
-\item \textbf{Ensemble disagreement chooses the action.} Earlier ensemble Q-learners for
-signals use the heads to explore during training \citep{tan2020multiagent}. \ugmarl{} keeps
-the heads at execution time and uses their disagreement $\sigma$ to decide, at every
-intersection and every decision, whether the learned phase or the Max-Pressure phase is
-applied (\cref{sec:arch}).
-\item \textbf{The learned policy leads and Max-Pressure is the fallback.} Com-MP
-\citep{zhu2026commp} lets Max-Pressure choose the phase and uses RL to adapt it. \ugmarl{}
-reverses the roles: the learned policy chooses, so it keeps its advantage on clean data
-(25\,s ahead of Max-Pressure), and Max-Pressure returns when the inputs look unfamiliar
-(\res{fb}{ugmarl}{noise0.2}\,\% of decisions at noise 0.2).
-\item \textbf{Uncertainty fallback moved from one vehicle to a network of agents.} Hoel et
-al.\ \citep{hoel2020tactical} switch a single automated vehicle to a safe action when an
-ensemble disagrees. Here the same pattern runs independently at each of 12 or 16
-intersections, and the fallback has a queue-stability result whose limits are stated
-(\cref{sec:arch}).
-\item \textbf{Evaluation beyond clean benchmarks.} Published controllers are usually scored
-with perfect detectors on the demand they were trained for. All controllers here are run
-under one frozen protocol with detector noise, dropout, a demand surge and an unseen city,
-and the results are read with rules written before the test flow was opened. The learned
-baselines beat Max-Pressure by 13--29\,s on clean data and lose to it by 345--415\,s under
-noise; \ugmarl{} has the smallest worst-case regret (\res{regret}{ugmarl}{worst}\,s,
-\cref{sec:comparison}).
-\item \textbf{Attention weights checked before being used as explanations.} CoLight
-\citep{wei2019colight} presents its attention weights as an explanation. Here the weights are
-logged with $\sigma$ and the gate outcome for every decision and then tested: they rank
-neighbour influence correctly, but neighbours carry only about a seventh of the influence of
-the intersection's own observation (\cref{sec:discussion}).
+\item \textbf{Problem formulation and data design.} Signal control on a road network is
+formulated as a decentralised semi-Markov decision problem with minimum-green and transition
+constraints, and noisy or missing detector readings are treated as part of that problem
+(\cref{sec:arch}). The conventional, single-agent and multi-agent frameworks are compared on
+identical flows to measure their limits: the learned baselines beat Max-Pressure by
+13--29\,s on clean data and lose to it by 345--415\,s at detector noise 0.2
+(\cref{sec:comparison}). The 44 observed values are scaled by lane capacity, so no statistic
+is fitted on data, and whole flow files are assigned to the splits before any other step
+(\cref{sec:prep}).
+\item \textbf{Mathematical modelling and theoretical analysis.} The reward, the learning
+target that discounts by elapsed time, the masked ensemble loss, the uncertainty $\sigma$ and
+the gate rule with its percentile threshold are written in closed form
+(\cref{eq:reward,eq:target,eq:loss,eq:sigma,eq:gate}). The stability claim covers one case only.
+When the gate always fires, the controller is Max-Pressure, and the queue-stability theorem of
+\citet{varaiya2013max} applies under its assumptions. For the mixed policy a drift argument
+is sketched without proof, and its worst case is measured instead (\cref{sec:safety}).
+\item \textbf{Proposed framework.} \ugmarl{} is a multi-agent Q-learner. At every
+intersection and every decision, the disagreement of an ensemble of Q-heads decides whether
+the learned phase or the Max-Pressure phase is applied. Earlier ensemble Q-learners for
+signals use the heads only to explore during training \citep{tan2020multiagent}, while
+\ugmarl{} keeps them at execution time to choose the action. How it differs from the two
+closest methods, Com-MP and the ensemble switch of Hoel et al., is set out in
+\cref{sec:gaps}.
+\item \textbf{Technical advancement: robustness and interpretability.} With the same weights,
+the gate limits the rise in travel time at detector noise 0.2 to
+\res{dtt}{ugmarl}{noise0.2}\,s, against \res{dtt}{ugmarl-nogate}{noise0.2}\,s without it.
+Over six test conditions the largest regret of \ugmarl{} is \res{regret}{ugmarl}{worst}\,s,
+the smallest of all controllers (\cref{tab:robust}). Each decision is logged with $\sigma$,
+the gate outcome and the attention weights. CoLight \citep{wei2019colight} presents its
+attention weights as an explanation. Here the weights were tested before being read that way:
+they rank neighbour influence correctly, but a neighbour carries only about a seventh of the influence
+of the intersection's own observation (\cref{sec:discussion}). One joint decision takes
+0.81\,ms.
+\item \textbf{Experimental validation and comparative analysis.} Four baselines and three
+ablations run on real demand under one protocol, frozen before training, with five seeds,
+95\,\% confidence intervals, a threshold sensitivity sweep and an error analysis
+(\cref{ch:results}). The rules for judging the hypotheses were written before the test flow
+was opened. H1 and H2 are supported; H3 is not.
+\item \textbf{Generalisation and practical applicability.} The Jinan models are evaluated on
+Hangzhou, a city with a different grid size, without retraining or recalibration. There
+\ugmarl{} reaches \res{tt}{ugmarl}{hz-all}\,s, level with DQN and 22\,s ahead of Max-Pressure
+(\cref{tab:heldout}). Detector noise, dropout and a demand surge stand in for conditions a
+deployed controller would meet, and they also show a limit: under the surge the gate makes
+the longest wait of a vehicle longer (\cref{sec:discussion}).
 \end{enumerate}
