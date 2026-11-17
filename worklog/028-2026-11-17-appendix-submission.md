@@ -76,7 +76,7 @@ made by the user; submission folders under `submission/` in the repo.
   document. Report stays at 13 pages, `check_report.py` ok.
 
 ## Commits
-Not committed yet.
+`a55a104` docs(report): appendix; `665b3c1` docs(submission): results workbook; `82854af` docs(submission): cited papers
 
 ## Next
 User review of the humanized contributions and appendix; commit.

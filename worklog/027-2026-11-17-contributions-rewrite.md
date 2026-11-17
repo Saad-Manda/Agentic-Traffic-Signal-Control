@@ -49,7 +49,7 @@ categories. User decisions of 17 Nov:
 | `worklog/027-2026-11-17-contributions-rewrite.md`, `worklog/README.md` | created / modified | this entry and its index row | work log rule |
 
 ## Commits
-Not committed yet.
+`e8487f1` docs(poster): regroup contributions; `a55a104` docs(report): rewrite contributions, add appendix, tighten prose
 
 ## Next
 User review of the new wording; appendix for the report (user plans to add one).
